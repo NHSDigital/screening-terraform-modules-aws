@@ -81,7 +81,7 @@ jobs:
     secrets: inherit
   test-stage: # Recommended maximum execution time is 5 minutes
     name: "Test stage"
-    needs: [metadata, commit-stage]
+    needs: [metadata]
     uses: ./.github/workflows/stage-2-test.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -94,7 +94,7 @@ jobs:
     secrets: inherit
   build-stage: # Recommended maximum execution time is 3 minutes
     name: "Build stage"
-    needs: [metadata, test-stage]
+    needs: [metadata]
     uses: ./.github/workflows/stage-3-build.yaml
     if: needs.metadata.outputs.does_pull_request_exist == 'true' || (github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened'))
     with:
