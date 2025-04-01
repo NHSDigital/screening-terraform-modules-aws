@@ -1,6 +1,6 @@
 # Screening Terraform Modules
 
-This repo holds the common modules that are used across the screening services.
+This repository holds the common modules that are used across the screening services.
 
 ## Table of Contents
 
