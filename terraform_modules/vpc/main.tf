@@ -16,7 +16,7 @@ resource "aws_subnet" "public_subnet_a" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = true
   tags = {
-    Name = "${var.environment}-${var.name}-public-a"
+    Name                     = "${var.environment}-${var.name}-public-a"
     "kubernetes.io/role/elb" = 1
   }
 }
@@ -28,7 +28,7 @@ resource "aws_subnet" "public_subnet_b" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = true
   tags = {
-    Name = "${var.environment}-${var.name}-public-b"
+    Name                     = "${var.environment}-${var.name}-public-b"
     "kubernetes.io/role/elb" = 1
   }
 }
@@ -40,7 +40,7 @@ resource "aws_subnet" "private_subnet_a" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = false
   tags = {
-    Name = "${var.environment}-${var.name}-private-a"
+    Name                              = "${var.environment}-${var.name}-private-a"
     "kubernetes.io/role/internal-elb" = 1
   }
 }
@@ -52,7 +52,7 @@ resource "aws_subnet" "private_subnet_b" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = false
   tags = {
-    Name = "${var.environment}-${var.name}-private-b"
+    Name                              = "${var.environment}-${var.name}-private-b"
     "kubernetes.io/role/internal-elb" = 1
   }
 }
@@ -83,7 +83,7 @@ resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.vpc.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gw_a.id
   }
   tags = {
