@@ -79,7 +79,7 @@ resource "aws_route_table" "public_rt" {
 }
 
 # set the route table for private subnets
-resource "aws_route_table" "private_rt" {
+resource "aws_route_table" "private_rt_a" {
   vpc_id = aws_vpc.vpc.id
 
   route {
@@ -87,42 +87,57 @@ resource "aws_route_table" "private_rt" {
     nat_gateway_id = aws_nat_gateway.nat_gw_a.id
   }
   tags = {
-    Name = "${var.environment} ${var.name} Private Route Table"
+    Name = "${var.environment} ${var.name} Private Route Table A"
+  }
+}
+
+resource "aws_route_table" "private_rt_b" {
+  vpc_id = aws_vpc.vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gw_b.id
+  }
+  tags = {
+    Name = "${var.environment} ${var.name} Private Route Table B"
   }
 }
 
 resource "aws_nat_gateway" "nat_gw_a" {
-  allocation_id = aws_eip.eip.id
+  allocation_id = aws_eip.eip_a.id
   subnet_id     = aws_subnet.public_subnet_a.id
   tags = {
     Name = "${var.environment} ${var.name} NAT GW A"
   }
 }
 
-resource "aws_eip" "eip" {
+resource "aws_eip" "eip_a" {
   tags = {
-    Name = "${var.environment} ${var.name} EIP"
+    Name = "${var.environment} ${var.name} EIP A"
   }
 }
 
-# connect gateway to public subnet
-resource "aws_route_table_association" "public_rta_a" {
-  subnet_id      = aws_subnet.public_subnet_a.id
-  route_table_id = aws_route_table.public_rt.id
+resource "aws_nat_gateway" "nat_gw_b" {
+  allocation_id = aws_eip.eip_b.id
+  subnet_id     = aws_subnet.public_subnet_b.id
+  tags = {
+    Name = "${var.environment} ${var.name} NAT GW B"
+  }
 }
 
-resource "aws_route_table_association" "public_rta_b" {
-  subnet_id      = aws_subnet.public_subnet_b.id
-  route_table_id = aws_route_table.public_rt.id
+resource "aws_eip" "eip_b" {
+  tags = {
+    Name = "${var.environment} ${var.name} EIP B"
+  }
 }
 
 # connect gateway to private subnet
 resource "aws_route_table_association" "private_rta_a" {
   subnet_id      = aws_subnet.private_subnet_a.id
-  route_table_id = aws_route_table.private_rt.id
+  route_table_id = aws_route_table.private_rt_a.id
 }
 
 resource "aws_route_table_association" "private_rta_b" {
   subnet_id      = aws_subnet.private_subnet_b.id
-  route_table_id = aws_route_table.private_rt.id
+  route_table_id = aws_route_table.private_rt_b.id
 }
