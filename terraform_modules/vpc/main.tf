@@ -63,7 +63,7 @@ resource "aws_subnet" "private_subnet_b" {
   }
 }
 
-# Create the internet gateway, 
+# Create the internet gateway,
 # this will allow traffic from the public subnets out to the internet
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
@@ -72,7 +72,7 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# create a route table so traffic in the public subnets 
+# create a route table so traffic in the public subnets
 # can breakout to the internet using the internet gateway
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.vpc.id
