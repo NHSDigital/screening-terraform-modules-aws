@@ -16,8 +16,9 @@ resource "aws_subnet" "public_subnet_a" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = true
   tags = {
-    Name                     = "${var.environment}-${var.name}-public-a"
-    "kubernetes.io/role/elb" = 1
+    Name                                       = "${var.environment}-${var.name}-public-a"
+    "kubernetes.io/role/elb"                   = 1
+    "kubernetes.io/cluster/${var.environment}" = "shared"
   }
 }
 
@@ -28,8 +29,9 @@ resource "aws_subnet" "public_subnet_b" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = true
   tags = {
-    Name                     = "${var.environment}-${var.name}-public-b"
-    "kubernetes.io/role/elb" = 1
+    Name                                       = "${var.environment}-${var.name}-public-b"
+    "kubernetes.io/role/elb"                   = 1
+    "kubernetes.io/cluster/${var.environment}" = "shared"
   }
 }
 
@@ -40,8 +42,9 @@ resource "aws_subnet" "private_subnet_a" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = false
   tags = {
-    Name                              = "${var.environment}-${var.name}-private-a"
-    "kubernetes.io/role/internal-elb" = 1
+    Name                                       = "${var.environment}-${var.name}-private-a"
+    "kubernetes.io/role/internal-elb"          = 1
+    "kubernetes.io/cluster/${var.environment}" = "shared"
   }
 }
 
@@ -52,8 +55,9 @@ resource "aws_subnet" "private_subnet_b" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = false
   tags = {
-    Name                              = "${var.environment}-${var.name}-private-b"
-    "kubernetes.io/role/internal-elb" = 1
+    Name                                       = "${var.environment}-${var.name}-private-b"
+    "kubernetes.io/role/internal-elb"          = 1
+    "kubernetes.io/cluster/${var.environment}" = "shared"
   }
 }
 
