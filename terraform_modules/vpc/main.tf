@@ -24,6 +24,7 @@ resource "aws_subnet" "public_subnet_a" {
   tags = {
     Name                     = "${var.environment}-${var.name}-public-a"
     "kubernetes.io/role/elb" = 1
+    Type                     = "public"
   }
 }
 
@@ -35,6 +36,7 @@ resource "aws_subnet" "public_subnet_b" {
   tags = {
     Name                     = "${var.environment}-${var.name}-public-b"
     "kubernetes.io/role/elb" = 1
+    Type                     = "public"
   }
 }
 
@@ -48,6 +50,7 @@ resource "aws_subnet" "private_subnet_a" {
     Name                                       = "${var.environment}-${var.name}-private-a"
     "kubernetes.io/role/internal-elb"          = 1
     "kubernetes.io/cluster/${var.environment}" = "shared"
+    Type                                       = "private"
   }
 }
 
@@ -60,6 +63,7 @@ resource "aws_subnet" "private_subnet_b" {
     Name                                       = "${var.environment}-${var.name}-private-b"
     "kubernetes.io/role/internal-elb"          = 1
     "kubernetes.io/cluster/${var.environment}" = "shared"
+    Type                                       = "private"
   }
 }
 
