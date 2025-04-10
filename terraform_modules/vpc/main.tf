@@ -48,6 +48,7 @@ resource "aws_subnet" "private_subnet_a" {
     Name                                       = "${var.environment}-${var.name}-private-a"
     "kubernetes.io/role/internal-elb"          = 1
     "kubernetes.io/cluster/${var.environment}" = "shared"
+    Type                                       = "private"
   }
 }
 
@@ -60,6 +61,7 @@ resource "aws_subnet" "private_subnet_b" {
     Name                                       = "${var.environment}-${var.name}-private-b"
     "kubernetes.io/role/internal-elb"          = 1
     "kubernetes.io/cluster/${var.environment}" = "shared"
+    Type                                       = "public"
   }
 }
 
