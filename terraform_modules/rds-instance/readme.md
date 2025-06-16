@@ -1,29 +1,10 @@
-# EKS Auto Mode
+# RDS Instance
 
-This module will create an eks cluster with auto-mode, this means that the node group will adjust automatically based on the load.
+This module will create an RDS Instance, This instance can then have multiple databases created within it. In the BSS environment we have a single RDS instance and all the developers have databases created within it which are created by github pipelines.
 
 ## Preprequisites
 
-In order for this to work you will need to have a vpc running, there is a module defined to deploy a vpc in this repo, you will need to add some tags to get the networking functioning correctly, in your public subnets you will need these tags:
-
-```terraform
-"kubernetes.io/role/elb"          = "1"
-"mapPublicIpOnLaunch"             = "TRUE"
-"kubernetes.io/role/internal-elb" = "1",
-"karpenter.sh/discovery"          = "${var.name_prefix}-eks"
-```
-Then in your private subnets you will need these:
-
-```terraform
-"kubernetes.io/cluster/${var.name_prefix}-eks" = "shared"
-"kubernetes.io/role/internal-elb"              = "1",
-"mapPublicIpOnLaunch"                          = "FALSE"
-"karpenter.sh/discovery"                       = "${var.name_prefix}-eks"
-"kubernetes.io/role/cni"                       = "1"
-"mapPublicIpOnLaunch"                          = "FALSE"
-```
-
->**NOTE** Any values with `${var.name_prefix}-${var.name}` should match the name of your cluster
+In order for this to work you will need to have a vpc running, there is a module defined to deploy a vpc in this repo
 
 ## Setup
 
@@ -33,7 +14,7 @@ To use this module simply call it from your terraform stack, here is an example 
 terraform {
   backend "s3" {
     bucket       = "nhse-bss-cicd-state"
-    key          = "terraform-state/eks.tfstate"
+    key          = "terraform-state/rds.tfstate"
     region       = "eu-west-2"
     encrypt      = true
     use_lockfile = true
@@ -46,17 +27,22 @@ provider "aws" {
     tags = {
       Environment = var.environment
       Terraform   = "True"
-      Stack       = "EKS"
     }
   }
 }
 
-module "eks" {
-  source         = "./modules/eks"
-  name           = var.name
-  name_prefix    = var.name_prefix
-  environment    = var.environment
-  aws_account_id = var.aws_account_id
+module "rds" {
+  source              = "./modules/rds-instance"
+  name                = var.name
+  environment         = var.environment
+  aws_secret_id       = "postgres-credentials"
+  rds_instance_class  = "db.r7g.large"
+  rds_engine_version  = "17"
+  publicly_accessible = true
+  ingress_cidr        = var.ingress_cidr
+  skip_final_snapshot = true
+  name_prefix         = var.name_prefix
+  aws_account_id      = var.aws_account_id
 }
 ```
 
@@ -79,6 +65,10 @@ This is the name of the environment it is deployed into, this might be `CICD`, `
 ### aws_account_id
 
 This is the AWS account number, it should be stored securely and passed in as a secret. in the variables file it is defined as being sensitive so it will not be shown in terraform output.
+
+### ingress_cidr
+
+Used for security groups to allow external access, helpful for remote developers without requiring a VPN but should be used with care outside of CICD environment.
 
 ### Optional variables
 
