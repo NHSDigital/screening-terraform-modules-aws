@@ -12,6 +12,7 @@ In order for this to work you will need to have a VPC running, there is a module
 "kubernetes.io/role/internal-elb" = "1",
 "karpenter.sh/discovery"          = "${var.name_prefix}-eks"
 ```
+
 Then in your private subnets you will need these:
 
 ```terraform
@@ -91,5 +92,4 @@ There is a `yaml` directory which contains some example files
 the `ingress.yaml` file will need to be applied for application load balancers to be created automatically
 
 once the ingress has been applied you can apply the `load-balancer-test.yaml` to deploy a test app that should create an application load balancer automatically.
-
 
