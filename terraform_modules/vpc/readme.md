@@ -14,7 +14,7 @@ To use this module simply call it from your terraform stack, here is an example 
 terraform {
   backend "s3" {
     bucket       = "nhse-bss-cicd-state"
-    key          = "terraform-state/rds.tfstate"
+    key          = "terraform-state/vpc.tfstate"
     region       = "eu-west-2"
     encrypt      = true
     use_lockfile = true
@@ -27,28 +27,18 @@ provider "aws" {
     tags = {
       Environment = var.environment
       Terraform   = "True"
+      Stack       = "VPC"
     }
   }
 }
 
-module "rds" {
-  source              = "./modules/rds-instance"
-  name                = var.name
-  environment         = var.environment
-  aws_secret_id       = "postgres-credentials"
-  rds_instance_class  = "db.r7g.large"
-  rds_engine_version  = "17"
-  publicly_accessible = true
-  ingress_cidr        = var.ingress_cidr
-  skip_final_snapshot = true
-  name_prefix         = var.name_prefix
-  aws_account_id      = var.aws_account_id
+module "vpc" {
+  source      = "./modules/"
+  environment = var.environment
+  name        = var.name
+  name_prefix = var.name_prefix
 }
 ```
-
-## postgres-credentials
-
-This relies on an aws secret existing called `postgres-credentials` which should contain two key-value pairs, `username` and `password`
 
 ## Variables
 
@@ -65,14 +55,6 @@ This is the name of the resource, in BSS we are using `eks` as we have a single 
 ### environment
 
 This is the name of the environment it is deployed into, this might be `CICD`, `NTF`, `UFT` or `Prod`.
-
-### aws_account_id
-
-This is the AWS account number, it should be stored securely and passed in as a secret. in the variables file it is defined as being sensitive so it will not be shown in terraform output.
-
-### ingress_cidr
-
-Used for security groups to allow external access, helpful for remote developers without requiring a VPN but should be used with care outside of CICD environment.
 
 ### Optional variables
 

@@ -1,4 +1,4 @@
-# RDS Instance
+# VPC
 
 This module will create an RDS Instance, This instance can then have multiple databases created within it. In the BSS environment we have a single RDS instance and all the developers have databases created within it which are created by github pipelines.
 
@@ -46,6 +46,10 @@ module "rds" {
 }
 ```
 
+## postgres-credentials
+
+This relies on an aws secret existing called `postgres-credentials` which should contain two key-value pairs, `username` and `password`
+
 ## Variables
 
 There are a few key values that need to be passed in:
@@ -73,13 +77,4 @@ Used for security groups to allow external access, helpful for remote developers
 ### Optional variables
 
 There are many other variables which have default values which can be overwritten if desired, you can look in the variables.tf file for the full list which should all have descriptions explaining what they do.
-
-## Yaml Directory
-
-There is a yaml directory which contains some example files
-
-the `ingress.yaml` file will need to be applied for application load balancers to be created automatically
-
-once the ingress has been applied you can apply the `load-balancer-test.yaml` to deploy a test app that should create an application load balancer automatically.
-
 
