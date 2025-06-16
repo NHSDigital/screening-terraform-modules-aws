@@ -92,4 +92,3 @@ There is a `yaml` directory which contains some example files
 the `ingress.yaml` file will need to be applied for application load balancers to be created automatically
 
 once the ingress has been applied you can apply the `load-balancer-test.yaml` to deploy a test app that should create an application load balancer automatically.
-
