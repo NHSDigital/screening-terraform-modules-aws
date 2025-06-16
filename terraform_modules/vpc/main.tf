@@ -11,7 +11,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${var.environment}-${var.name}"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 
@@ -22,9 +22,12 @@ resource "aws_subnet" "public_subnet_a" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = true
   tags = {
-    Name                     = "${var.environment}-${var.name}-public-a"
-    "kubernetes.io/role/elb" = 1
-    Type                     = "public"
+    "Name" = "${var.name_prefix}${var.name}-public-a"
+    "Type" = "public"
+    # "kubernetes.io/role/elb"          = "1"
+    # "mapPublicIpOnLaunch"             = "TRUE"
+    # "kubernetes.io/role/internal-elb" = "1",
+    # "karpenter.sh/discovery"          = "${var.name_prefix}-eks"
   }
 }
 
@@ -34,9 +37,12 @@ resource "aws_subnet" "public_subnet_b" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = true
   tags = {
-    Name                     = "${var.environment}-${var.name}-public-b"
-    "kubernetes.io/role/elb" = 1
-    Type                     = "public"
+    "Name" = "${var.name_prefix}${var.name}-public-b"
+    "Type" = "public"
+    # "kubernetes.io/role/elb"          = "1"
+    # "mapPublicIpOnLaunch"             = "TRUE"
+    # "kubernetes.io/role/internal-elb" = "1",
+    # "karpenter.sh/discovery"          = "${var.name_prefix}-eks"
   }
 }
 
@@ -47,10 +53,14 @@ resource "aws_subnet" "private_subnet_a" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = false
   tags = {
-    Name                                       = "${var.environment}-${var.name}-private-a"
-    "kubernetes.io/role/internal-elb"          = 1
-    "kubernetes.io/cluster/${var.environment}" = "shared"
-    Type                                       = "private"
+    "Name" = "${var.name_prefix}${var.name}-private-a"
+    "Type" = "private"
+    # "kubernetes.io/cluster/${var.name_prefix}-eks" = "shared"
+    # "kubernetes.io/role/internal-elb"              = "1",
+    # "mapPublicIpOnLaunch"                          = "FALSE"
+    # "karpenter.sh/discovery"                       = "${var.name_prefix}${var.name}"
+    # "kubernetes.io/role/cni"                       = "1"
+    # "mapPublicIpOnLaunch"                          = "FALSE"
   }
 }
 
@@ -60,10 +70,14 @@ resource "aws_subnet" "private_subnet_b" {
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = false
   tags = {
-    Name                                       = "${var.environment}-${var.name}-private-b"
-    "kubernetes.io/role/internal-elb"          = 1
-    "kubernetes.io/cluster/${var.environment}" = "shared"
-    Type                                       = "private"
+    "Name" = "${var.name_prefix}${var.name}-private-b"
+    "Type" = "private"
+    # "kubernetes.io/cluster/${var.name_prefix}-eks" = "shared"
+    # "kubernetes.io/role/internal-elb"              = "1",
+    # "mapPublicIpOnLaunch"                          = "FALSE"
+    # "karpenter.sh/discovery"                       = "${var.name_prefix}${var.name}"
+    # "kubernetes.io/role/cni"                       = "1"
+    # "mapPublicIpOnLaunch"                          = "FALSE"
   }
 }
 
@@ -72,7 +86,7 @@ resource "aws_subnet" "private_subnet_b" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "${var.environment} ${var.name} Gateway"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 
@@ -86,7 +100,7 @@ resource "aws_route_table" "public_rt" {
     gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
-    Name = "${var.environment} ${var.name} Public Route Table"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 
@@ -96,13 +110,13 @@ resource "aws_nat_gateway" "nat_gw_a" {
   allocation_id = aws_eip.eip_a.id
   subnet_id     = aws_subnet.public_subnet_a.id
   tags = {
-    Name = "${var.environment} ${var.name} NAT GW A"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 
 resource "aws_eip" "eip_a" {
   tags = {
-    Name = "${var.environment} ${var.name} EIP A"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 
@@ -110,13 +124,13 @@ resource "aws_nat_gateway" "nat_gw_b" {
   allocation_id = aws_eip.eip_b.id
   subnet_id     = aws_subnet.public_subnet_b.id
   tags = {
-    Name = "${var.environment} ${var.name} NAT GW B"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 
 resource "aws_eip" "eip_b" {
   tags = {
-    Name = "${var.environment} ${var.name} EIP B"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 
@@ -131,7 +145,7 @@ resource "aws_route_table" "private_rt_a" {
     nat_gateway_id = aws_nat_gateway.nat_gw_a.id
   }
   tags = {
-    Name = "${var.environment} ${var.name} Private Route Table A"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 
@@ -143,7 +157,7 @@ resource "aws_route_table" "private_rt_b" {
     nat_gateway_id = aws_nat_gateway.nat_gw_b.id
   }
   tags = {
-    Name = "${var.environment} ${var.name} Private Route Table B"
+    Name = "${var.name_prefix}${var.name}"
   }
 }
 

@@ -16,3 +16,17 @@ Syft
 Terraform
 toolchain
 Trufflehog
+terraform
+Terraform
+vpc
+VPC
+repo
+name_prefix
+england
+northen
+ireland
+tfvar
+cli
+github
+yaml
+Yaml

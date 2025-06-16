@@ -4,4 +4,10 @@ variable "environment" {
 
 variable "name" {
   description = "The name of the resource"
+  default     = ""
 }
+
+variable "name_prefix" {
+  description = "the environment and project"
+}
+
