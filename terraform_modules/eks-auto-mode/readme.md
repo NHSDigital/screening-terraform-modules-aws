@@ -4,7 +4,7 @@ This module will create an eks cluster with auto-mode, this means that the node 
 
 ## Preprequisites
 
-In order for this to work you will need to have a vpc running, there is a module defined to deploy a vpc in this repo, you will need to add some tags to get the networking functioning correctly, in your public subnets you will need these tags:
+In order for this to work you will need to have a VPC running, there is a module defined to deploy a VPC in this repo, you will need to add some tags to get the network functioning correctly, in your public subnets you will need these tags:
 
 ```terraform
 "kubernetes.io/role/elb"          = "1"
@@ -27,7 +27,7 @@ Then in your private subnets you will need these:
 
 ## Setup
 
-To use this module simply call it from your terraform stack, here is an example terraform file:
+To use this module simply call it from your Terraform stack, here is an example Terraform file:
 
 ```terraform
 terraform {
@@ -78,7 +78,7 @@ This is the name of the environment it is deployed into, this might be `CICD`, `
 
 ### aws_account_id
 
-This is the AWS account number, it should be stored securely and passed in as a secret. in the variables file it is defined as being sensitive so it will not be shown in terraform output.
+This is the AWS account number, it should be stored securely and passed in as a secret. in the variables file it is defined as being sensitive so it will not be shown in Terraform output.
 
 ### Optional variables
 
@@ -86,7 +86,7 @@ There are many other variables which have default values which can be overwritte
 
 ## Yaml Directory
 
-There is a yaml directory which contains some example files
+There is a `yaml` directory which contains some example files
 
 the `ingress.yaml` file will need to be applied for application load balancers to be created automatically
 

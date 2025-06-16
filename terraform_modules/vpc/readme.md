@@ -4,11 +4,11 @@ This module will create an RDS Instance, This instance can then have multiple da
 
 ## Preprequisites
 
-In order for this to work you will need to have a vpc running, there is a module defined to deploy a vpc in this repo
+In order for this to work you will need to have a VPC running, there is a module defined to deploy a VPC in this repo
 
 ## Setup
 
-To use this module simply call it from your terraform stack, here is an example terraform file:
+To use this module simply call it from your Terraform stack, here is an example Terraform file:
 
 ```terraform
 terraform {
