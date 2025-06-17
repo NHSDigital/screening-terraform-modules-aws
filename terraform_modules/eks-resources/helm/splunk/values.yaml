@@ -1,0 +1,146 @@
+# This values.yaml is derived from the original values.yaml in the chart repo. The following link is for the exact version copied:
+# https://github.com/signalfx/splunk-otel-collector-chart/blob/594d938053cb23029f3b709ba39c543ab1114557/helm-charts/splunk-otel-collector/values.yaml
+
+# Set in overrides
+# clusterName: ""
+
+################################################################################
+# Splunk Cloud / Splunk Enterprise configuration.
+################################################################################
+
+environment: "cicd"
+
+clusterName: "nhse-bss-euwest2-cicd-eks"
+
+splunkPlatform:
+  index: "eks_logs_texas_k8s_dev"
+  metricsIndex: "eks_metrics_texas_k8s_dev"
+  #endpoint: "https://texas-0001.inputs.splunk.aws.digital.nhs.uk:8088"
+  endpoint: "https://firehose.inputs.splunk.aws.digital.nhs.uk/services/collector"
+  insecureSkipVerify: true
+  metricsEnabled: true
+  fieldNameConvention:
+    renameFieldsSck: true
+    keepOtelConvention: false
+
+cloudProvider: "aws"
+
+distribution: "eks"
+
+# Set in overrides
+# environment: production
+
+################################################################################
+# OPTIONAL CONFIGURATIONS OF PARTICULAR O11Y COLLECTOR COMPONENTS
+################################################################################
+
+################################################################################
+# OpenTelemetry Kubernetes cluster receiver
+# This is an extra 1-replica deployment of OpenTelemetry collector used
+# specifically for collecting metrics from kubernetes API.
+################################################################################
+
+# Cluster receiver collects cluster level metrics from the Kubernetes API.
+# It has to be running on one pod, so it uses its own dedicated deployment with 1 replica.
+
+clusterReceiver:
+  enabled: true
+
+  # Set in overrides
+  # resources:
+  #   limits:
+  #     cpu: 200m
+  #     memory: 500Mi
+
+  # The configuration format in details is described here:
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sobjectsreceiver
+  k8sObjects:
+    - name: pods
+      interval: 15m
+    - name: namespaces
+      interval: 15m
+    - name: nodes
+      interval: 15m
+    - name: services
+      interval: 15m
+    - name: configmaps
+      interval: 15m
+    - name: secrets
+      interval: 15m
+    - name: persistentvolumes
+      interval: 15m
+    - name: serviceaccounts
+      interval: 15m
+    - name: persistentvolumeclaims
+      interval: 15m
+    - name: resourcequotas
+      interval: 15m
+    - name: events
+      interval: 15m
+    - name: deployments
+      interval: 15m
+    - name: daemonsets
+      interval: 15m
+    - name: replicasets
+      interval: 15m
+    - name: statefulsets
+      interval: 15m
+
+  # OpenTelemetry Collector configuration for K8s Cluster Receiver deployment can be overriden in this field.
+  # Default configuration defined in templates/config/_otel-k8s-cluster-receiver-config.tpl
+  # Any additional fields will be merged into the defaults,
+  # existing fields can be disabled by setting them to null value.
+  # Set explicitly as an argument to the helm install.
+  # config: {}
+
+#################################################################
+# Native OpenTelemetry logs collection
+# Applicable only if "logsEngine: otel" (set by default).
+# Receiver Documentation: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
+# OpenTelemetry Logging Documentation: https://opentelemetry.io/docs/specs/otel/logs
+#################################################################
+
+# logsCollection:
+
+#   # Container logs collection
+#   containers:
+
+#     # Multiline logs processing configuration. Multiline logs that written by containers to stdout
+#     # are usually broken down into several one-line logs and can be reconstructed with a regex
+#     # expression that matches the first line of each logs batch. The following operator is being
+#     # utilized for this purpose:
+#     # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/pkg/stanza/docs/operators/recombine.md
+#     # By the time of reconstructing a multiline log the following information is available to
+#     # identify source of the logs: namespace, pod and container names. At least one source
+#     # identifier has to be specified in for each multiline config.
+#     multilineConfigs:
+#       - namespaceName:
+#           value: "nhse-.*"
+#           useRegexp: true
+
+################################################################################
+# Extra system configuration
+################################################################################
+
+rbac:
+  # Create or use existing RBAC resources
+  create: true
+  # Specifies additional rules that will be added to the clusterRole.
+  customRules:
+    - apiGroups: [""]
+      resources: ["configmaps", "secrets", "serviceaccounts"]
+      verbs: ["get", "list", "watch"]
+
+# Create or use existing secret if name is empty default name is used
+secret:
+  create: false
+  name: "splunk-hec-token"
+  # Specifies whether secret provided by user should be validated.
+  validateSecret: false
+
+# # This default tolerations allow the daemonset to be deployed on control-plane
+# # nodes, so that we can also collect logs and metrics from those nodes.
+tolerations:
+  - key: node_group_instance
+    effect: NoSchedule
+    operator: Exists
