@@ -67,7 +67,7 @@ There are a few key values that need to be passed in:
 
 ### name_prefix
 
-The `name_prefix` is the consistant part of the name which will be applied to all resources. In BSS that is `bss-cicd-en` for england and `bss-cicd-ni` for northen ireland. These would usually be passed in via either a tfvar file or via cli from a pipeline, we use github actions in the BSS team.
+The `name_prefix` is the consistant part of the name which will be applied to all resources. In BSS that is `bss-cicd-en` for england and `bss-cicd-ni` for northen ireland. These would usually be passed in via either a tfvar file or via cli from a pipeline, we use Github actions in the BSS team.
 
 ### name
 
