@@ -6,7 +6,7 @@
 
 TF_ENV ?= dev
 STACK ?= ${stack}
-TERRAFORM_STACK ?= $(or ${STACK}, terraform_modules)
+TERRAFORM_STACK ?= $(or ${STACK}, infrastructure)
 dir ?= ${TERRAFORM_STACK}
 
 terraform-init: # Initialise Terraform - optional: terraform_dir|dir=[path to a directory where the command will be executed, relative to the project's top-level directory, default is one of the module variables or the example directory, if not set], terraform_opts|opts=[options to pass to the Terraform init command, default is none/empty] @Development
