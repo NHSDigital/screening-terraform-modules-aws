@@ -1,48 +1,49 @@
-data "aws_secretsmanager_secret_version" "postgresql_credentials" {
-  secret_id = var.aws_secret_id
-}
-
-locals {
-  postgresql_credentials = jsondecode(data.aws_secretsmanager_secret_version.postgresql_credentials.secret_string)
-}
-data "aws_vpc" "vpc" {
-  filter {
-    name   = "tag:Name"
-    values = ["${var.name_prefix}"]
+terraform {
+  required_providers {
+    postgresql = {
+      source  = "cyrilgdn/postgresql"
+      version = ">= 1.25.0"
+    }
   }
 }
 
-# Get public subnets
-data "aws_subnets" "public_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.vpc.id]
-  }
-  filter {
-    name   = "tag:Type"
-    values = ["public"]
-  }
+provider "postgresql" {
+  host             = aws_db_instance.rds.address
+  username         = "postgres"
+  password         = random_password.password["postgres"].result
+  superuser        = false
+  expected_version = var.rds_engine_version
 }
 
-# Get private subnets
-data "aws_subnets" "private_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.vpc.id]
-  }
-  filter {
-    name   = "tag:Type"
-    values = ["private"]
-  }
+resource "random_password" "password" {
+  for_each         = toset(var.users)
+  length           = 20
+  special          = true
+  override_special = "!%^*-_+="
 }
 
-locals {
-  subnet_ids = var.environment == "cicd" ? data.aws_subnets.public_subnets.ids : data.aws_subnets.private_subnets.ids
+resource "aws_secretsmanager_secret" "password" {
+  for_each = toset(var.users)
+  name     = "${var.name_prefix}-${each.key}"
 }
+
+resource "aws_secretsmanager_secret_version" "password" {
+  for_each  = toset(var.users)
+  secret_id = aws_secretsmanager_secret.password[each.key].id
+  secret_string = jsonencode({
+    user     = each.key
+    password = random_password.password[each.key].result
+  })
+}
+
+
+# locals {
+#   subnet_ids = var.environment == "cicd" ? data.aws_subnets.public_subnets.ids : data.aws_subnets.private_subnets.ids
+# }
 
 resource "aws_db_subnet_group" "bss" {
   name       = "rds_subnet_group"
-  subnet_ids = local.subnet_ids
+  subnet_ids = var.subnet_ids
 }
 
 resource "aws_db_parameter_group" "parameter_group" {
@@ -117,8 +118,8 @@ resource "aws_db_instance" "rds" {
   instance_class                  = var.rds_instance_class
   engine                          = var.rds_engine
   engine_version                  = var.rds_engine_version
-  username                        = local.postgresql_credentials.username
-  password                        = local.postgresql_credentials.password
+  username                        = "postgres"
+  password                        = random_password.password["postgres"].result
   db_subnet_group_name            = aws_db_subnet_group.bss.id
   allocated_storage               = var.storage
   iops                            = var.storage >= 400 ? var.iops : null # Sets iops to null if storage is less than 400
@@ -192,7 +193,7 @@ resource "aws_iam_role_policy_attachment" "enhanced_monitoring" {
 resource "aws_security_group" "bss" {
   name        = "rds-${var.name}"
   description = "Allow connection by appointed rds postgres clients"
-  vpc_id      = data.aws_vpc.vpc.id
+  vpc_id      = var.vpc_id
 }
 
 resource "aws_security_group_rule" "bss_ingress" {
@@ -220,5 +221,72 @@ resource "random_string" "final-name" {
 }
 resource "random_id" "final_name" {
   byte_length = 1
+}
+
+# ROLES
+
+resource "postgresql_role" "release_manager_role" {
+  name               = "release_manager"
+  login              = true
+  password           = random_password.password["release_manager"].result
+  encrypted_password = true
+  create_database    = true
+  inherit            = true
+  provider           = postgresql
+  search_path = ["$user", "extn_pgtap", "extn_dblink", "extn_postgres_fdw", "extn_file_fdw", "audit", "bss_audit", "bss",
+  "bss_migration", "bss_kc63", "bss_sspi", "bss_cspna", "bss_integrity", "bss_support", "pi_4", "bss_reports"]
+  depends_on = [aws_db_instance.rds]
+}
+
+resource "postgresql_role" "audit_user_role" {
+  name               = "audit_user"
+  login              = true
+  password           = random_password.password["audit_user"].result
+  encrypted_password = true
+  create_database    = false
+  inherit            = true
+  provider           = postgresql
+  search_path        = ["audit"]
+  depends_on         = [aws_db_instance.rds]
+}
+
+resource "postgresql_role" "bss_readonly_role" {
+  name            = "bss_readonly"
+  login           = false
+  create_database = false
+  inherit         = true
+  provider        = postgresql
+  depends_on      = [aws_db_instance.rds]
+}
+resource "postgresql_role" "bss_readwrite_role" {
+  name            = "bss_readwrite"
+  login           = false
+  create_database = false
+  inherit         = true
+  provider        = postgresql
+  depends_on      = [aws_db_instance.rds]
+}
+
+resource "postgresql_role" "bss_user_role" {
+  name            = "bss_user"
+  login           = true
+  password        = random_password.password["bss_user"].result
+  create_database = false
+  inherit         = true
+  provider        = postgresql
+  search_path = ["$user", "extn_pgtap", "extn_dblink", "extn_postgres_fdw", "extn_file_fdw", "audit", "bss_audit", "bss",
+  "bss_migration", "bss_kc63", "bss_sspi", "bss_cspna", "bss_integrity", "bss_support"]
+  depends_on = [aws_db_instance.rds]
+}
+
+resource "postgresql_role" "pi_4_user_role" {
+  name            = "pi_4_user"
+  login           = true
+  password        = random_password.password["pi_4_user"].result
+  create_database = false
+  inherit         = true
+  provider        = postgresql
+  search_path     = ["pi_4"]
+  depends_on      = [aws_db_instance.rds]
 }
 

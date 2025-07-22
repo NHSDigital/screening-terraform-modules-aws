@@ -1,6 +1,6 @@
 # VPC
 
-This module will create an RDS Instance, This instance can then have multiple databases created within it. In the BSS environment we have a single RDS instance and all the developers have databases created within it which are created by github pipelines.
+This module will create an RDS Instance, This instance can then have multiple databases created within it. In the BSS environment we have a single RDS instance and all the developers have databases created within it which are created by Github pipelines.
 
 ## Preprequisites
 
@@ -44,9 +44,9 @@ module "vpc" {
 
 There are a few key values that need to be passed in:
 
-### name_prefix
+### prefix
 
-The `name_prefix` is the consistant part of the name which will be applied to all resources. In BSS that is `bss-cicd-en` for england and `bss-cicd-ni` for northen ireland. These would usually be passed in via either a tfvar file or via cli from a pipeline, we use github actions in the BSS team.
+The `name_prefix` is the consistant part of the name which will be applied to all resources. In BSS that is `bss-cicd-en` for England and `bss-cicd-ni` for Northern Ireland. These would usually be passed in via either a `tfvar` file or via the command line interface from a pipeline, we use Github actions in the BSS team.
 
 ### name
 

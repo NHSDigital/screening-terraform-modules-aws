@@ -194,3 +194,19 @@ variable "vpc_name" {
   type        = string
   default     = ""
 }
+
+variable "users" {
+  description = "List of usernames to generate passwords and secrets for"
+  type        = list(string)
+  default     = ["pi_4_user", "bss_user", "bss_readwrite", "bss_readonly", "audit_user", "release_manager", "postgres"]
+}
+
+variable "subnet_ids" {
+  description = "A list of subnets to use"
+  type        = list(string)
+}
+
+variable "vpc_id" {
+  description = "The id for the vpc"
+  type        = string
+}
