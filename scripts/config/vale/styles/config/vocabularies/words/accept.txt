@@ -2,8 +2,10 @@
 Bitwarden
 bot
 Cyber
+Cognito
 Dependabot
 Gitleaks
+Github
 Grype
 idempotence
 OAuth
@@ -11,6 +13,7 @@ Octokit
 onboarding
 Podman
 Python
+repo
 sed
 Syft
 Terraform
