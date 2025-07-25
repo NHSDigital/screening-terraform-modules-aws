@@ -47,6 +47,11 @@ resource "aws_elasticache_replication_group" "elasticache_replication_group" {
     log_format       = "text"
     log_type         = "slow-log"
   }
+  depends_on = [aws_cloudwatch_log_group.redis_engine_log, aws_cloudwatch_log_group.redis_slow_log]
+}
+
+resource "aws_iam_service_linked_role" "elasticache" {
+  aws_service_name = "elasticache.amazonaws.com"
 }
 
 resource "aws_elasticache_parameter_group" "bss_param_group_redis7" {
@@ -60,7 +65,7 @@ resource "aws_elasticache_parameter_group" "bss_param_group_redis7" {
   lifecycle {
     create_before_destroy = true
   }
-
+  depends_on = [aws_iam_service_linked_role.elasticache]
 }
 
 ######################
@@ -72,6 +77,7 @@ resource "aws_elasticache_subnet_group" "cache_subnet_group" {
   description = "Subnet group for Elasticache"
   # subnet_ids  = data.aws_subnets.private_subnets.ids
   subnet_ids = var.subnet_ids
+  depends_on = [aws_iam_service_linked_role.elasticache]
 }
 
 resource "aws_security_group" "cache_sg" {

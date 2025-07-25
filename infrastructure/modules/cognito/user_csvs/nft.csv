@@ -1,0 +1,7 @@
+uuid,bss_username,rbac_role,id_assurance_level
+000000000001,BSS_PERF1,"[{activities=[BS-Select], activity_codes=[B1808]}]",3
+000000000020,BSS_PERF20,"[{activities=[BS-Select], activity_codes=[B1808]}]",3
+100000000001,BSS_NO_RBAC,"[]",3
+100000000002,BSS_NO_ID_ASSURANCE,"[{activities=[BS-Select], activity_codes=[B1808]}]",0
+555033739104,BSS_USER1,"[{activities=[BS-Select], activity_codes=[B1808]}]",3
+555033745102,BSS_USER7,"[{activities=[BS-Select], activity_codes=[B1808]}]",3

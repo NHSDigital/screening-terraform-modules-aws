@@ -1,6 +1,7 @@
 ## ecs cluster
 resource "aws_ecs_cluster" "ecs_cluster" {
-  name = "${var.name_prefix}-${var.name}"
+  name       = "${var.name_prefix}-${var.name}"
+  depends_on = [aws_iam_service_linked_role.ecs]
 }
 
 # ------------------------------------------------------------------------------
@@ -27,3 +28,6 @@ resource "aws_security_group_rule" "ecs_all_egress" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
+resource "aws_iam_service_linked_role" "ecs" {
+  aws_service_name = "ecs.amazonaws.com"
+}
