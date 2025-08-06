@@ -29,7 +29,7 @@ resource "aws_config_configuration_recorder_status" "main" {
 
 resource "aws_config_delivery_channel" "main" {
   name           = "${var.name_prefix}-${var.name}"
-  s3_bucket_name = var.s3_bucket.bucket
+  s3_bucket_name = var.s3_bucket
 }
 
 resource "aws_config_configuration_recorder" "main" {
