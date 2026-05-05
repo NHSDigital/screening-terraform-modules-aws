@@ -62,7 +62,7 @@ No modules.
 | [aws_iam_policy_document.copy_recovery_point_permissions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.vault_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document)                    | data source |
 
-## Inputs
+## Module Inputs
 
 | Name                                                                                                                                 | Description                                                                                                                                                                                         | Type           | Default        | Required |
 | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------------- | :------: |
