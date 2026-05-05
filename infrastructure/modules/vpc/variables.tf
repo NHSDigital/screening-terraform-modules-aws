@@ -11,3 +11,7 @@ variable "name_prefix" {
   description = "the environment and project"
 }
 
+variable "vpc_cidr_prefix" {
+  description = "The CIDR block prefix for the VPC"
+}
+

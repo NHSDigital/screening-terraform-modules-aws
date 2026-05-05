@@ -36,10 +36,9 @@ variable "redis_auth_token" {
   sensitive   = true
 }
 
-# TODO add later
-# variable "sns_topic" {
-#   description = "Name of the SNS topic used for Elasticache alerts"
-# }
+variable "notification_topic_arn" {
+  description = "Name of the SNS topic used for Elasticache alerts"
+}
 
 variable "name_prefix" {
   description = "the prefix for the name which containts the environment and business unit"
@@ -49,7 +48,7 @@ variable "name_prefix" {
 variable "name" {
   description = "The name of the resource"
   type        = string
-  default     = "-elasticache"
+  default     = "elasticache"
 }
 
 variable "environment" {
@@ -71,4 +70,15 @@ variable "vpc_id" {
 variable "subnet_ids" {
   description = "The subnets that will be used for elasticache, usually private"
   type        = list(string)
+}
+
+variable "ecs_sg_id" {
+  description = "The id of the ECS security group to enable access for"
+  type        = string
+}
+
+variable "create_elasticache_service_role" {
+  description = "The service role can only be created once per account, only enable it in one stack"
+  type        = bool
+  default     = true
 }

@@ -16,7 +16,7 @@ variable "rds_engine" {
 variable "rds_engine_version" {
   type        = string
   description = "The engine version for the RDS instance"
-  default     = "12.5"
+  default     = "16"
 }
 
 variable "aws_secret_id" {
@@ -102,6 +102,12 @@ variable "performance_insights_enabled" {
   default     = false
 }
 
+variable "performance_insights_retention_period" {
+  description = "The number of days to retain Performance Insights data for"
+  type        = number
+  default     = 7
+}
+
 variable "enable_backup" {
   description = "Whether to enable automated backups for the database"
   type        = bool
@@ -141,7 +147,7 @@ variable "apply_immediately" {
 variable "allow_major_version_upgrade" {
   description = "Whether to allow major version upgrades to the database"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "multi_az" {
@@ -168,9 +174,10 @@ variable "enabled_cloudwatch_logs_exports" {
   default     = ["postgresql"]
 }
 
-variable "ingress_cidr" {
-  description = "a list of the cidr's that can access the postgresql instance"
-  type        = list(string)
+variable "cloudwatch_log_retention_days" {
+  description = "Number of days to retain CloudWatch logs"
+  type        = number
+  default     = 7
 }
 
 variable "name_prefix" {
@@ -195,18 +202,50 @@ variable "vpc_name" {
   default     = ""
 }
 
-variable "users" {
-  description = "List of usernames to generate passwords and secrets for"
-  type        = list(string)
-  default     = ["pi_4_user", "bss_user", "bss_readwrite", "bss_readonly", "audit_user", "release_manager", "postgres"]
+variable "user" {
+  description = "username for postgres instance to use"
+  type        = string
+  default     = "postgres"
 }
 
-variable "subnet_ids" {
-  description = "A list of subnets to use"
+variable "private_subnet_ids" {
+  description = "A list of private subnets to use"
   type        = list(string)
 }
 
 variable "vpc_id" {
   description = "The id for the vpc"
   type        = string
+}
+
+variable "ecs_sg_id" {
+  description = "The security group ID for the ECS service"
+  type        = string
+}
+
+variable "recovery_window" {
+  description = "The number of days that credentials should be retained for"
+  type        = number
+}
+
+variable "secret_replication_regions" {
+  description = "List of additional regions where created secrets should be replicated"
+  type        = list(string)
+}
+
+variable "snapshot_identifier" {
+  description = "Optional snapshot identifier to restore from (e.g. if on performance environent)"
+  type        = string
+  default     = ""
+}
+
+variable "database_insights_mode" {
+  description = "Whether to set database insights mode to standard or advanced"
+  type        = string
+}
+
+variable "tags" {
+  description = "A map of tags to assign to the RDS instance in addition to the default tags"
+  type        = map(string)
+  default     = {}
 }

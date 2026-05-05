@@ -73,6 +73,21 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     resources = ["arn:aws:sns:eu-west-2:${var.aws_account_id}:${aws_sns_topic.sns_topic.name}"]
   }
 
+  # Allows AWS Backup to publish to our topic
+  statement {
+    sid = "allow event from backup"
+    actions = [
+      "sns:Publish",
+    ]
+    principals {
+      type        = "Service"
+      identifiers = ["backup.amazonaws.com"]
+    }
+    effect = "Allow"
+
+    resources = ["arn:aws:sns:eu-west-2:${var.aws_account_id}:${aws_sns_topic.sns_topic.name}"]
+  }
+
   # Allows our S3 to publish to our topic
   # statement {
   #     sid = "allow event from alb-logs s3 bucket"

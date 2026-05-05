@@ -1,7 +1,4 @@
-resource "aws_kms_key" "key" {
-  description             = "The key used to encrypt the data_bucket"
-  deletion_window_in_days = 10
-}
+data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.name_prefix}-${var.bucket_name}"
@@ -11,31 +8,12 @@ resource "aws_s3_bucket" "bucket" {
   }
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "encryption" {
-  bucket = aws_s3_bucket.bucket.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      kms_master_key_id = aws_kms_key.key.arn
-      sse_algorithm     = "aws:kms"
-    }
-  }
-}
-
 resource "aws_s3_bucket_ownership_controls" "ownership" {
   bucket = aws_s3_bucket.bucket.id
   rule {
     object_ownership = "BucketOwnerEnforced"
   }
 }
-
-# AWS recommended ACLs to be disabled and use bucket policy instead to control access
-# resource "aws_s3_bucket_acl" "acl" {
-#   bucket = aws_s3_bucket.bucket.id
-#   acl    = "private"
-
-#   depends_on = [aws_s3_bucket_ownership_controls.ownership]
-# }
 
 resource "aws_s3_bucket_versioning" "versioning" {
   bucket = aws_s3_bucket.bucket.id

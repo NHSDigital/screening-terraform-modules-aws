@@ -56,7 +56,7 @@ data "aws_iam_policy_document" "cw_firehose_assume_role" {
 
     principals {
       type        = "Service"
-      identifiers = ["firehose.amazonaws.com", "logs.amazonaws.com"]
+      identifiers = ["firehose.amazonaws.com", "logs.amazonaws.com", "waf.amazonaws.com"]
     }
   }
 }
