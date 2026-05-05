@@ -70,7 +70,8 @@ import gzip
 import boto3
 import os
 
-def transformLogEvent(log_event,acct,arn,loggrp,logstrm,filterName):
+
+def transformLogEvent(log_event, acct, arn, loggrp, logstrm, filterName):
     """Transform each log event.
 
     The default implementation below just extracts the message and appends a newline to it.
@@ -94,52 +95,67 @@ def transformLogEvent(log_event,acct,arn,loggrp,logstrm,filterName):
             the environment variable contents of SPLUNK_SOURCETYPE for all other cases
     """
 
-    region_name=arn.split(':')[3]
-    index = os.environ.get('SPLUNK_INDEX')
+    region_name = arn.split(":")[3]
+    index = os.environ.get("SPLUNK_INDEX")
 
     # note that the region_name is taken from the region for the Stream, this won't change if Cloudwatch from another account/region. Not used for this example function
     if "CloudTrail" in loggrp:
-        sourcetype="aws:cloudtrail"
+        sourcetype = "aws:cloudtrail"
     elif "VPC" in loggrp:
-        sourcetype="aws:cloudwatchlogs:vpcflow"
+        sourcetype = "aws:cloudwatchlogs:vpcflow"
     elif "waf-logs" in loggrp:
-        sourcetype="aws:waf"
+        sourcetype = "aws:waf"
     else:
-        sourcetype=os.environ.get('DEFAULT_SPLUNK_SOURCETYPE')
+        sourcetype = os.environ.get("DEFAULT_SPLUNK_SOURCETYPE")
 
-    return_message = '{"time": ' + str(log_event['timestamp']) + ',"host": "' + arn  +'","source": "' + filterName +':' + loggrp + '"'
-    return_message = return_message + ',"sourcetype":"' + sourcetype  + '"'
-    return_message = return_message + ',"index":"' + index  + '"'
-    return_message = return_message + ',"event": ' + json.dumps(log_event['message']) + '}\n'
+    return_message = (
+        '{"time": '
+        + str(log_event["timestamp"])
+        + ',"host": "'
+        + arn
+        + '","source": "'
+        + filterName
+        + ":"
+        + loggrp
+        + '"'
+    )
+    return_message = return_message + ',"sourcetype":"' + sourcetype + '"'
+    return_message = return_message + ',"index":"' + index + '"'
+    return_message = (
+        return_message + ',"event": ' + json.dumps(log_event["message"]) + "}\n"
+    )
 
-    return return_message + '\n'
+    return return_message + "\n"
 
 
-def processRecords(records,arn):
+def processRecords(records, arn):
     for r in records:
-        data = loadJsonGzipBase64(r['data'])
-        recId = r['recordId']
+        data = loadJsonGzipBase64(r["data"])
+        recId = r["recordId"]
         # CONTROL_MESSAGE are sent by CWL to check if the subscription is reachable.
         # They do not contain actual data.
-        if data['messageType'] == 'CONTROL_MESSAGE':
-            yield {
-                'result': 'Dropped',
-                'recordId': recId
-            }
-        elif data['messageType'] == 'DATA_MESSAGE':
-            joinedData = ''.join([transformLogEvent(e,data['owner'],arn,data['logGroup'],data['logStream'],data['subscriptionFilters'][0]) for e in data['logEvents']])
+        if data["messageType"] == "CONTROL_MESSAGE":
+            yield {"result": "Dropped", "recordId": recId}
+        elif data["messageType"] == "DATA_MESSAGE":
+            joinedData = "".join(
+                [
+                    transformLogEvent(
+                        e,
+                        data["owner"],
+                        arn,
+                        data["logGroup"],
+                        data["logStream"],
+                        data["subscriptionFilters"][0],
+                    )
+                    for e in data["logEvents"]
+                ]
+            )
             dataBytes = joinedData.encode("utf-8")
-            encodedData = base64.b64encode(dataBytes).decode('utf-8')
-            yield {
-                'data': encodedData,
-                'result': 'Ok',
-                'recordId': recId
-            }
+            encodedData = base64.b64encode(dataBytes).decode("utf-8")
+            yield {"data": encodedData, "result": "Ok", "recordId": recId}
         else:
-            yield {
-                'result': 'ProcessingFailed',
-                'recordId': recId
-            }
+            yield {"result": "ProcessingFailed", "recordId": recId}
+
 
 def splitCWLRecord(cwlRecord):
     """
@@ -148,51 +164,62 @@ def splitCWLRecord(cwlRecord):
     re-ingested into the stream, and it'll appear as though they came from CWL
     directly.
     """
-    logEvents = cwlRecord['logEvents']
+    logEvents = cwlRecord["logEvents"]
     mid = len(logEvents) // 2
-    rec1 = {k:v for k, v in cwlRecord.items()}
-    rec1['logEvents'] = logEvents[:mid]
-    rec2 = {k:v for k, v in cwlRecord.items()}
-    rec2['logEvents'] = logEvents[mid:]
-    return [gzip.compress(json.dumps(r).encode('utf-8')) for r in [rec1, rec2]]
+    rec1 = {k: v for k, v in cwlRecord.items()}
+    rec1["logEvents"] = logEvents[:mid]
+    rec2 = {k: v for k, v in cwlRecord.items()}
+    rec2["logEvents"] = logEvents[mid:]
+    return [gzip.compress(json.dumps(r).encode("utf-8")) for r in [rec1, rec2]]
+
 
 def putRecordsToFirehoseStream(streamName, records, client, attemptsMade, maxAttempts):
     failedRecords = []
     codes = []
-    errMsg = ''
+    errMsg = ""
     # if put_record_batch throws for whatever reason, response['xx'] will error out, adding a check for a valid
     # response will prevent this
     response = None
     try:
-        response = client.put_record_batch(DeliveryStreamName=streamName, Records=records)
+        response = client.put_record_batch(
+            DeliveryStreamName=streamName, Records=records
+        )
     except Exception as e:
         failedRecords = records
         errMsg = str(e)
 
     # if there are no failedRecords (put_record_batch succeeded), iterate over the response to gather results
-    if not failedRecords and response and response['FailedPutCount'] > 0:
-        for idx, res in enumerate(response['RequestResponses']):
+    if not failedRecords and response and response["FailedPutCount"] > 0:
+        for idx, res in enumerate(response["RequestResponses"]):
             # (if the result does not have a key 'ErrorCode' OR if it does and is empty) => we do not need to re-ingest
-            if not res.get('ErrorCode'):
+            if not res.get("ErrorCode"):
                 continue
 
-            codes.append(res['ErrorCode'])
+            codes.append(res["ErrorCode"])
             failedRecords.append(records[idx])
 
-        errMsg = 'Individual error codes: ' + ','.join(codes)
+        errMsg = "Individual error codes: " + ",".join(codes)
 
     if failedRecords:
         if attemptsMade + 1 < maxAttempts:
-            print('Some records failed while calling PutRecordBatch to Firehose stream, retrying. %s' % (errMsg))
-            putRecordsToFirehoseStream(streamName, failedRecords, client, attemptsMade + 1, maxAttempts)
+            print(
+                "Some records failed while calling PutRecordBatch to Firehose stream, retrying. %s"
+                % (errMsg)
+            )
+            putRecordsToFirehoseStream(
+                streamName, failedRecords, client, attemptsMade + 1, maxAttempts
+            )
         else:
-            raise RuntimeError('Could not put records after %s attempts. %s' % (str(maxAttempts), errMsg))
+            raise RuntimeError(
+                "Could not put records after %s attempts. %s"
+                % (str(maxAttempts), errMsg)
+            )
 
 
 def putRecordsToKinesisStream(streamName, records, client, attemptsMade, maxAttempts):
     failedRecords = []
     codes = []
-    errMsg = ''
+    errMsg = ""
     # if put_records throws for whatever reason, response['xx'] will error out, adding a check for a valid
     # response will prevent this
     response = None
@@ -203,31 +230,39 @@ def putRecordsToKinesisStream(streamName, records, client, attemptsMade, maxAtte
         errMsg = str(e)
 
     # if there are no failedRecords (put_record_batch succeeded), iterate over the response to gather results
-    if not failedRecords and response and response['FailedRecordCount'] > 0:
-        for idx, res in enumerate(response['Records']):
+    if not failedRecords and response and response["FailedRecordCount"] > 0:
+        for idx, res in enumerate(response["Records"]):
             # (if the result does not have a key 'ErrorCode' OR if it does and is empty) => we do not need to re-ingest
-            if not res.get('ErrorCode'):
+            if not res.get("ErrorCode"):
                 continue
 
-            codes.append(res['ErrorCode'])
+            codes.append(res["ErrorCode"])
             failedRecords.append(records[idx])
 
-        errMsg = 'Individual error codes: ' + ','.join(codes)
+        errMsg = "Individual error codes: " + ",".join(codes)
 
     if failedRecords:
         if attemptsMade + 1 < maxAttempts:
-            print('Some records failed while calling PutRecords to Kinesis stream, retrying. %s' % (errMsg))
-            putRecordsToKinesisStream(streamName, failedRecords, client, attemptsMade + 1, maxAttempts)
+            print(
+                "Some records failed while calling PutRecords to Kinesis stream, retrying. %s"
+                % (errMsg)
+            )
+            putRecordsToKinesisStream(
+                streamName, failedRecords, client, attemptsMade + 1, maxAttempts
+            )
         else:
-            raise RuntimeError('Could not put records after %s attempts. %s' % (str(maxAttempts), errMsg))
+            raise RuntimeError(
+                "Could not put records after %s attempts. %s"
+                % (str(maxAttempts), errMsg)
+            )
 
 
 def createReingestionRecord(isSas, originalRecord, data=None):
     if data is None:
-        data = base64.b64decode(originalRecord['data'])
-    r = {'Data': data}
+        data = base64.b64decode(originalRecord["data"])
+    r = {"Data": data}
     if isSas:
-        r['PartitionKey'] = originalRecord['kinesisRecordMetadata']['partitionKey']
+        r["PartitionKey"] = originalRecord["kinesisRecordMetadata"]["partitionKey"]
     return r
 
 
@@ -236,51 +271,62 @@ def loadJsonGzipBase64(base64Data):
 
 
 def lambda_handler(event, context):
-    isSas = 'sourceKinesisStreamArn' in event
-    streamARN = event['sourceKinesisStreamArn'] if isSas else event['deliveryStreamArn']
-    region = streamARN.split(':')[3]
-    streamName = streamARN.split('/')[1]
-    records = list(processRecords(event['records'],streamARN))
+    isSas = "sourceKinesisStreamArn" in event
+    streamARN = event["sourceKinesisStreamArn"] if isSas else event["deliveryStreamArn"]
+    region = streamARN.split(":")[3]
+    streamName = streamARN.split("/")[1]
+    records = list(processRecords(event["records"], streamARN))
     projectedSize = 0
     recordListsToReingest = []
 
     for idx, rec in enumerate(records):
-        originalRecord = event['records'][idx]
+        originalRecord = event["records"][idx]
 
-        if rec['result'] != 'Ok':
+        if rec["result"] != "Ok":
             continue
 
         # If a single record is too large after processing, split the original CWL data into two, each containing half
         # the log events, and re-ingest both of them (note that it is the original data that is re-ingested, not the
         # processed data). If it's not possible to split because there is only one log event, then mark the record as
         # ProcessingFailed, which sends it to error output.
-        if len(rec['data']) > 6000000:
-            cwlRecord = loadJsonGzipBase64(originalRecord['data'])
-            if len(cwlRecord['logEvents']) > 1:
-                rec['result'] = 'Dropped'
+        if len(rec["data"]) > 6000000:
+            cwlRecord = loadJsonGzipBase64(originalRecord["data"])
+            if len(cwlRecord["logEvents"]) > 1:
+                rec["result"] = "Dropped"
                 recordListsToReingest.append(
-                    [createReingestionRecord(isSas, originalRecord, data) for data in splitCWLRecord(cwlRecord)])
+                    [
+                        createReingestionRecord(isSas, originalRecord, data)
+                        for data in splitCWLRecord(cwlRecord)
+                    ]
+                )
             else:
-                rec['result'] = 'ProcessingFailed'
-                print(('Record %s contains only one log event but is still too large after processing (%d bytes), ' +
-                    'marking it as %s') % (rec['recordId'], len(rec['data']), rec['result']))
-            del rec['data']
+                rec["result"] = "ProcessingFailed"
+                print(
+                    (
+                        "Record %s contains only one log event but is still too large after processing (%d bytes), "
+                        + "marking it as %s"
+                    )
+                    % (rec["recordId"], len(rec["data"]), rec["result"])
+                )
+            del rec["data"]
         else:
-            projectedSize += len(rec['data']) + len(rec['recordId'])
+            projectedSize += len(rec["data"]) + len(rec["recordId"])
             # 6000000 instead of 6291456 to leave ample headroom for the stuff we didn't account for
             if projectedSize > 6000000:
-                recordListsToReingest.append([createReingestionRecord(isSas, originalRecord)])
-                del rec['data']
-                rec['result'] = 'Dropped'
+                recordListsToReingest.append(
+                    [createReingestionRecord(isSas, originalRecord)]
+                )
+                del rec["data"]
+                rec["result"] = "Dropped"
 
     # call putRecordBatch/putRecords for each group of up to 500 records to be re-ingested
     if recordListsToReingest:
         recordsReingestedSoFar = 0
-        client = boto3.client('kinesis' if isSas else 'firehose', region_name=region)
+        client = boto3.client("kinesis" if isSas else "firehose", region_name=region)
         maxBatchSize = 500
         flattenedList = [r for sublist in recordListsToReingest for r in sublist]
         for i in range(0, len(flattenedList), maxBatchSize):
-            recordBatch = flattenedList[i:i + maxBatchSize]
+            recordBatch = flattenedList[i : i + maxBatchSize]
             # last argument is maxAttempts
             args = [streamName, recordBatch, client, 0, 20]
             if isSas:
@@ -288,12 +334,16 @@ def lambda_handler(event, context):
             else:
                 putRecordsToFirehoseStream(*args)
             recordsReingestedSoFar += len(recordBatch)
-            print('Reingested %d/%d' % (recordsReingestedSoFar, len(flattenedList)))
+            print("Reingested %d/%d" % (recordsReingestedSoFar, len(flattenedList)))
 
-    print('%d input records, %d returned as Ok or ProcessingFailed, %d split and re-ingested, %d re-ingested as-is' % (
-        len(event['records']),
-        len([r for r in records if r['result'] != 'Dropped']),
-        len([l for l in recordListsToReingest if len(l) > 1]),
-        len([l for l in recordListsToReingest if len(l) == 1])))
+    print(
+        "%d input records, %d returned as Ok or ProcessingFailed, %d split and re-ingested, %d re-ingested as-is"
+        % (
+            len(event["records"]),
+            len([r for r in records if r["result"] != "Dropped"]),
+            len([l for l in recordListsToReingest if len(l) > 1]),
+            len([l for l in recordListsToReingest if len(l) == 1]),
+        )
+    )
 
-    return {'records': records}
+    return {"records": records}
