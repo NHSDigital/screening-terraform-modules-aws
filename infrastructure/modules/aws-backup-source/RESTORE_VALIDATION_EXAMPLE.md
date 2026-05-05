@@ -243,7 +243,7 @@ Estimated monthly cost: **< $1 USD** for weekly testing
 
 1. **Use dedicated validation credentials** with read-only access
 2. **Rotate credentials regularly** via Secrets Manager
-3. **Restrict Lambda IAM role** to minimum required permissions
+3. **Restrict Lambda iam role** to minimum required permissions
 4. **Use VPC endpoints** for Secrets Manager to avoid internet traffic
 5. **Enable CloudWatch Logs encryption** in production
 6. **Set appropriate log retention** (14-30 days recommended)
