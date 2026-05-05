@@ -18,7 +18,7 @@ The AWS Backup Module helps automates the setup of AWS Backup resources in a des
 | <a name="input_vault_lock_max_retention_days"></a> [vault_lock_max_retention_days](#input_vault_lock_max_retention_days) | The maximum retention period required on recovery points when vault lock enabled                                                                                                                    | `number`       | `365`                   |    no    |
 | <a name="input_vault_lock_min_retention_days"></a> [vault_lock_min_retention_days](#input_vault_lock_min_retention_days) | The minimum retention period required on recovery points when vault lock enabled                                                                                                                    | `number`       | `365`                   |    no    |
 | <a name="input_vault_lock_type"></a> [vault_lock_type](#input_vault_lock_type)                                           | The type of lock that the vault should be, will default to governance                                                                                                                               | `string`       | `"governance"`          |    no    |
-| <a name="input_source_vault_arn"></a> [source\vault_arn](#input_source_vault_arn)                                        | ARN of the source vault, used to restrict where copies are allowed back to                                                                                                                          | `string`       | `"arn:aws:backup:blah"` |    no    |
+| <a name="input_source_vault_arn"></a> [source\vault_arn](#input_source_vault_arn)                                        | arn of the source vault, used to restrict where copies are allowed back to                                                                                                                          | `string`       | `"arn:aws:backup:blah"` |    no    |
 
 ## Example
 
@@ -84,7 +84,7 @@ No modules.
 
 | Name                                                                                                                    | Description                                                                                              |
 | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| <a name="output_copy_recovery_point_role_arn"></a> [copy_recovery_point_role_arn](#output_copy_recovery_point_role_arn) | ARN of role to assume from source account lambda (set ASSUME_ROLE_ARN to this). Only present if enabled. |
+| <a name="output_copy_recovery_point_role_arn"></a> [copy_recovery_point_role_arn](#output_copy_recovery_point_role_arn) | arn of role to assume from source account lambda (set ASSUME_ROLE_ARN to this). Only present if enabled. |
 | <a name="output_vault_arn"></a> [vault_arn](#output_vault_arn)                                                          | n/a                                                                                                      |
 | <a name="output_vault_name"></a> [vault_name](#output_vault_name)                                                       | The name of the backup vault.                                                                            |
 
