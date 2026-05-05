@@ -69,7 +69,7 @@ runs:
 
             const marker = 'Automated check: PR title format validation failed';
             const existing = (comments || []).find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(marker));
-            
+
             if (existing) {
               // Update existing comment
               await github.rest.issues.updateComment({
@@ -91,7 +91,7 @@ runs:
             throw new Error(`PR title does not match required format: ${patternDescription}`);
           } else {
             core.info('✅ PR title matches required format — check passed.');
-            
+
             // Optionally clean up old warning comments if title is now valid
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -102,7 +102,7 @@ runs:
 
             const marker = 'Automated check: PR title format validation failed';
             const existing = (comments || []).find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(marker));
-            
+
             if (existing) {
               core.info('Deleting old validation failure comment since title is now valid.');
               await github.rest.issues.deleteComment({
