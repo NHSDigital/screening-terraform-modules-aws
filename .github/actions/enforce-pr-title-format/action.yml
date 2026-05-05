@@ -1,0 +1,114 @@
+name: Enforce PR title format
+description: Check PR title matches required format and post guidance when invalid
+inputs:
+  github-token:
+    description: GitHub token used to call the REST API
+    required: true
+  title-pattern:
+    description: Regex pattern the PR title must match
+    required: false
+    default: "^(SCM|BSS|BSS2)-[0-9]+ .{5,}"
+  title-pattern-description:
+    description: Human-readable description of the expected format
+    required: false
+    default: "PR title must start with SCM, BSS, or BSS2 ticket number followed by a space and description (minimum 5 characters, e.g., SCM-1234 description or BSS-5678 description or BSS2-9012 description)"
+
+runs:
+  using: composite
+  steps:
+    - name: Check PR title format and comment on invalid format
+      uses: actions/github-script@v6
+      env:
+        TITLE_PATTERN: ${{ inputs.title-pattern }}
+        TITLE_PATTERN_DESCRIPTION: ${{ inputs.title-pattern-description }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const pr = context.payload.pull_request;
+          if (!pr) throw new Error('This action must be run in the context of a pull_request event.');
+
+          // Fetch current PR state to get up-to-date title (important for workflow reruns)
+          const { data: currentPr } = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: pr.number,
+          });
+
+          const title = currentPr.title || '';
+          const pattern = process.env.TITLE_PATTERN || '^(SCM|BSS)-[0-9]+ .{5,}';
+          const patternDescription = process.env.TITLE_PATTERN_DESCRIPTION || 'PR title must start with SCM or BSS ticket number followed by a space and description (minimum 5 characters, e.g., SCM-1234 description or BSS-5678 description)';
+          const regex = new RegExp(pattern);
+
+          core.info(`PR title: "${title}"`);
+          core.info(`Expected pattern: ${pattern}`);
+          core.info(`Pattern description: ${patternDescription}`);
+
+          if (!regex.test(title)) {
+            const body = [
+              '❌ **Automated check: PR title format validation failed**',
+              '',
+              `**Current title:** \`${title}\``,
+              '',
+              `**Required format:** ${patternDescription}`,
+              '',
+              '**Examples of valid titles:**',
+              '- `SCM-1234 Add new user authentication feature`',
+              '- `BSS-5678 Fix API timeout issue`',
+              '- `SCM-9012 Update README with setup instructions`',
+              '- `BSS-3456 Optimize database query performance`',
+              '',
+              'Please update your PR title to match the required format before merging.',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+
+            const marker = 'Automated check: PR title format validation failed';
+            const existing = (comments || []).find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(marker));
+            
+            if (existing) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+            }
+
+            throw new Error(`PR title does not match required format: ${patternDescription}`);
+          } else {
+            core.info('✅ PR title matches required format — check passed.');
+            
+            // Optionally clean up old warning comments if title is now valid
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+
+            const marker = 'Automated check: PR title format validation failed';
+            const existing = (comments || []).find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(marker));
+            
+            if (existing) {
+              core.info('Deleting old validation failure comment since title is now valid.');
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+              });
+            }
+          }
