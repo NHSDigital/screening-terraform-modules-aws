@@ -17,7 +17,12 @@ output "rds_name" {
   value = aws_db_instance.rds.identifier
 }
 
-output "bss_user_secret_arn" {
-  value = aws_secretsmanager_secret.password["bss_user"].arn
+output "rds_instance_id" {
+  value       = aws_db_instance.rds.id
+  description = "The ID of the RDS instance"
 }
 
+output "rds_sg_id" {
+  value       = aws_security_group.rds.id
+  description = "The security group ID for the RDS instance"
+}

@@ -45,8 +45,14 @@ resource "aws_lambda_function" "preprocess-cw-logs" {
   role             = "arn:aws:iam::${var.aws_account_id}:role/${var.name_prefix}_cw_lambda"
   handler          = "${var.name_prefix}.lambda_handler"
   source_code_hash = data.archive_file.preprocess-cw-logs-zip.output_base64sha256
-  runtime          = "python3.12"
+  runtime          = var.python_version
   timeout          = "180"
+  environment {
+    variables = {
+      SPLUNK_INDEX              = var.splunk_index
+      DEFAULT_SPLUNK_SOURCETYPE = "bs_select_app_logs"
+    }
+  }
 }
 
 ############
@@ -82,7 +88,7 @@ resource "aws_kinesis_firehose_delivery_stream" "cw_logs_splunk_stream" {
     hec_endpoint               = var.firehose_splunk_url
     hec_token                  = var.splunk_hec_token
     hec_acknowledgment_timeout = 600
-    hec_endpoint_type          = "Raw"
+    hec_endpoint_type          = "Event"
     s3_backup_mode             = "FailedEventsOnly"
 
     s3_configuration {

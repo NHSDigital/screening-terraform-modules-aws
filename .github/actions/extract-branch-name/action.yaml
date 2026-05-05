@@ -1,0 +1,51 @@
+name: "Extract Branch Name"
+description: "Extracts the branch name (strips feature/ prefix) and exposes it as an output"
+
+inputs:
+  branch:
+    description: "Branch name to extract (default: PR head or GITHUB_REF)"
+    required: false
+    default: ${{ github.head_ref || github.ref_name }}
+  short_code:
+    description: appended to tags when used instead of branches
+    required: false
+    default: ""
+
+outputs:
+  branch_name:
+    description: "Branch name without feature/ prefix"
+    value: ${{ steps.extract.outputs.branch_name }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Extract branch name
+      id: extract
+      shell: bash
+      env:
+        SHORT_CODE: ${{ inputs.short_code }}
+        BRANCH: ${{ inputs.branch }}
+      run: |
+        SHORT_CODE="${SHORT_CODE}"
+        BRANCH="${BRANCH}"
+        BRANCH_NAME="${BRANCH##*/}"
+
+        # Check if this is a version tag
+        if [[ "$BRANCH_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          # If short_code is provided, prefix the tag
+          if [[ -n "$SHORT_CODE" ]]; then
+            BRANCH_NAME="${SHORT_CODE}-${BRANCH_NAME}"
+          fi
+        else
+          BRANCH_NAME=$(echo "$BRANCH_NAME" | tr -cd '[:alnum:]-' | cut -c 1-30)
+        fi
+
+        # removing any trailing dash
+        BRANCH_NAME="${BRANCH_NAME%-}"
+
+        echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+    - name: Echo branch name
+      shell: bash
+      run: |
+        echo "branch_name = '${{ steps.extract.outputs.branch_name }}'"

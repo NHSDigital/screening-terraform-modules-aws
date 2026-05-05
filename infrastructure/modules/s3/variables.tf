@@ -24,3 +24,8 @@ variable "bucket_policy" {
   type        = string
 }
 
+variable "additional_kms_key_policy_statements" {
+  description = "Additional statements to add to the kms key policy"
+  type        = list(any)
+  default     = []
+}

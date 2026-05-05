@@ -1,6 +1,34 @@
+data "aws_ssm_parameter" "cognito_users" {
+  name = "/${var.name_prefix}/cognito/users"
+}
+
 locals {
-  # userdata = csvdecode(file("${path.module}/user_csvs/${var.csv_file}"))
-  userdata = var.userdata
+  userdata = jsondecode(nonsensitive(data.aws_ssm_parameter.cognito_users.value))
+}
+
+resource "random_password" "password" {
+  length           = 20
+  special          = true
+  override_special = "!%^*-_+="
+}
+
+resource "aws_secretsmanager_secret" "password" {
+  name                    = "${var.name_prefix}-cognito-user"
+  recovery_window_in_days = var.recovery_window
+
+  dynamic "replica" {
+    for_each = var.secret_replication_regions
+    content {
+      region = replica.value
+    }
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "password" {
+  secret_id = aws_secretsmanager_secret.password.id
+  secret_string = jsonencode({
+    password = random_password.password.result
+  })
 }
 
 # Create user pool
@@ -67,7 +95,7 @@ resource "aws_cognito_user_pool" "cognito_user_pool" {
 
 
 resource "aws_cognito_user_pool_domain" "main" {
-  domain       = var.domain_name
+  domain       = var.name_prefix
   user_pool_id = aws_cognito_user_pool.cognito_user_pool.id
 }
 
@@ -76,7 +104,7 @@ resource "aws_cognito_user" "cognito_user_creation" {
 
   user_pool_id   = aws_cognito_user_pool.cognito_user_pool.id
   username       = each.value.bss_username
-  password       = var.user_password
+  password       = random_password.password.result
   message_action = var.message_action
 
   attributes = {

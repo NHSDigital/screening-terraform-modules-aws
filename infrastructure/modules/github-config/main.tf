@@ -9,7 +9,7 @@ terraform {
 
 provider "github" {
   owner = "NHSDigital"
-  app_auth {}
+  token = var.github_app_token
 }
 
 data "github_repository" "repo" {

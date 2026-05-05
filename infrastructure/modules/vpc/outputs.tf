@@ -5,10 +5,15 @@ output "vpc_id" {
 
 output "private_subnet_ids" {
   description = "IDs of the public subnets"
-  value       = [aws_subnet.private_subnet_a.id, aws_subnet.private_subnet_b.id]
+  value       = [aws_subnet.private_subnet_a.id, aws_subnet.private_subnet_b.id, aws_subnet.private_subnet_c.id]
 }
 
 output "public_subnet_ids" {
   description = "IDs of the public subnets"
-  value       = [aws_subnet.public_subnet_a.id, aws_subnet.public_subnet_b.id]
+  value       = [aws_subnet.public_subnet_a.id, aws_subnet.public_subnet_b.id, aws_subnet.public_subnet_c.id]
+}
+
+output "vpc_cidr_block" {
+  description = "CIDR range of the VPC"
+  value       = aws_vpc.vpc.cidr_block
 }

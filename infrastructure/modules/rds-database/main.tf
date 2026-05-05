@@ -37,7 +37,7 @@ provider "postgresql" {
 }
 
 resource "postgresql_database" "my_db" {
-  name                   = "${var.name_prefix}-${var.db_name}"
+  name                   = var.db_name
   owner                  = "release_manager"
   lc_collate             = "C"
   connection_limit       = -1

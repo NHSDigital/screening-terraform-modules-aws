@@ -48,15 +48,12 @@ variable "user_password" {
   default = "changeme"
 }
 
-variable "csv_file" {
-  type = string
+variable "recovery_window" {
+  description = "The number of days that credentials should be retained for"
+  type        = number
 }
 
-variable "domain_name" {
-  type = string
-}
-
-variable "userdata" {
-  description = "a csvdecode block that contains the userdata"
-  type        = string
+variable "secret_replication_regions" {
+  description = "List of additional regions where created secrets should be replicated"
+  type        = list(string)
 }

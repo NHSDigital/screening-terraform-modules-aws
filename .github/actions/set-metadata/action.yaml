@@ -1,0 +1,194 @@
+name: "Set CI/CD metadata"
+
+description: "Sets metadata for CI/CD workflows"
+
+inputs:
+  calling_workflow:
+    description: "The workflow that is calling this action"
+    required: true
+  tag:
+    description: "The tag that is going to be used when CICD deploy calls this action"
+    required: false
+  action:
+    description: "Action to be performed (e.g., apply, destroy)"
+    required: false
+  environment:
+    description: "Environment for the action (e.g., cicd)"
+    required: false
+  image_tag:
+    description: "Docker image tag"
+    required: false
+  nation:
+    description: "Nation tag for the image"
+    required: false
+  sql_file:
+    description: "SQL file to run against the database (optional)"
+    required: false
+    default: "coreData.sql"
+  environment_name:
+    description: "Suffix to append to the job name for uniqueness"
+    required: false
+  triggered_by_lambda:
+    description: "This workflow is being called from lambda"
+    required: false
+  short_code:
+    description: "Short code to identify the user"
+    required: false
+    default: ""
+  build_type:
+    description: "Clean or Patch build"
+  db_snapshot_identifier:
+    description: "RDS snapshot identifier to use for the database"
+    required: false
+  release_tag:
+    description: "Release tag"
+    required: false
+  ttl_days:
+    description: "Number of days to keep the ephemeral environment"
+    required: false
+
+outputs:
+  # Default Variables
+  build_datetime:
+    description: "Build date and time"
+    value: ${{ steps.default_variables.outputs.build_datetime }}
+  build_timestamp:
+    description: "Build timestamp"
+    value: ${{ steps.default_variables.outputs.build_timestamp }}
+  build_epoch:
+    description: "Build epoch"
+    value: ${{ steps.default_variables.outputs.build_epoch }}
+  nodejs_version:
+    description: "Node.js version"
+    value: ${{ steps.default_variables.outputs.nodejs_version }}
+  python_version:
+    description: "Python version"
+    value: ${{ steps.default_variables.outputs.python_version }}
+  terraform_version:
+    description: "Terraform version"
+    value: ${{ steps.default_variables.outputs.terraform_version }}
+  version:
+    description: "Version"
+    value: ${{ steps.default_variables.outputs.version }}
+  # Tag
+  tag:
+    description: "Tag"
+    value: ${{ steps.tag.outputs.tag }}
+  # Workflow Variables
+  branch_name:
+    description: "Branch name"
+    value: ${{ steps.workflow_variables.outputs.branch_name }}
+  action:
+    description: "Action to be performed (e.g., apply, destroy)"
+    value: ${{ steps.workflow_variables.outputs.action }}
+  environment:
+    description: "Environment for the action (e.g., cicd)"
+    value: ${{ steps.workflow_variables.outputs.environment }}
+  image_tag:
+    description: "Docker image tag"
+    value: ${{ steps.set_image_tag.outputs.image_tag }}
+  nation:
+    description: "Nation tag for the image"
+    value: ${{ steps.workflow_variables.outputs.nation }}
+  environment_name:
+    description: "Suffix to append to the job name for uniqueness"
+    value: ${{ steps.workflow_variables.outputs.environment_name }}
+  triggered_by_lambda:
+    description: "This workflow is being called from lambda"
+    value: ${{ steps.workflow_variables.outputs.triggered_by_lambda }}
+  short_code:
+    description: "Short code to identify the user"
+    value: ${{ steps.workflow_variables.outputs.short_code }}
+  build_type:
+    description: "Clean or Patch build"
+    value: ${{ steps.workflow_variables.outputs.build_type }}
+  sql_file:
+    description: "SQL file to run against the database (optional)"
+    value: ${{ steps.workflow_variables.outputs.sql_file }}
+  db_snapshot_identifier:
+    description: "RDS snapshot identifier to use for the database"
+    value: ${{ steps.workflow_variables.outputs.db_snapshot_identifier }}
+  release_tag:
+    description: "Release tag"
+    value: ${{ steps.workflow_variables.outputs.release_tag }}
+  ttl_days:
+    description: "Number of days to keep the ephemeral environment"
+    value: ${{ steps.workflow_variables.outputs.ttl_days }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Checkout code"
+      uses: actions/checkout@v6
+
+    - name: "Set default variables"
+      shell: bash
+      id: default_variables
+      run: |
+        datetime=$(date -u +'%Y-%m-%dT%H:%M:%S%z')
+        echo "build_datetime=$datetime" >> $GITHUB_OUTPUT
+        echo "build_timestamp=$(date --date=$datetime -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+        echo "build_epoch=$(date --date=$datetime -u +'%s')" >> $GITHUB_OUTPUT
+        echo "nodejs_version=$(yq '.infrastructure.nodejs // "unknown"' .tool-versions.yml)" >> $GITHUB_OUTPUT
+        echo "python_version=$(yq '.infrastructure.python // "unknown"' .tool-versions.yml)" >> $GITHUB_OUTPUT
+        echo "terraform_version=$(yq '.infrastructure.terraform // "unknown"' .tool-versions.yml)" >> $GITHUB_OUTPUT
+        echo "version=$(head -n 1 .version 2> /dev/null || echo unknown)" >> $GITHUB_OUTPUT
+
+    - name: "Set Deploy Variables"
+      shell: bash
+      if: ${{ inputs.calling_workflow == 'CI/CD deploy' }}
+      id: tag
+      env:
+        INPUT_TAG: ${{ inputs.tag }}
+      run: |
+        echo "tag=$INPUT_TAG" >> $GITHUB_OUTPUT
+
+    - name: Extract Branch Name
+      id: extract_branch
+      uses: ./.github/actions/extract-branch-name
+      with:
+        short_code: ${{ inputs.short_code }}
+
+    - name: Set image name
+      shell: bash
+      id: set_image_tag
+      run: |
+        RAW_REF="${{ steps.extract_branch.outputs.branch_name }}"
+        # Look for a semantic version like v1.0.1 anywhere in the string
+        if [[ "$RAW_REF" =~ (v[0-9]+\.[0-9]+\.[0-9]+) ]]; then
+          IMAGE_TAG="${BASH_REMATCH[1]}"   # Extract just the semver
+        else
+          IMAGE_TAG="${RAW_REF}-latest"    # Fallback
+        fi
+        echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+    - name: "Set ${{ inputs.calling_workflow }} Variables"
+      shell: bash
+      id: workflow_variables
+      env:
+        INPUT_CALLING_WORKFLOW: ${{ inputs.calling_workflow }}
+        INPUT_ACTION: ${{ inputs.action }}
+        INPUT_BUILD_TYPE: ${{ inputs.build_type }}
+        INPUT_DB_SNAPSHOT_IDENTIFIER: ${{ inputs.db_snapshot_identifier }}
+        INPUT_ENVIRONMENT: ${{ inputs.environment }}
+        INPUT_ENVIRONMENT_NAME: ${{ inputs.environment_name }}
+        INPUT_NATION: ${{ inputs.nation }}
+        INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+        INPUT_SHORT_CODE: ${{ inputs.short_code }}
+        INPUT_SQL_FILE: ${{ inputs.sql_file }}
+        INPUT_TTL_DAYS: ${{ inputs.ttl_days }}
+        INPUT_TRIGGERED_BY_LAMBDA: ${{ inputs.triggered_by_lambda }}
+      run: |
+        echo "calling_workflow=${INPUT_CALLING_WORKFLOW}" >> $GITHUB_OUTPUT
+        echo "branch_name=${{ steps.extract_branch.outputs.branch_name }}" >> $GITHUB_OUTPUT
+        echo "action=${INPUT_ACTION}" >> $GITHUB_OUTPUT
+        echo "environment=${INPUT_ENVIRONMENT}" >> $GITHUB_OUTPUT
+        echo "nation=${INPUT_NATION}" >> $GITHUB_OUTPUT
+        echo "sql_file=${INPUT_SQL_FILE}" >> $GITHUB_OUTPUT
+        echo "environment_name=${INPUT_ENVIRONMENT_NAME}" >> $GITHUB_OUTPUT
+        echo "triggered_by_lambda=${INPUT_TRIGGERED_BY_LAMBDA}" >> $GITHUB_OUTPUT
+        echo "short_code=${INPUT_SHORT_CODE}" >> $GITHUB_OUTPUT
+        echo "build_type=${INPUT_BUILD_TYPE}" >> $GITHUB_OUTPUT
+        echo "db_snapshot_identifier=${INPUT_DB_SNAPSHOT_IDENTIFIER}" >> $GITHUB_OUTPUT
+        echo "release_tag=${INPUT_RELEASE_TAG}" >> $GITHUB_OUTPUT
+        echo "ttl_days=${INPUT_TTL_DAYS}" >> $GITHUB_OUTPUT

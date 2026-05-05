@@ -14,6 +14,11 @@ variable "splunk_hec_token" {
   sensitive   = true
 }
 
+variable "splunk_index" {
+  description = "Name of the Splunk index to post logs to"
+  type        = string
+}
+
 variable "name_prefix" {
   description = "The account, environment etc"
   type        = string
@@ -27,5 +32,10 @@ variable "aws_account_id" {
 
 variable "environment" {
   description = "The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD"
+  type        = string
+}
+
+variable "python_version" {
+  description = "The Python version to use for the Lambda function"
   type        = string
 }

@@ -29,3 +29,9 @@ variable "environment" {
   description = "The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD"
   type        = string
 }
+
+variable "create_ecs_service_role" {
+  description = "The service role can only be created once per account, only enable it in one stack"
+  type        = bool
+  default     = true
+}
