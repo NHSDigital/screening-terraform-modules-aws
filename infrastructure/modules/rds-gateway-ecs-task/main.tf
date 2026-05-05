@@ -81,8 +81,8 @@ resource "aws_ecs_task_definition" "task_definition" {
         "name" : "${var.name_prefix}-rds-access-gateway",
         "image" : "${var.image_name}",
         "essential" : true,
-        "command": ["sleep", "infinity"],
-        "readonlyRootFilesystem": true,
+        "command" : ["sleep", "infinity"],
+        "readonlyRootFilesystem" : true,
         "environment" : [],
         "logConfiguration" : {
           "logDriver" : "awslogs",
@@ -93,19 +93,19 @@ resource "aws_ecs_task_definition" "task_definition" {
           }
         },
         "networkMode" : "awsvpc",
-        "linuxParameters": {
+        "linuxParameters" : {
           # temporary filesystem for SSM agent so these directories are writable
           # size is in MiB and uses task memory
-          "tmpfs": [
+          "tmpfs" : [
             {
               "containerPath" : "/var/log/amazon",
-              "size": 200,
-              "mountOptions": ["noexec", "nosuid", "nodev"]
+              "size" : 200,
+              "mountOptions" : ["noexec", "nosuid", "nodev"]
             },
             {
               "containerPath" : "/var/lib/amazon",
-              "size": 200,
-              "mountOptions": ["noexec", "nosuid", "nodev"]
+              "size" : 200,
+              "mountOptions" : ["noexec", "nosuid", "nodev"]
             }
           ]
         }

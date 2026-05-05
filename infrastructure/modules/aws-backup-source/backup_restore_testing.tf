@@ -15,7 +15,7 @@ resource "aws_backup_restore_testing_selection" "backup_restore_testing_selectio
   name                      = "backup_restore_testing_selection_rds"
   restore_testing_plan_name = aws_backup_restore_testing_plan.backup_restore_testing_plan.name
   iam_role_arn              = aws_iam_role.backup.arn
-  validation_window_hours   = var.backup_plan_config_rds.validation_window_hours   # number of hours to leave the restored RDS instance available for custom validation checks
+  validation_window_hours   = var.backup_plan_config_rds.validation_window_hours # number of hours to leave the restored RDS instance available for custom validation checks
   protected_resource_type   = "RDS"
   protected_resource_conditions {
     string_equals {

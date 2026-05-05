@@ -26,14 +26,14 @@ resource "aws_security_group_rule" "vpce_ingress_from_sg" {
 }
 
 resource "aws_security_group_rule" "vpce_ingress_from_cidr_range" {
-  count                    = var.ingress_cidr_range != "" ? 1 : 0
-  type                     = "ingress"
-  from_port                = var.inbound_port
-  to_port                  = var.outbound_port
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.vpce.id
-  cidr_blocks              = [ var.ingress_cidr_range ]
-  description              = "Allow ingress to VPCE on port ${var.inbound_port} from ${var.ingress_cidr_range}"
+  count             = var.ingress_cidr_range != "" ? 1 : 0
+  type              = "ingress"
+  from_port         = var.inbound_port
+  to_port           = var.outbound_port
+  protocol          = "tcp"
+  security_group_id = aws_security_group.vpce.id
+  cidr_blocks       = [var.ingress_cidr_range]
+  description       = "Allow ingress to VPCE on port ${var.inbound_port} from ${var.ingress_cidr_range}"
 }
 
 resource "aws_security_group_rule" "vpce_egress" {

@@ -11,7 +11,7 @@ data "aws_sns_topic" "alert" {
 }
 
 locals {
-  ip_list = jsondecode(data.aws_secretsmanager_secret_version.waf_ips.secret_string).ips
+  ip_list  = jsondecode(data.aws_secretsmanager_secret_version.waf_ips.secret_string).ips
   bsis_ips = jsondecode(data.aws_secretsmanager_secret_version.waf_bsis_ip_range.secret_string).bsis_ip
 }
 
@@ -542,7 +542,7 @@ resource "aws_cloudwatch_event_rule" "shield_ddos_rule" {
 }
 
 resource "aws_cloudwatch_event_target" "shield_ddos_target" {
-  count     = contains(["prod"], var.environment) ? 1 : 0
+  count = contains(["prod"], var.environment) ? 1 : 0
 
   rule      = aws_cloudwatch_event_rule.shield_ddos_rule[count.index].name
   target_id = "${var.name_prefix}-shield-ddos-target"

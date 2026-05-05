@@ -4,16 +4,16 @@
 
 resource "aws_route53_health_check" "bs_select_health_check_web_app" {
 
-  fqdn = local.fqdn #Change to local.fqdn
-  port = 443
-  type = "HTTPS"
-  resource_path = "/bss/health"
+  fqdn              = local.fqdn #Change to local.fqdn
+  port              = 443
+  type              = "HTTPS"
+  resource_path     = "/bss/health"
   failure_threshold = "3"
-  request_interval = "30"
-  regions = ["eu-west-1", "us-east-1", "us-west-1"]
+  request_interval  = "30"
+  regions           = ["eu-west-1", "us-east-1", "us-west-1"]
 
   tags = {
-    Name    = "${var.name_prefix}-${local.env}-web-app"
+    Name = "${var.name_prefix}-${local.env}-web-app"
   }
 }
 
@@ -34,9 +34,9 @@ resource "aws_iam_role" "lambda_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
+      Effect    = "Allow",
       Principal = { Service = "lambda.amazonaws.com" },
-      Action = "sts:AssumeRole"
+      Action    = "sts:AssumeRole"
     }]
   })
 }
@@ -72,13 +72,13 @@ data "archive_file" "sns_forwarder_zip" {
 }
 
 resource "aws_lambda_function" "sns_forwarder" {
-  provider         = aws.us_east_1
-  filename         = data.archive_file.sns_forwarder_zip.output_path
-  function_name    = "${var.name_prefix}-${local.env}-sns-forwarder"
-  handler          = "bs-select-sns-forwarder.lambda_handler"
-  role             = aws_iam_role.lambda_role.arn
-  runtime          = "python3.12"
-  timeout          = 120
+  provider      = aws.us_east_1
+  filename      = data.archive_file.sns_forwarder_zip.output_path
+  function_name = "${var.name_prefix}-${local.env}-sns-forwarder"
+  handler       = "bs-select-sns-forwarder.lambda_handler"
+  role          = aws_iam_role.lambda_role.arn
+  runtime       = "python3.12"
+  timeout       = 120
 
   environment {
     variables = {
@@ -98,12 +98,12 @@ resource "aws_sns_topic_subscription" "forwarder_sub" {
 }
 
 resource "aws_lambda_permission" "allow_sns" {
-  provider       = aws.us_east_1
-  statement_id   = "AllowExecutionFromSNS"
-  action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.sns_forwarder.arn
-  principal      = "sns.amazonaws.com"
-  source_arn     = aws_sns_topic.forwarder_topic.arn
+  provider      = aws.us_east_1
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.sns_forwarder.arn
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.forwarder_topic.arn
 }
 
 
@@ -123,13 +123,13 @@ resource "aws_cloudwatch_metric_alarm" "bs_select_health_check_web_app_healthy" 
   threshold           = "1"
   unit                = "None"
   dimensions = {
-    HealthCheckId =  aws_route53_health_check.bs_select_health_check_web_app.id
+    HealthCheckId = aws_route53_health_check.bs_select_health_check_web_app.id
   }
-  alarm_description   = "When in alarm, send message to topic ${aws_sns_topic.forwarder_topic.arn}"
-  alarm_actions       = [aws_sns_topic.forwarder_topic.arn]
-  ok_actions          = [aws_sns_topic.forwarder_topic.arn]
+  alarm_description         = "When in alarm, send message to topic ${aws_sns_topic.forwarder_topic.arn}"
+  alarm_actions             = [aws_sns_topic.forwarder_topic.arn]
+  ok_actions                = [aws_sns_topic.forwarder_topic.arn]
   insufficient_data_actions = []
-  treat_missing_data  = "notBreaching"
+  treat_missing_data        = "notBreaching"
 }
 
 

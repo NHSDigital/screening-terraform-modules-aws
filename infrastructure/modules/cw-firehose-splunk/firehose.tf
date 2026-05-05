@@ -49,7 +49,7 @@ resource "aws_lambda_function" "preprocess-cw-logs" {
   timeout          = "180"
   environment {
     variables = {
-      SPLUNK_INDEX = var.splunk_index
+      SPLUNK_INDEX              = var.splunk_index
       DEFAULT_SPLUNK_SOURCETYPE = "bs_select_app_logs"
     }
   }

@@ -1,7 +1,7 @@
 locals {
-  resource_name_prefix                             = var.name_prefix != null ? var.name_prefix : "${data.aws_region.current.region}-${data.aws_caller_identity.current.account_id}-backup"
-  selection_tag_value_rds_null_checked             = (var.backup_plan_config_rds.selection_tag_value == null) ? "True" : var.backup_plan_config_rds.selection_tag_value
-  selection_tags_rds_null_checked                  = (var.backup_plan_config_rds.selection_tags == null) ? [{ "key" : var.backup_plan_config_rds.selection_tag, "value" : local.selection_tag_value_rds_null_checked }] : var.backup_plan_config_rds.selection_tags
+  resource_name_prefix                 = var.name_prefix != null ? var.name_prefix : "${data.aws_region.current.region}-${data.aws_caller_identity.current.account_id}-backup"
+  selection_tag_value_rds_null_checked = (var.backup_plan_config_rds.selection_tag_value == null) ? "True" : var.backup_plan_config_rds.selection_tag_value
+  selection_tags_rds_null_checked      = (var.backup_plan_config_rds.selection_tags == null) ? [{ "key" : var.backup_plan_config_rds.selection_tag, "value" : local.selection_tag_value_rds_null_checked }] : var.backup_plan_config_rds.selection_tags
   framework_arn_list = flatten(concat(
     var.backup_plan_config_rds.enable ? [aws_backup_framework.rds[0].arn] : []
   ))

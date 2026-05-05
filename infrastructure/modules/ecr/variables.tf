@@ -33,7 +33,7 @@ List of lifecycle rules. Each rule must be an object:
   }
 }
 EOT
-  type    = list(object({
+  type = list(object({
     priority    = number
     description = string
     selection = object({

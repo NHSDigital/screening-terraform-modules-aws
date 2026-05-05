@@ -1,8 +1,8 @@
-variable environment {
+variable "environment" {
   description = "the environment the healthcheck is deployed into"
 }
 
-variable name_prefix {
+variable "name_prefix" {
   description = "the name prefix for the healthcheck"
 }
 
