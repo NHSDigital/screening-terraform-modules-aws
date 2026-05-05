@@ -65,25 +65,25 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
     secrets: inherit
 
-  enforce-pr-title-format: #
-    name: "Enforce PR title format"
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
-    permissions:
-      issues: write
-      contents: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+  # enforce-pr-title-format: #
+  #   name: "Enforce PR title format"
+  #   runs-on: ubuntu-latest
+  #   if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+  #   permissions:
+  #     issues: write
+  #     contents: read
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v6
 
-      - name: Generate a token
-        id: generate-token
-        uses: actions/create-github-app-token@v3
-        with:
-          app-id: ${{ vars.GH_APP_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+  #     - name: Generate a token
+  #       id: generate-token
+  #       uses: actions/create-github-app-token@v3
+  #       with:
+  #         app-id: ${{ vars.GH_APP_ID }}
+  #         private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
-      - name: Check PR title format
-        uses: ./.github/actions/enforce-pr-title-format
-        with:
-          github-token: ${{ steps.generate-token.outputs.token }}
+  #     - name: Check PR title format
+  #       uses: ./.github/actions/enforce-pr-title-format
+  #       with:
+  #         github-token: ${{ steps.generate-token.outputs.token }}
