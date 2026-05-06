@@ -1,3 +1,51 @@
+#
+# ONLY EDIT THIS FILE IN github.com/NHSDigital/screening-terraform-modules-aws/infrastructure/modules/tags
+# All other instances of this file should be a copy of that one
+#
+#
+# Copy this file from https://github.com/NHSDigital/screening-terraform-modules-aws/blob/master/infrastructure/modules/tags/exports/context.tf
+# and then place it in your Terraform module to automatically get
+# tag module standard configuration inputs suitable for passing
+# to other modules.
+#
+# curl -sL https://raw.githubusercontent.com/NHSDigital/screening-terraform-modules-aws/master/infrastructure/modules/tags/exports/context.tf -o context.tf
+#
+# Modules should access the whole context as `module.this.context`
+# to get the input variables with nulls for defaults,
+# for example `context = module.this.context`,
+# and access individual variables as `module.this.<var>`,
+# with final values filled in.
+#
+# For example, when using defaults, `module.this.context.delimiter`
+# will be null, and `module.this.delimiter` will be `-` (hyphen).
+#
+
+module "this" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=feature/BCSS-23189-add-new-modules-to-suppport-bcss"
+
+  service             = var.service
+  project             = var.project
+  region              = var.region
+  environment         = var.environment
+  stack               = var.stack
+  workspace           = var.workspace
+  name                = var.name
+  delimiter           = var.delimiter
+  attributes          = var.attributes
+  tags                = var.tags
+  additional_tag_map  = var.additional_tag_map
+  label_order         = var.label_order
+  regex_replace_chars = var.regex_replace_chars
+  id_length_limit     = var.id_length_limit
+  label_key_case      = var.label_key_case
+  label_value_case    = var.label_value_case
+  descriptor_formats  = var.descriptor_formats
+  labels_as_tags      = var.labels_as_tags
+
+  context = var.context
+}
+
+# Copy contents of screening-terraform-modules-aws/tags/variables.tf here
 # tflint-ignore: terraform_unused_declarations
 variable "aws_region" {
   type        = string
@@ -313,3 +361,5 @@ variable "tool" {
   description = "The tool used to deploy the resource"
   default     = "Terraform"
 }
+
+#### End of copy of screening-terraform-modules-aws/tags/variables.tf

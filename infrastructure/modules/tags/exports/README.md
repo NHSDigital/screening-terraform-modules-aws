@@ -1,90 +1,23 @@
-# AWS Tag Terraform module
-
-Terraform module designed to generate consistent names and tags for resources. Use `tags` to implement a strict naming and tagging convention.
-
-There are 8 inputs considered "labels" or "ID elements" (because the labels are used to construct the ID):
-1. service
-1. project
-1. region
-1. environment
-1. workspace
-1. stack
-1. name
-1. attributes
-
-This module generates IDs using the following convention by default: `{service}-{project}-{environment}-{stack}-{name}-{attributes}`.
-However, it is highly configurable. The delimiter (e.g. `-`) is configurable. Each label item is optional (although you must provide at least one).
-So if you prefer the term `workspace` to `environment` and do not need `stack`, you can exclude them
-and the label `id` will look like `{service}-{project}-{workspace}-{name}-{attributes}`.
-- The `attributes` input is actually a list of strings and `{attributes}` expands to the list elements joined by the delimiter.
-- If `attributes` is excluded but `service`, `project`, and `workspace` are included, `id` will look like `{service}-{project}-{workspace}-{name}`.
-  Excluding `attributes` is discouraged, though, because attributes are the main way modules modify the ID to ensure uniqueness when provisioning the same resource types.
-- If you want the label items in a different order, you can specify that, too, with the `label_order` list.
-- You can set a maximum length for the `id`, and the module will create a (probably) unique name that fits within that length.
-  (The module uses a portion of the MD5 hash of the full `id` to represent the missing part, so there remains a slight chance of name collision.)
-- You can control the letter case of the generated labels which make up the `id` using `var.label_value_case`.
-- By default, all of the non-empty labels are also exported as tags, whether they appear in the `id` or not.
-You can control which labels are exported as tags by setting `labels_as_tags` to the list of labels you want exported,
-or the empty list `[]` if you want no labels exported as tags at all. Tags passed in via the `tags` variable are
-always exported, and regardless of settings, empty labels are never exported as tags.
-You can control the case of the tag names (keys) for the labels using `var.label_key_case`.
-Unlike the tags generated from the label inputs, tags passed in via the `tags` input are not modified.
-
-There is an unfortunate collision over the use of the key `name`. We use `name` in this module
-to represent the component, such as `eks` or `rds`. AWS uses a tag with the key `Name` to store the full human-friendly
-identifier of the thing tagged, which this module outputs as `id`, not `name`. So when converting input labels
-to tags, the value of the `Name` key is set to the module `id` output, and there is no tag corresponding to the
-module `name` output. An empty `name` label will not prevent the `Name` tag from being exported.
-
-It's recommended to use one `tags` module for every unique resource of a given resource type.
-For example, if you have 10 instances, there should be 10 different labels.
-However, if you have multiple different kinds of resources (e.g. instances, security groups, file systems, and elastic ips), then they can all share the same label assuming they are logically related.
-
-For most purposes, the `id` output is sufficient to create an ID or label for a resource, and if you want a different
-ID or a different format, you would instantiate another instance of `tags` and configure it accordingly. However,
-to accommodate situations where you want all the same inputs to generate multiple descriptors, this module provides
-the `descriptors` output, which is a map of strings generated according to the format specified by the
-`descriptor_formats` input. This feature is intentionally simple and minimally configurable and will not be
-enhanced to add more features that are already in `tags`. See [examples/complete/descriptors.tf](examples/complete/descriptors.tf) for examples.
-
-
-The recommended convention is to use labels as follows:
-- `service`: A short (3-4 letters) abbreviation of the service directorate to ensure globally unique IDs for things like S3 buckets i.e. bcss
-- `project`: The name or role of the project the resource is for, such as `web` or `api`
-- `region`: By default this will auto-populate the provider region, but can be overridden or set to `gbl` for resources like IAM roles that have no region
-- `environment`: The name or role of the account the resource is for, such as `prod` or `dev`
-- `workspace`: _(Rarely needed)_ Typically, the singular environment label suffices as there would only be a singular resource created per environment. On occasion, there may be multiple sub-environment, still of a singular environment/with shared environment resources i.e. sit1, sit2, nft1, nft2).  `workspace` can be used to identify the specific sub-environment the resources relate to and by default is auto-populated to the `terraform.workspace` value.
-- `name`: The name of the component that owns the resources, such as `eks` or `rds`
-
-## Usage
-
-## Examples
+# exports
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-| Name | Version |
-| ---- | ------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.14.0 |
+No requirements.
 
 ## Providers
 
-| Name | Version |
-| ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+No providers.
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+| ---- | ------ | ------- |
+| <a name="module_this"></a> [this](#module\_this) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | feature/BCSS-23189-add-new-modules-to-suppport-bcss |
 
 ## Resources
 
-| Name | Type |
-| ---- | ---- |
-| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
-| [aws_iam_session_context.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_session_context) | data source |
-| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+No resources.
 
 ## Inputs
 
@@ -123,27 +56,5 @@ No modules.
 
 ## Outputs
 
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_additional_tag_map"></a> [additional\_tag\_map](#output\_additional\_tag\_map) | The merged additional\_tag\_map |
-| <a name="output_attributes"></a> [attributes](#output\_attributes) | List of attributes |
-| <a name="output_context"></a> [context](#output\_context) | Merged but otherwise unmodified input to this module, to be used as context input to other modules.<br/>Note: this version will have null values as defaults, not the values actually used as defaults. |
-| <a name="output_delimiter"></a> [delimiter](#output\_delimiter) | Delimiter between `namespace`, `tenant`, `environment`, `stage`, `name` and `attributes` |
-| <a name="output_descriptors"></a> [descriptors](#output\_descriptors) | Map of descriptors as configured by `descriptor_formats` |
-| <a name="output_enabled"></a> [enabled](#output\_enabled) | True if module is enabled, false otherwise |
-| <a name="output_environment"></a> [environment](#output\_environment) | Normalized environment |
-| <a name="output_id"></a> [id](#output\_id) | Disambiguated ID string restricted to `id_length_limit` characters in total |
-| <a name="output_id_full"></a> [id\_full](#output\_id\_full) | ID string not restricted in length |
-| <a name="output_id_length_limit"></a> [id\_length\_limit](#output\_id\_length\_limit) | The id\_length\_limit actually used to create the ID, with `0` meaning unlimited |
-| <a name="output_label_order"></a> [label\_order](#output\_label\_order) | The naming order actually used to create the ID |
-| <a name="output_name"></a> [name](#output\_name) | Normalized name |
-| <a name="output_normalized_context"></a> [normalized\_context](#output\_normalized\_context) | Normalized context of this module |
-| <a name="output_project"></a> [project](#output\_project) | Normalized project |
-| <a name="output_regex_replace_chars"></a> [regex\_replace\_chars](#output\_regex\_replace\_chars) | The regex\_replace\_chars actually used to create the ID |
-| <a name="output_region"></a> [region](#output\_region) | Normalized region short name |
-| <a name="output_service"></a> [service](#output\_service) | Normalized service |
-| <a name="output_stack"></a> [stack](#output\_stack) | Normalized stack |
-| <a name="output_tags"></a> [tags](#output\_tags) | Normalized Tag map |
-| <a name="output_tags_as_list_of_maps"></a> [tags\_as\_list\_of\_maps](#output\_tags\_as\_list\_of\_maps) | This is a list with one map for each `tag`. Each map contains the tag `key`,<br/>`value`, and contents of `var.additional_tag_map`. Used in the rare cases<br/>where resources need additional configuration information for each tag. |
-| <a name="output_workspace"></a> [workspace](#output\_workspace) | Normalized workspace |
+No outputs.
 <!-- END_TF_DOCS -->
