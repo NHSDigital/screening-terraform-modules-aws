@@ -20,15 +20,15 @@ locals {
   id_hash_length = local.defaults.id_hash_length
 
 
-   # The values provided by variables supersede the values inherited from the context object,
+  # The values provided by variables supersede the values inherited from the context object,
   # except for tags and attributes which are merged.
   input = {
     # It would be nice to use coalesce here, but we cannot, because it
     # is an error for all the arguments to coalesce to be empty.
-    enabled   = var.enabled == null ? var.context.enabled : var.enabled
-    service = var.service == null ? var.context.service : var.service
-    project   = var.project == null ? var.context.project : var.project
-    region  = var.region == null ? lookup(local.to_short, data.aws_region.current.name, null) : var.region
+    enabled     = var.enabled == null ? var.context.enabled : var.enabled
+    service     = var.service == null ? var.context.service : var.service
+    project     = var.project == null ? var.context.project : var.project
+    region      = var.region == null ? lookup(local.to_short, data.aws_region.current.name, null) : var.region
     environment = var.environment == null ? var.context.environment : var.environment
     stack       = var.stack == null ? var.context.stack : var.stack
     name        = var.name == null ? var.context.name : var.name
@@ -64,16 +64,16 @@ locals {
     local.label_value_case == "upper" ? upper(local.normalized_labels[k]) : lower(local.normalized_labels[k])
   }
 
-    attributes = compact(distinct([
+  attributes = compact(distinct([
     for v in local.normalized_attributes : (local.label_value_case == "none" ? v :
       local.label_value_case == "title" ? title(lower(v)) :
     local.label_value_case == "upper" ? upper(v) : lower(v))
   ]))
 
-  service   = local.formatted_labels["service"]
-  project      = local.formatted_labels["project"]
+  service = local.formatted_labels["service"]
+  project = local.formatted_labels["project"]
 
-  region = local.formatted_labels["region"]
+  region      = local.formatted_labels["region"]
   environment = local.formatted_labels["environment"]
   stack       = local.formatted_labels["stack"]
   name        = local.formatted_labels["name"]
@@ -104,9 +104,9 @@ locals {
   ])
 
   tags_context = {
-    service   = local.service
-    project      = local.project
-    region = local.region
+    service     = local.service
+    project     = local.project
+    region      = local.region
     environment = local.environment
     stack       = local.stack
     workspace   = local.workspace
@@ -115,18 +115,18 @@ locals {
     attributes = local.id_context.attributes
     # Additional NHS specific tags which may be useful for filtering and auditing, but are not part of the ID and not included in the hash
     # so they do not affect the ID length and do not cause the ID to change when they change. They are included in the tags output and can be used as tags on resources.
-    owner              = var.owner
+    owner               = var.owner
     tag_version         = var.tag_version
     data_classification = var.data_classification
     data_type           = var.data_type
     public_facing       = var.public_facing
     service_category    = var.service_category
-    on_off_pattern       = var.on_off_pattern
+    on_off_pattern      = var.on_off_pattern
     application_role    = var.application_role
     terraform_source    = path.module
     deployed_by         = data.aws_iam_session_context.current.arn
-    deployed_by_source   = data.aws_iam_session_context.current.issuer_arn
-    tool = var.tool
+    deployed_by_source  = data.aws_iam_session_context.current.issuer_arn
+    tool                = var.tool
   }
 
   generated_tags = {
@@ -137,9 +137,9 @@ locals {
   }
 
   id_context = {
-    service   = local.service
-    project      = local.project
-    region = local.region
+    service     = local.service
+    project     = local.project
+    region      = local.region
     environment = local.environment
     stack       = local.stack
     workspace   = local.workspace
