@@ -56,7 +56,7 @@ Here are some key features built into this repository's Terraform module:
   - [`check-terraform-format.sh`](../../scripts/githooks/check-terraform-format.sh): Git hook
 - Usage example
   - Declarative infrastructure definition example [`terraform-state-aws-s3`](../../scripts/terraform/examples/terraform-state-aws-s3) to store Terraform state
-  - A set of [make targets](https://github.com/nhs-england-tools/repository-template/blob/main/scripts/terraform/terraform.mk#L44) to run the example
+  - A set of [make targets](https://github.com/nhs-england-tools/repository-template/blob/ec475e15f049b8ec1ac1b69088297e70ea5c1291/scripts/terraform/terraform.mk#L44) to run the example
 
 ## Usage
 
