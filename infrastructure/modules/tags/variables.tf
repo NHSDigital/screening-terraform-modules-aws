@@ -250,6 +250,7 @@ variable "descriptor_formats" {
 variable "owner" {
   type        = string
   description = "The name and or NHS.net email address of the service owner"
+  default = "None"
 }
 
 variable "tag_version" {
@@ -297,7 +298,7 @@ variable "service_category" {
 variable "on_off_pattern" {
   type        = string
   description = "Used to turn resources on and off based on a time pattern"
-  default     = "N/A"
+  default     = "n/a"
 }
 
 variable "application_role" {
