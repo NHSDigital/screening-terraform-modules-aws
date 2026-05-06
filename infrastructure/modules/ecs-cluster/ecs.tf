@@ -99,6 +99,3 @@ resource "aws_cloudwatch_metric_alarm" "task_memory_utilization_alarm" {
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "notBreaching"
 }
-
-
-

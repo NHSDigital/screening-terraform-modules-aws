@@ -131,5 +131,3 @@ resource "aws_cloudwatch_metric_alarm" "bs_select_health_check_web_app_healthy" 
   insufficient_data_actions = []
   treat_missing_data        = "notBreaching"
 }
-
-

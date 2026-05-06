@@ -105,4 +105,3 @@ resource "aws_cloudwatch_log_group" "redis_slow_log" {
   #kms_key_id        = data.aws_kms_key.kms_key.arn
   retention_in_days = 365
 }
-
