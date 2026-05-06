@@ -1,4 +1,3 @@
-# tflint-ignore: terraform_unused_declarations
 locals {
   # Key can be a region, availability zone, or local zone.
   # Key CANNOT be an Availability Zone ID or Wavelength Zone.
@@ -23,7 +22,7 @@ locals {
   # curl -sSL https://raw.githubusercontent.com/aws/aws-sdk-java/master/aws-java-sdk-core/src/main/resources/com/amazonaws/partitions/endpoints.json \
   #  | jq -r '.partitions[] |select( .partition | test("aws(-cn|-us-gov)?$") ) | .regions | to_entries |.[] | "\"\(.key)\"  = \"\(.value.description)\""'
 
-
+  # tflint-ignore: terraform_unused_declarations
   to_display_name = {
     "af-south-1"     = "Africa (Cape Town)"
     "ap-east-1"      = "Asia Pacific (Hong Kong)"
@@ -60,6 +59,7 @@ locals {
     "us-gov-west-1"  = "AWS GovCloud (US-West)"
   }
 
+  # tflint-ignore: terraform_unused_declarations
   to_fixed = {
     "ap-east-1"  = "ae1"
     "ap-east-1a" = "ae1a"
@@ -788,9 +788,12 @@ locals {
     "us-west-2-sea-1a" = "sea1a"
   }
 
+  # tflint-ignore: terraform_unused_declarations
   from_fixed = zipmap(values(local.to_fixed), keys(local.to_fixed))
+  # tflint-ignore: terraform_unused_declarations
   from_short = zipmap(values(local.to_short), keys(local.to_short))
 
+  # tflint-ignore: terraform_unused_declarations
   identity = { for k, v in local.to_short : k => k }
 
 }
