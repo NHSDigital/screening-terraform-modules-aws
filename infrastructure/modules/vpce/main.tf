@@ -75,4 +75,3 @@ resource "aws_route53_record" "vpc_endpoint" {
     zone_id                = aws_vpc_endpoint.endpoint.dns_entry[0]["hosted_zone_id"]
   }
 }
-

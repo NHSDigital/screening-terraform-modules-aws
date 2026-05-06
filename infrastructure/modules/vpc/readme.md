@@ -67,8 +67,8 @@ No requirements.
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider_aws) | n/a |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
 
 ## Modules
 
@@ -77,7 +77,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_eip.eip_a](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
 | [aws_eip.eip_b](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
 | [aws_eip.eip_c](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
@@ -106,19 +106,19 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_environment"></a> [environment](#input_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `any` | n/a | yes |
-| <a name="input_name"></a> [name](#input_name) | The name of the resource | `string` | `""` | no |
-| <a name="input_name_prefix"></a> [name_prefix](#input_name_prefix) | the environment and project | `any` | n/a | yes |
-| <a name="input_vpc_cidr_prefix"></a> [vpc_cidr_prefix](#input_vpc_cidr_prefix) | The CIDR block prefix for the VPC | `any` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_environment"></a> [environment](#input\_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `any` | n/a | yes |
+| <a name="input_name"></a> [name](#input\_name) | The name of the resource | `string` | `""` | no |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | the environment and project | `any` | n/a | yes |
+| <a name="input_vpc_cidr_prefix"></a> [vpc\_cidr\_prefix](#input\_vpc\_cidr\_prefix) | The CIDR block prefix for the VPC | `any` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_private_subnet_ids"></a> [private_subnet_ids](#output_private_subnet_ids) | IDs of the public subnets |
-| <a name="output_public_subnet_ids"></a> [public_subnet_ids](#output_public_subnet_ids) | IDs of the public subnets |
-| <a name="output_vpc_cidr_block"></a> [vpc_cidr_block](#output_vpc_cidr_block) | CIDR range of the VPC |
-| <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | ID of the VPC |
+| ---- | ----------- |
+| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | IDs of the public subnets |
+| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | IDs of the public subnets |
+| <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | CIDR range of the VPC |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | ID of the VPC |
 <!-- END_TF_DOCS -->
 <!-- vale on -->

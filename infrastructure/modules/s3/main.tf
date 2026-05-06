@@ -43,4 +43,3 @@ resource "aws_s3_bucket_policy" "access_policy" {
   bucket = aws_s3_bucket.bucket.id
   policy = var.bucket_policy
 }
-
