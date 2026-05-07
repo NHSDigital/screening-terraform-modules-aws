@@ -28,7 +28,7 @@ locals {
     enabled     = var.enabled == null ? var.context.enabled : var.enabled
     service     = var.service == null ? var.context.service : var.service
     project     = var.project == null ? var.context.project : var.project
-    region      = var.region == null ? lookup(local.to_short, data.aws_region.current.name, null) : var.region
+    region      = var.region == null ? lookup(local.to_short, data.aws_region.current.region, null) : var.region
     environment = var.environment == null ? var.context.environment : var.environment
     stack       = var.stack == null ? var.context.stack : var.stack
     name        = var.name == null ? var.context.name : var.name
