@@ -119,7 +119,7 @@ locals {
     tag_version         = var.tag_version
     data_classification = var.data_classification
     data_type           = var.data_type
-    public_facing       = var.public_facing
+    public_facing       = tostring(var.public_facing)
     service_category    = var.service_category
     on_off_pattern      = var.on_off_pattern
     application_role    = var.application_role
