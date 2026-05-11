@@ -1,0 +1,148 @@
+################################################################
+# GuardDuty Detector
+################################################################
+
+resource "aws_guardduty_detector" "this" {
+  enable                       = var.enabled
+  finding_publishing_frequency = var.finding_publishing_frequency
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.name_prefix}-guardduty"
+      Environment = var.environment
+    },
+  )
+}
+
+################################################################
+# Detector Features
+#
+# All feature toggles use the newer aws_guardduty_detector_feature
+# resource 
+################################################################
+
+resource "aws_guardduty_detector_feature" "s3_data_events" {
+  count = var.enabled ? 1 : 0
+
+  detector_id = aws_guardduty_detector.this.id
+  name        = "S3_DATA_EVENTS"
+  status      = var.s3_protection_enabled ? "ENABLED" : "DISABLED"
+}
+
+resource "aws_guardduty_detector_feature" "eks_audit_logs" {
+  count = var.enabled ? 1 : 0
+
+  detector_id = aws_guardduty_detector.this.id
+  name        = "EKS_AUDIT_LOGS"
+  status      = var.kubernetes_audit_logs_enabled ? "ENABLED" : "DISABLED"
+}
+
+resource "aws_guardduty_detector_feature" "ebs_malware_protection" {
+  count = var.enabled ? 1 : 0
+
+  detector_id = aws_guardduty_detector.this.id
+  name        = "EBS_MALWARE_PROTECTION"
+  status      = var.malware_protection_scan_ec2_ebs_volumes_enabled ? "ENABLED" : "DISABLED"
+}
+
+resource "aws_guardduty_detector_feature" "lambda_network_logs" {
+  count = var.enabled ? 1 : 0
+
+  detector_id = aws_guardduty_detector.this.id
+  name        = "LAMBDA_NETWORK_LOGS"
+  status      = var.lambda_network_logs_enabled ? "ENABLED" : "DISABLED"
+}
+
+# Runtime Monitoring (EC2 + ECS + EKS). Mutually exclusive with
+# eks_runtime_monitoring_enabled — guarded by the precondition below.
+resource "aws_guardduty_detector_feature" "runtime_monitoring" {
+  count = var.enabled ? 1 : 0
+
+  detector_id = aws_guardduty_detector.this.id
+  name        = "RUNTIME_MONITORING"
+  status      = var.runtime_monitoring_enabled ? "ENABLED" : "DISABLED"
+
+  dynamic "additional_configuration" {
+    for_each = var.runtime_monitoring_enabled ? [1] : []
+    content {
+      name   = "EKS_ADDON_MANAGEMENT"
+      status = var.runtime_monitoring_additional_config.eks_addon_management_enabled ? "ENABLED" : "DISABLED"
+    }
+  }
+
+  dynamic "additional_configuration" {
+    for_each = var.runtime_monitoring_enabled ? [1] : []
+    content {
+      name   = "ECS_FARGATE_AGENT_MANAGEMENT"
+      status = var.runtime_monitoring_additional_config.ecs_fargate_agent_management_enabled ? "ENABLED" : "DISABLED"
+    }
+  }
+
+  dynamic "additional_configuration" {
+    for_each = var.runtime_monitoring_enabled ? [1] : []
+    content {
+      name   = "EC2_AGENT_MANAGEMENT"
+      status = var.runtime_monitoring_additional_config.ec2_agent_management_enabled ? "ENABLED" : "DISABLED"
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = !(var.runtime_monitoring_enabled && var.eks_runtime_monitoring_enabled)
+      error_message = "runtime_monitoring_enabled and eks_runtime_monitoring_enabled are mutually exclusive. RUNTIME_MONITORING already covers EKS."
+    }
+  }
+}
+
+# Standalone EKS Runtime Monitoring (only enable when RUNTIME_MONITORING is off).
+resource "aws_guardduty_detector_feature" "eks_runtime_monitoring" {
+  count = var.enabled ? 1 : 0
+
+  detector_id = aws_guardduty_detector.this.id
+  name        = "EKS_RUNTIME_MONITORING"
+  status      = var.eks_runtime_monitoring_enabled ? "ENABLED" : "DISABLED"
+
+  dynamic "additional_configuration" {
+    for_each = var.eks_runtime_monitoring_enabled ? [1] : []
+    content {
+      name   = "EKS_ADDON_MANAGEMENT"
+      status = var.runtime_monitoring_additional_config.eks_addon_management_enabled ? "ENABLED" : "DISABLED"
+    }
+  }
+}
+
+################################################################
+# CloudWatch Event Rule -> SNS forwarding for findings
+#
+# The SNS topic itself is created by the separate alerting module. 
+# Pass the topic ARN via `findings_notification_arn` to wire findings into it.
+################################################################
+
+resource "aws_cloudwatch_event_rule" "findings" {
+  count = var.enabled && var.enable_cloudwatch ? 1 : 0
+
+  name        = "${var.name_prefix}-guardduty-findings"
+  description = "Forward GuardDuty findings to SNS for alerting."
+
+  event_pattern = jsonencode({
+    source      = ["aws.guardduty"]
+    detail-type = [var.cloudwatch_event_rule_pattern_detail_type]
+  })
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.name_prefix}-guardduty-findings"
+      Environment = var.environment
+    },
+  )
+}
+
+resource "aws_cloudwatch_event_target" "findings" {
+  count = var.enabled && var.enable_cloudwatch && var.findings_notification_arn != null ? 1 : 0
+
+  rule      = aws_cloudwatch_event_rule.findings[0].name
+  target_id = "${var.name_prefix}-guardduty-findings-sns"
+  arn       = var.findings_notification_arn
+}
