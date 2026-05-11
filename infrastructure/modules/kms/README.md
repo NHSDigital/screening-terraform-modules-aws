@@ -109,6 +109,13 @@ No resources.
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_aliases"></a> [aliases](#output\_aliases) | A map of aliases created and their attributes |
+| <a name="output_grants"></a> [grants](#output\_grants) | A map of grants created and their attributes |
+| <a name="output_key_arn"></a> [key\_arn](#output\_key\_arn) | The Amazon Resource Name (ARN) of the key |
+| <a name="output_key_id"></a> [key\_id](#output\_key\_id) | The globally unique identifier for the key |
+| <a name="output_key_policy"></a> [key\_policy](#output\_key\_policy) | The IAM resource policy set on the key |
+| <a name="output_key_region"></a> [key\_region](#output\_key\_region) | The region for the key |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
