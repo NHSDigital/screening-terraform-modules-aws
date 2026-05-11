@@ -1,11 +1,11 @@
 output "detector_id" {
   description = "The ID of the GuardDuty detector."
-  value       = aws_guardduty_detector.this.id
+  value       = try(aws_guardduty_detector.this[0].id, null)
 }
 
 output "detector_arn" {
   description = "The ARN of the GuardDuty detector."
-  value       = aws_guardduty_detector.this.arn
+  value       = try(aws_guardduty_detector.this[0].arn, null)
 }
 
 output "cloudwatch_event_rule_arn" {

@@ -1,24 +1,11 @@
-variable "name_prefix" {
-  description = "Prefix used to name GuardDuty resources (e.g. account/environment identifier)."
-  type        = string
-}
-
-variable "environment" {
-  description = "The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD."
-  type        = string
-}
-
-variable "tags" {
-  description = "Additional tags to apply to all resources created by this module."
-  type        = map(string)
-  default     = {}
-}
-
-variable "enabled" {
-  description = "Master switch for the GuardDuty detector. Set to false to disable the detector and all features."
-  type        = bool
-  default     = true
-}
+################################################################
+# GuardDuty-specific inputs.
+#
+# Naming, tagging and the master `enabled` switch come from
+# `context.tf` via `module.this` — see that file for the full
+# list of inherited inputs (service, project, environment,
+# stack, name, owner, data_classification, tags, etc.).
+################################################################
 
 variable "finding_publishing_frequency" {
   description = "Frequency of finding notifications. Valid values: FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS. Only meaningful for standalone/master accounts."
