@@ -16,8 +16,8 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_findings_label"></a> [findings_label](#module_findings_label) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | feature/BCSS-23189-add-new-modules-to-suppport-bcss |
-| <a name="module_this"></a> [this](#module_this) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | feature/BCSS-23189-add-new-modules-to-suppport-bcss |
+| <a name="module_findings_label"></a> [findings_label](#module_findings_label) | `git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags` | feature/BCSS-23189-add-new-modules-to-suppport-bcss |
+| <a name="module_this"></a> [this](#module_this) | `git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags` | feature/BCSS-23189-add-new-modules-to-suppport-bcss |
 
 ## Resources
 
