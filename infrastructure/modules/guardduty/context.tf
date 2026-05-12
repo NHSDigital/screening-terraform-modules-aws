@@ -32,7 +32,7 @@ module "this" {
   name                = var.name
   delimiter           = var.delimiter
   attributes          = var.attributes
-  tags                = var.tags 
+  tags                = var.tags
   additional_tag_map  = var.additional_tag_map
   label_order         = var.label_order
   regex_replace_chars = var.regex_replace_chars
@@ -284,8 +284,8 @@ variable "descriptor_formats" {
     Describe additional descriptors to be output in the `descriptors` output map.
     Map of maps. Keys are names of descriptors. Values are maps of the form
     `{
-       format = string
-       labels = list(string)
+      format = string
+      labels = list(string)
     }`
     (Type is `any` so the map values can later be enhanced to provide additional options.)
     `format` is a Terraform format string to be passed to the `format()` function.
