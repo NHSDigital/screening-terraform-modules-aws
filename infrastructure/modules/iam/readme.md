@@ -1,6 +1,6 @@
-# IAM
+# iam
 
-Creates IAM customer-managed policies and (optionally) IAM roles for any
+Creates iam customer-managed policies and (optionally) iam roles for any
 team on the screening platform. Naming and tagging come from the central
 `tags` module via `context.tf`, so every team gets consistent
 `/<service>/<project>/` paths and the standard NHS tag set automatically.
@@ -12,7 +12,7 @@ roles. Three typical consumer patterns:
 
 ### 1. SSO customer-managed policies (no roles)
 
-Use this when defining the IAM policies that AWS Identity Center
+Use this when defining the iam policies that AWS Identity Center
 permission sets will reference. The SSO wiring itself
 (`aws_ssoadmin_permission_set`, `aws_ssoadmin_customer_managed_policy_attachment`,
 account assignments) lives in the consumer stack, not in this module.
@@ -47,7 +47,7 @@ resource "aws_ssoadmin_customer_managed_policy_attachment" "readonly" {
 
   customer_managed_policy_reference {
     name = module.iam.policy_names["sso-readonly"]
-    path = "/<service>/<project>/" # matches the module's default IAM path
+    path = "/<service>/<project>/" # matches the module's default iam path
   }
 }
 ```
@@ -123,19 +123,19 @@ module "iam" {
 
 - **Naming.** Resource names are derived from `module.this.id` plus an
   `attributes` suffix — e.g. `<id>-policy-<key>` and `<id>-role-<key>`.
-- **IAM path.** Defaults to `/<service>/<project>/` from context. Override
+- **iam path.** Defaults to `/<service>/<project>/` from context. Override
   globally with `var.path` or per-entry with `entry.path`.
 - **Enabled switch.** Set `context.enabled = false` to disable the entire
-  module (e.g. in dev tfvars). All resources are gated by it.
+  module (e.g. in development tfvars). All resources are gated by it.
 - **Descriptions.** Strongly encouraged on every policy and role —
-  whoever sees them in the IAM console later will thank you.
+  whoever sees them in the iam console later will thank you.
 
 ## What this module does NOT do
 
 - SSO permission sets, account assignments, group/user management — lives
   in the consumer stack via `aws_ssoadmin_*` and `aws_identitystore_*`.
-- IAM users, IAM groups, SAML/OIDC identity providers
-- Account-wide IAM settings (password policy, account alias, MFA enforcement).
+- iam users, iam groups, SAML/OIDC identity providers
+- Account-wide iam settings (password policy, account alias, MFA enforcement).
 
 <!-- vale off -->
 <!-- BEGIN_TF_DOCS -->
