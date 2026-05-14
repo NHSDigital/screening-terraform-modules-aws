@@ -83,7 +83,7 @@ module "log_bucket" {
 
 * Create a KMS key. Use the `kms` module and pass `key_arn` in via
   `kms_master_key_arn`.
-* Manage replication, object-lock, intelligent tiering, website hosting,
+* Manage replication, object-lock, intelligent storage classes, website hosting,
   inventory, or analytics configurations. Add a dedicated wrapper or use the
   upstream module directly if you need those.
 * Configure account-level public-access-block. That belongs in an account-scope
