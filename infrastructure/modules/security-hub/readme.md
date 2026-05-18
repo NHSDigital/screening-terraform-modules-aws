@@ -16,7 +16,7 @@ This wraps the upstream module in the same way as
 | Consistent naming & tagging     | `context = module.this.context` forwarded to the upstream module         |
 | `enabled` switch                | Honoured via `module.this.context.enabled`                               |
 | Default standards on by default | `var.enable_default_standards = true` (AWS FSBP + CIS AWS Foundations)   |
-| Single source of SNS truth      | `create_sns_topic = false`; findings forwarded to an existing topic ARN  |
+| Single source of SNS truth      | `create_sns_topic = false`; findings forwarded to an existing topic arn  |
 
 ## Pairing with GuardDuty
 
@@ -78,7 +78,7 @@ module "security_hub" {
 ## What this module does NOT do
 
 * Create the SNS topic that receives findings. That is owned by the alerting
-  module — pass its ARN via `findings_notification_arn`.
+  module — pass its arn via `findings_notification_arn`.
 * Create a KMS key. If the alerting SNS topic is KMS-encrypted, configure that
   inside the alerting module.
 * Manage Organization-wide Security Hub administration / member accounts. Those
