@@ -2,30 +2,12 @@
 # Security Hub-specific inputs.
 #
 # Naming, tagging and the master `enabled` switch come from
-# `context.tf` via `module.this` — see that file for the full
-# list of inherited inputs (service, project, environment,
-# stack, name, owner, data_classification, tags, etc.).
+# `context.tf` via `module.this` and are forwarded to the
+# upstream `cloudposse/security-hub/aws` module as `context`.
 ################################################################
 
 variable "enable_default_standards" {
   description = "Whether to enable the AWS-recommended default standards (AWS Foundational Security Best Practices and CIS AWS Foundations Benchmark) when Security Hub is first enabled in this account/region."
-  type        = bool
-  default     = true
-}
-
-variable "control_finding_generator" {
-  description = "How Security Hub generates findings for security checks. Valid values: SECURITY_CONTROL (consolidated, recommended) or STANDARD_CONTROL (one finding per standard)."
-  type        = string
-  default     = "SECURITY_CONTROL"
-
-  validation {
-    condition     = contains(["SECURITY_CONTROL", "STANDARD_CONTROL"], var.control_finding_generator)
-    error_message = "control_finding_generator must be one of SECURITY_CONTROL or STANDARD_CONTROL."
-  }
-}
-
-variable "auto_enable_controls" {
-  description = "Whether new controls added to enabled standards are automatically enabled."
   type        = bool
   default     = true
 }
@@ -36,13 +18,13 @@ variable "auto_enable_controls" {
 
 variable "enabled_standards" {
   description = <<-EOT
-    A list of Security Hub standards/rulesets to subscribe to. Values can be a
-    short identifier (e.g. `standards/aws-foundational-security-best-practices/v/1.0.0`)
-    or a full ARN. When a short identifier is supplied, the partition and current
-    region are prepended automatically. See:
+    A list of Security Hub standards/rulesets to subscribe to (in addition to or
+    instead of the defaults). Pass either short identifiers
+    (e.g. `standards/aws-foundational-security-best-practices/v/1.0.0`) or full
+    ARNs. The upstream module resolves identifiers per partition/region. See:
     https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/securityhub_standards_subscription
   EOT
-  type        = list(string)
+  type        = list(any)
   default     = []
 }
 
@@ -75,13 +57,11 @@ variable "finding_aggregator_regions" {
 
 ################################################################
 # CloudWatch Event -> SNS forwarding
+#
+# The SNS topic itself is created by the separate alerting
+# module. Pass its ARN via `findings_notification_arn` to wire
+# imported Security Hub findings into it.
 ################################################################
-
-variable "enable_cloudwatch" {
-  description = "Create a CloudWatch (EventBridge) rule that forwards Security Hub imported findings. The SNS topic itself is created by the separate alerting module."
-  type        = bool
-  default     = true
-}
 
 variable "cloudwatch_event_rule_pattern_detail_type" {
   description = "The detail-type pattern used to match Security Hub events for the CloudWatch rule."
