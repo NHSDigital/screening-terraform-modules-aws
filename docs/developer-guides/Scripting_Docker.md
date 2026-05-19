@@ -228,7 +228,7 @@ Here is a step-by-step guide for an image which packages a third-party tool.  It
 
 You can specify the version tags that the automated build process applies to your images with a `VERSION` file. This file must be located adjacent to the `Dockerfile` where each image is defined.
 
-It may be a "_statically defined_" version, such as `1.2.3`, `20230601`, etc., or a "_dynamic pattern_" based on the current time and commit hash, e.g. `${yyyy}${mm}${dd}${HH}${MM}${SS}-${hash}`. This pattern will be substituted during the build process to create a `.version` file in the same directory, containing effective content like `20230601153000-123abcd`. See [this function](https://github.com/nhs-england-tools/repository-template/blob/main/scripts/docker/docker.lib.sh#L118) for what template substitutions are available.
+It may be a "_statically defined_" version, such as `1.2.3`, `20230601`, etc., or a "_dynamic pattern_" based on the current time and commit hash, e.g. `${yyyy}${mm}${dd}${HH}${MM}${SS}-${hash}`. This pattern will be substituted during the build process to create a `.version` file in the same directory, containing effective content like `20230601153000-123abcd`. See [this function](https://github.com/nhs-england-tools/repository-template/blob/ec475e15f049b8ec1ac1b69088297e70ea5c1291/scripts/docker/docker.lib.sh#L118) for what template substitutions are available.
 
 This file is then used by functions defined in [docker.lib.sh](../../scripts/docker/docker.lib.sh) but is ignored by Git, and is not checked in with other files.
 

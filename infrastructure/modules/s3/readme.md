@@ -9,8 +9,8 @@ No requirements.
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider_aws) | n/a |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
 
 ## Modules
 
@@ -19,7 +19,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_s3_bucket.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket_logging.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_logging) | resource |
 | [aws_s3_bucket_ownership_controls.ownership](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_ownership_controls) | resource |
@@ -31,13 +31,13 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_additional_kms_key_policy_statements"></a> [additional_kms_key_policy_statements](#input_additional_kms_key_policy_statements) | Additional statements to add to the kms key policy | `list(any)` | `[]` | no |
-| <a name="input_bucket_name"></a> [bucket_name](#input_bucket_name) | The name of the bucket | `string` | n/a | yes |
-| <a name="input_bucket_policy"></a> [bucket_policy](#input_bucket_policy) | The access policy for the bucket | `string` | n/a | yes |
-| <a name="input_environment"></a> [environment](#input_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `string` | n/a | yes |
-| <a name="input_logging_bucket"></a> [logging_bucket](#input_logging_bucket) | The bucket where logs are stored for s3 events | `string` | `"logging"` | no |
-| <a name="input_name_prefix"></a> [name_prefix](#input_name_prefix) | provides the prefix to keep consistancy | `string` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_additional_kms_key_policy_statements"></a> [additional\_kms\_key\_policy\_statements](#input\_additional\_kms\_key\_policy\_statements) | Additional statements to add to the kms key policy | `list(any)` | `[]` | no |
+| <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | The name of the bucket | `string` | n/a | yes |
+| <a name="input_bucket_policy"></a> [bucket\_policy](#input\_bucket\_policy) | The access policy for the bucket | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `string` | n/a | yes |
+| <a name="input_logging_bucket"></a> [logging\_bucket](#input\_logging\_bucket) | The bucket where logs are stored for s3 events | `string` | `"logging"` | no |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | provides the prefix to keep consistancy | `string` | n/a | yes |
 
 ## Outputs
 

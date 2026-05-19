@@ -250,5 +250,3 @@ resource "aws_api_gateway_base_path_mapping" "custom_domain_mapping" {
 
   depends_on = [aws_api_gateway_stage.stage]
 }
-
-

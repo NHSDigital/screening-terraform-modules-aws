@@ -8,10 +8,10 @@ No requirements.
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_archive"></a> [archive](#provider_archive) | n/a |
-| <a name="provider_aws"></a> [aws](#provider_aws) | n/a |
-| <a name="provider_aws.us_east_1"></a> [aws.us_east_1](#provider_aws.us_east_1) | n/a |
+| ---- | ------- |
+| <a name="provider_archive"></a> [archive](#provider\_archive) | 2.7.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_aws.us_east_1"></a> [aws.us\_east\_1](#provider\_aws.us\_east\_1) | 6.43.0 |
 
 ## Modules
 
@@ -20,7 +20,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_cloudwatch_metric_alarm.bs_select_health_check_web_app_healthy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_iam_role.lambda_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy.sns_publish_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
@@ -35,10 +35,10 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_environment"></a> [environment](#input_environment) | the environment the healthcheck is deployed into | `any` | n/a | yes |
-| <a name="input_name_prefix"></a> [name_prefix](#input_name_prefix) | the name prefix for the healthcheck | `any` | n/a | yes |
-| <a name="input_sns_topic"></a> [sns_topic](#input_sns_topic) | Existing SNS topic in eu-west-2 for notifications | `string` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_environment"></a> [environment](#input\_environment) | the environment the healthcheck is deployed into | `any` | n/a | yes |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | the name prefix for the healthcheck | `any` | n/a | yes |
+| <a name="input_sns_topic"></a> [sns\_topic](#input\_sns\_topic) | Existing SNS topic in eu-west-2 for notifications | `string` | n/a | yes |
 
 ## Outputs
 

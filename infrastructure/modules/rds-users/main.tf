@@ -103,4 +103,3 @@ resource "postgresql_role" "pi_4_user_role" {
   provider        = postgresql
   search_path     = ["pi_4"]
 }
-
