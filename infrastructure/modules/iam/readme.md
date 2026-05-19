@@ -1,9 +1,12 @@
 # iam
 
 Creates iam customer-managed policies and (optionally) iam roles for any
-team on the screening platform. Naming and tagging come from the central
-`tags` module via `context.tf`, so every team gets consistent
-`/<service>/<project>/` paths and the standard NHS tag set automatically.
+team on the screening platform. Thin wrapper around the community
+[`terraform-aws-modules/iam/aws`](https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest)
+submodules (`iam-policy` and `iam-role`), with naming and tagging supplied
+by the central `tags` module via `context.tf` — so every team gets
+consistent `/<service>/<project>/` paths and the standard NHS tag set
+automatically.
 
 ## Usage
 
@@ -129,6 +132,11 @@ module "iam" {
   module (e.g. in development tfvars). All resources are gated by it.
 - **Descriptions.** Strongly encouraged on every policy and role —
   whoever sees them in the iam console later will thank you.
+- **Inline policies.** `inline_policies` is a map of name -> JSON document;
+  the upstream `iam-role` submodule merges all documents into a single
+  inline policy on the role, so the map keys are used only for caller-side
+  bookkeeping (they do not become inline-policy names in AWS). Prefer
+  `policy_keys` + `var.policies` when you need a named, attachable policy.
 
 ## What this module does NOT do
 
@@ -145,27 +153,21 @@ No requirements.
 
 ## Providers
 
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider_aws) | n/a |
+No providers.
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_policies"></a> [policies](#module_policies) | `terraform-aws-modules/iam/aws//modules/iam-policy` | 6.6.0 |
 | <a name="module_policy_label"></a> [policy_label](#module_policy_label) | `git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags` | feature/BCSS-23189-add-new-modules-to-suppport-bcss |
 | <a name="module_role_label"></a> [role_label](#module_role_label) | `git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags` | feature/BCSS-23189-add-new-modules-to-suppport-bcss |
+| <a name="module_roles"></a> [roles](#module_roles) | `terraform-aws-modules/iam/aws//modules/iam-role` | 6.6.0 |
 | <a name="module_this"></a> [this](#module_this) | `git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags` | feature/BCSS-23189-add-new-modules-to-suppport-bcss |
 
 ## Resources
 
-| Name | Type |
-|------|------|
-| [aws_iam_policy.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
-| [aws_iam_role.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
-| [aws_iam_role_policy.inline](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_iam_role_policy_attachment.external](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
-| [aws_iam_role_policy_attachment.internal](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+No resources. iam resources are created by the wrapped upstream submodules listed above.
 
 ## Inputs
 
@@ -209,9 +211,9 @@ No requirements.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_policy_arns"></a> [policy_arns](#output_policy_arns) | Map of policy key -> ARN for every IAM policy created by this module. |
+| <a name="output_policy_arns"></a> [policy_arns](#output_policy_arns) | Map of policy key -> arn for every IAM policy created by this module. |
 | <a name="output_policy_names"></a> [policy_names](#output_policy_names) | Map of policy key -> name for every IAM policy created by this module. |
-| <a name="output_role_arns"></a> [role_arns](#output_role_arns) | Map of role key -> ARN for every IAM role created by this module. |
+| <a name="output_role_arns"></a> [role_arns](#output_role_arns) | Map of role key -> arn for every IAM role created by this module. |
 | <a name="output_role_names"></a> [role_names](#output_role_names) | Map of role key -> name for every IAM role created by this module. |
 <!-- END_TF_DOCS -->
 <!-- vale on -->

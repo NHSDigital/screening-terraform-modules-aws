@@ -1,12 +1,13 @@
 ################################################################
 # IAM Module
 #
-# Creates a configurable set of IAM customer-managed policies
-# (primary use case: attached to AWS SSO permission sets via
-# `customer_managed_policy_references`), plus an optional set of
-# IAM roles with policy attachments.
+# Thin wrapper around the community
+# `terraform-aws-modules/iam/aws` submodules:
+#   - `iam-policy` — one per entry in `var.policies`
+#   - `iam-role`   — one per entry in `var.roles`
 #
-# Naming and tagging come from `context.tf` / `module.this`.
+# The upstream module has no root configuration (only submodules),
+# so this wrapper invokes the relevant submodules
 ################################################################
 
 locals {
@@ -20,24 +21,11 @@ locals {
 }
 
 ################################################################
-# Customer-managed policies
+# Per-policy and per-role label modules
 #
-# Each entry in `var.policies` becomes one aws_iam_policy. The
-# policy document is taken verbatim from the entry's `policy`
-# attribute (caller is expected to render it via
-# `aws_iam_policy_document` data sources or `jsonencode`).
+# Used to derive a stable, context-aware name and tag set for
+# every policy/role produced by this wrapper.
 ################################################################
-
-resource "aws_iam_policy" "this" {
-  for_each = module.this.enabled ? var.policies : {}
-
-  name        = module.policy_label[each.key].id
-  path        = each.value.path != null ? each.value.path : local.iam_path
-  description = each.value.description
-  policy      = each.value.policy
-
-  tags = module.policy_label[each.key].tags
-}
 
 module "policy_label" {
   source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=feature/BCSS-23189-add-new-modules-to-suppport-bcss"
@@ -45,30 +33,6 @@ module "policy_label" {
 
   context    = module.this.context
   attributes = concat(module.this.attributes, ["policy", each.key])
-}
-
-################################################################
-# IAM Roles
-#
-# Each entry in `var.roles` becomes one aws_iam_role. The trust
-# policy is taken from `assume_role_policy` (rendered JSON). The
-# role is wired to:
-#   - `policy_arns`         — attaches existing/managed policies
-#   - `policy_keys`         — attaches policies created above by key
-#   - `inline_policies`     — map of name -> JSON to attach inline
-################################################################
-
-resource "aws_iam_role" "this" {
-  for_each = module.this.enabled ? var.roles : {}
-
-  name                 = module.role_label[each.key].id
-  path                 = each.value.path != null ? each.value.path : local.iam_path
-  description          = each.value.description
-  assume_role_policy   = each.value.assume_role_policy
-  max_session_duration = each.value.max_session_duration
-  permissions_boundary = each.value.permissions_boundary
-
-  tags = module.role_label[each.key].tags
 }
 
 module "role_label" {
@@ -79,60 +43,64 @@ module "role_label" {
   attributes = concat(module.this.attributes, ["role", each.key])
 }
 
-# Flatten role -> external policy ARNs into one attachment per pair.
+################################################################
+# Customer-managed policies (upstream `iam-policy` submodule)
+################################################################
+
+module "policies" {
+  source   = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version  = "6.6.0"
+  for_each = module.this.enabled ? var.policies : {}
+
+  name        = module.policy_label[each.key].id
+  path        = each.value.path != null ? each.value.path : local.iam_path
+  description = each.value.description
+  policy      = each.value.policy
+
+  tags = module.policy_label[each.key].tags
+}
+
+################################################################
+# IAM roles (upstream `iam-role` submodule)
+#
+# `policy_arns` (externally-managed) and `policy_keys` (policies
+# created above in this same invocation) are merged into the
+# single `policies = { name => arn }` map the submodule expects.
+#
+# `inline_policies` is forwarded via `source_inline_policy_documents`
+# so all statements are merged into one inline policy per role.
+################################################################
+
 locals {
-  role_external_policy_attachments = module.this.enabled ? merge([
-    for role_key, role in var.roles : {
-      for policy_arn in role.policy_arns :
-      "${role_key}::${policy_arn}" => {
-        role_key   = role_key
-        policy_arn = policy_arn
-      }
-    }
-  ]...) : {}
-
-  # Flatten role -> policy_keys (referring to entries in var.policies).
-  role_internal_policy_attachments = module.this.enabled ? merge([
-    for role_key, role in var.roles : {
-      for policy_key in role.policy_keys :
-      "${role_key}::${policy_key}" => {
-        role_key   = role_key
-        policy_key = policy_key
-      }
-    }
-  ]...) : {}
-
-  # Flatten role -> inline policies.
-  role_inline_policies = module.this.enabled ? merge([
-    for role_key, role in var.roles : {
-      for name, doc in role.inline_policies :
-      "${role_key}::${name}" => {
-        role_key = role_key
-        name     = name
-        policy   = doc
-      }
-    }
-  ]...) : {}
+  # role_key -> { static_name => policy_arn } for attached policies.
+  role_policies = {
+    for role_key, role in var.roles : role_key => merge(
+      { for idx, arn in role.policy_arns : "external-${idx}" => arn },
+      { for k in role.policy_keys : k => module.policies[k].arn }
+    )
+  }
 }
 
-resource "aws_iam_role_policy_attachment" "external" {
-  for_each = local.role_external_policy_attachments
+module "roles" {
+  source   = "terraform-aws-modules/iam/aws//modules/iam-role"
+  version  = "6.6.0"
+  for_each = module.this.enabled ? var.roles : {}
 
-  role       = aws_iam_role.this[each.value.role_key].name
-  policy_arn = each.value.policy_arn
-}
+  name            = module.role_label[each.key].id
+  use_name_prefix = false
+  path            = each.value.path != null ? each.value.path : local.iam_path
+  description     = each.value.description
 
-resource "aws_iam_role_policy_attachment" "internal" {
-  for_each = local.role_internal_policy_attachments
+  max_session_duration = each.value.max_session_duration
+  permissions_boundary = each.value.permissions_boundary
 
-  role       = aws_iam_role.this[each.value.role_key].name
-  policy_arn = aws_iam_policy.this[each.value.policy_key].arn
-}
+  # Caller-supplied trust policy JSON is merged in as a source document.
+  source_trust_policy_documents = [each.value.assume_role_policy]
 
-resource "aws_iam_role_policy" "inline" {
-  for_each = local.role_inline_policies
+  policies = local.role_policies[each.key]
 
-  name   = each.value.name
-  role   = aws_iam_role.this[each.value.role_key].id
-  policy = each.value.policy
+  create_inline_policy           = length(each.value.inline_policies) > 0
+  source_inline_policy_documents = values(each.value.inline_policies)
+
+  tags = module.role_label[each.key].tags
 }
