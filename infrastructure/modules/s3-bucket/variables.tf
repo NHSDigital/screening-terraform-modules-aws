@@ -29,6 +29,12 @@ variable "kms_master_key_arn" {
   default     = null
 }
 
+variable "attach_deny_incorrect_kms_key_sse" {
+  description = "Whether to attach a bucket policy statement denying PutObject calls that reference a KMS key other than `var.kms_master_key_arn`"
+  type        = bool
+  default     = null
+}
+
 variable "server_side_encryption_configuration" {
   description = "Optional full server-side encryption configuration map. When non-empty, this overrides the encryption defaults derived from `var.kms_master_key_arn`. See the upstream module's documentation for the expected shape."
   type        = any

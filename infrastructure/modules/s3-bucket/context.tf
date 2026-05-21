@@ -67,6 +67,7 @@ variable "context" {
     environment         = null
     stack               = null
     workspace           = null
+    name                = null
     delimiter           = null
     attributes          = []
     tags                = {}

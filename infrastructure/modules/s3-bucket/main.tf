@@ -58,8 +58,12 @@ module "s3_bucket" {
   attach_deny_unencrypted_object_uploads    = true
   attach_deny_incorrect_encryption_headers  = true
   attach_deny_ssec_encrypted_object_uploads = true
-  attach_deny_incorrect_kms_key_sse         = var.kms_master_key_arn != null
-  allowed_kms_key_arn                       = var.kms_master_key_arn
+  # NOTE: must be a value that is known at plan time, because the
+  # upstream module uses it inside a `count` argument. Deriving it
+  # from `var.kms_master_key_arn != null` breaks plans on first
+  # apply when the KMS key is created in the same configuration.
+  attach_deny_incorrect_kms_key_sse = coalesce(var.attach_deny_incorrect_kms_key_sse, var.kms_master_key_arn != null)
+  allowed_kms_key_arn               = var.kms_master_key_arn
 
   # ----------------------------------------------------------------
   # Versioning (default: enabled).
