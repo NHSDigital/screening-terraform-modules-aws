@@ -22,7 +22,7 @@
 
 module "this" {
   source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=feature/BCSS-23189-add-new-modules-to-suppport-bcss"
-  
+
   service             = var.service
   project             = var.project
   region              = var.region
@@ -293,8 +293,8 @@ variable "descriptor_formats" {
     Describe additional descriptors to be output in the `descriptors` output map.
     Map of maps. Keys are names of descriptors. Values are maps of the form
     `{
-       format = string
-       labels = list(string)
+        format = string
+        labels = list(string)
     }`
     (Type is `any` so the map values can later be enhanced to provide additional options.)
     `format` is a Terraform format string to be passed to the `format()` function.

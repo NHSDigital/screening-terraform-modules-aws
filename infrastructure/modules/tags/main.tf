@@ -129,9 +129,9 @@ locals {
     # Strip the session name from the assumed-role ARN so the tag is stable
     # across plans regardless of the STS session identifier.
     # e.g. arn:aws:sts::123:assumed-role/my-role/session -> arn:aws:sts::123:assumed-role/my-role
-    deployed_by         = replace(data.aws_iam_session_context.current.arn, "/\\/[^\\/]+$/", "")
-    deployed_by_source  = data.aws_iam_session_context.current.issuer_arn
-    tool                = var.tool
+    deployed_by        = replace(data.aws_iam_session_context.current.arn, "/\\/[^\\/]+$/", "")
+    deployed_by_source = data.aws_iam_session_context.current.issuer_arn
+    tool               = var.tool
   }
 
   generated_tags = {
