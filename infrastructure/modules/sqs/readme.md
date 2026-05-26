@@ -1,6 +1,7 @@
 # SQS
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -10,7 +11,7 @@ No requirements.
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
 
 ## Modules
 
@@ -38,4 +39,5 @@ No modules.
 | ---- | ----------- |
 | <a name="output_arn"></a> [arn](#output\_arn) | n/a |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->

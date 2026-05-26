@@ -1,6 +1,7 @@
 # Elasticache
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -10,7 +11,7 @@ No requirements.
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
 
 ## Modules
 
@@ -62,4 +63,5 @@ No modules.
 | <a name="output_redis_configuration_endpoint_port"></a> [redis\_configuration\_endpoint\_port](#output\_redis\_configuration\_endpoint\_port) | n/a |
 | <a name="output_redis_security_group_id"></a> [redis\_security\_group\_id](#output\_redis\_security\_group\_id) | n/a |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->

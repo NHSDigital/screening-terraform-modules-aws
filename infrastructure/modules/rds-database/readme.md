@@ -1,6 +1,7 @@
 # RDS-Database
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -12,7 +13,7 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
 | <a name="provider_postgresql"></a> [postgresql](#provider\_postgresql) | 1.26.0 |
 
 ## Modules
@@ -41,4 +42,5 @@ No modules.
 
 No outputs.
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->

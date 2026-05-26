@@ -1,6 +1,7 @@
 # CW-Firehose-Splunk
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -10,9 +11,9 @@ No requirements.
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_archive"></a> [archive](#provider\_archive) | 2.7.1 |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.8.0 |
+| <a name="provider_archive"></a> [archive](#provider\_archive) | 2.8.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.9.0 |
 
 ## Modules
 
@@ -63,4 +64,5 @@ No modules.
 | <a name="output_cw_to_splunk_firehose_role_arn"></a> [cw\_to\_splunk\_firehose\_role\_arn](#output\_cw\_to\_splunk\_firehose\_role\_arn) | n/a |
 | <a name="output_cw_to_splunk_firehose_stream_arn"></a> [cw\_to\_splunk\_firehose\_stream\_arn](#output\_cw\_to\_splunk\_firehose\_stream\_arn) | n/a |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->

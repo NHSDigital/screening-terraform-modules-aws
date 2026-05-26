@@ -1,6 +1,7 @@
 # VPC Endpoints
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -10,7 +11,7 @@ No requirements.
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
 
 ## Modules
 
@@ -52,4 +53,5 @@ No modules.
 | <a name="output_vpce_dns_name"></a> [vpce\_dns\_name](#output\_vpce\_dns\_name) | n/a |
 | <a name="output_vpce_hosted_zone_id"></a> [vpce\_hosted\_zone\_id](#output\_vpce\_hosted\_zone\_id) | n/a |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->

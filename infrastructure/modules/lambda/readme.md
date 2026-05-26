@@ -1,5 +1,7 @@
 # Lambda
 
+<!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -9,7 +11,7 @@ No requirements.
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
 
 ## Modules
 
@@ -51,3 +53,5 @@ No requirements.
 | <a name="output_lambda_log_group_name"></a> [lambda\_log\_group\_name](#output\_lambda\_log\_group\_name) | n/a |
 | <a name="output_role_name"></a> [role\_name](#output\_role\_name) | n/a |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
+<!-- vale on -->

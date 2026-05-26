@@ -60,6 +60,8 @@ The recommended convention is to use labels as follows:
 
 ## Examples
 
+<!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -72,7 +74,7 @@ The recommended convention is to use labels as follows:
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
 
 ## Modules
 
@@ -147,3 +149,5 @@ No modules.
 | <a name="output_tags_as_list_of_maps"></a> [tags\_as\_list\_of\_maps](#output\_tags\_as\_list\_of\_maps) | This is a list with one map for each `tag`. Each map contains the tag `key`,<br/>`value`, and contents of `var.additional_tag_map`. Used in the rare cases<br/>where resources need additional configuration information for each tag. |
 | <a name="output_workspace"></a> [workspace](#output\_workspace) | Normalized workspace |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
+<!-- vale on -->

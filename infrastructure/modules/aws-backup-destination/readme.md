@@ -33,6 +33,8 @@ module "test_backup_vault" {
 }
 ```
 
+<!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -42,7 +44,7 @@ No requirements.
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
 
 ## Modules
 
@@ -87,3 +89,5 @@ No modules.
 | <a name="output_vault_arn"></a> [vault\_arn](#output\_vault\_arn) | n/a |
 | <a name="output_vault_name"></a> [vault\_name](#output\_vault\_name) | The name of the backup vault. |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
+<!-- vale on -->
