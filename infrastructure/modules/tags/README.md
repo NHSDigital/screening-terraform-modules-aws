@@ -3,6 +3,7 @@
 Terraform module designed to generate consistent names and tags for resources. Use `tags` to implement a strict naming and tagging convention.
 
 There are 8 inputs considered "labels" or "ID elements" (because the labels are used to construct the ID):
+
 1. service
 1. project
 1. region
@@ -16,6 +17,7 @@ This module generates IDs using the following convention by default: `{service}-
 However, it is highly configurable. The delimiter (e.g. `-`) is configurable. Each label item is optional (although you must provide at least one).
 So if you prefer the term `workspace` to `environment` and do not need `stack`, you can exclude them
 and the label `id` will look like `{service}-{project}-{workspace}-{name}-{attributes}`.
+
 - The `attributes` input is actually a list of strings and `{attributes}` expands to the list elements joined by the delimiter.
 - If `attributes` is excluded but `service`, `project`, and `workspace` are included, `id` will look like `{service}-{project}-{workspace}-{name}`.
   Excluding `attributes` is discouraged, though, because attributes are the main way modules modify the ID to ensure uniqueness when provisioning the same resource types.
@@ -24,6 +26,7 @@ and the label `id` will look like `{service}-{project}-{workspace}-{name}-{attri
   (The module uses a portion of the MD5 hash of the full `id` to represent the missing part, so there remains a slight chance of name collision.)
 - You can control the letter case of the generated labels which make up the `id` using `var.label_value_case`.
 - By default, all of the non-empty labels are also exported as tags, whether they appear in the `id` or not.
+
 You can control which labels are exported as tags by setting `labels_as_tags` to the list of labels you want exported,
 or the empty list `[]` if you want no labels exported as tags at all. Tags passed in via the `tags` variable are
 always exported, and regardless of settings, empty labels are never exported as tags.
@@ -47,8 +50,8 @@ the `descriptors` output, which is a map of strings generated according to the f
 `descriptor_formats` input. This feature is intentionally simple and minimally configurable and will not be
 enhanced to add more features that are already in `tags`. See [examples/complete/descriptors.tf](examples/complete/descriptors.tf) for examples.
 
-
 The recommended convention is to use labels as follows:
+
 - `service`: A short (3-4 letters) abbreviation of the service directorate to ensure globally unique IDs for things like S3 buckets i.e. bcss
 - `project`: The name or role of the project the resource is for, such as `web` or `api`
 - `region`: By default this will auto-populate the provider region, but can be overridden or set to `gbl` for resources like IAM roles that have no region
@@ -96,7 +99,7 @@ No modules.
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
-| <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "workspace": null<br/>}</pre> | no |
+| <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_data_classification"></a> [data\_classification](#input\_data\_classification) | Used to identify the data classification of the resource, e.g 1-5 | `string` | `"n/a"` | no |
 | <a name="input_data_type"></a> [data\_type](#input\_data\_type) | The tag data\_type | `string` | `"None"` | no |
 | <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to be used between ID elements.<br/>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
@@ -120,6 +123,7 @@ No modules.
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 

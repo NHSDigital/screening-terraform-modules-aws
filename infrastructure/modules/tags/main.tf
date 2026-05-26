@@ -44,6 +44,7 @@ locals {
     id_length_limit     = var.id_length_limit == null ? var.context.id_length_limit : var.id_length_limit
     label_key_case      = var.label_key_case == null ? lookup(var.context, "label_key_case", null) : var.label_key_case
     label_value_case    = var.label_value_case == null ? lookup(var.context, "label_value_case", null) : var.label_value_case
+    terraform_source    = var.terraform_source == null ? lookup(var.context, "terraform_source", path.module) : var.terraform_source
 
     descriptor_formats = merge(lookup(var.context, "descriptor_formats", {}), var.descriptor_formats)
     labels_as_tags     = local.context_labels_as_tags_is_unset ? var.labels_as_tags : var.context.labels_as_tags
@@ -84,6 +85,7 @@ locals {
   id_length_limit  = local.input.id_length_limit == null ? local.defaults.id_length_limit : local.input.id_length_limit
   label_key_case   = local.input.label_key_case == null ? local.defaults.label_key_case : local.input.label_key_case
   label_value_case = local.input.label_value_case == null ? local.defaults.label_value_case : local.input.label_value_case
+  terraform_source = local.input.terraform_source == null ? path.module : local.input.terraform_source
 
   # labels_as_tags is an exception to the rule that input vars override context values (see above)
   labels_as_tags = contains(local.input.labels_as_tags, "default") ? local.default_labels_as_tags : local.input.labels_as_tags
@@ -123,8 +125,11 @@ locals {
     service_category    = var.service_category
     on_off_pattern      = var.on_off_pattern
     application_role    = var.application_role
-    terraform_source    = path.module
-    deployed_by         = data.aws_iam_session_context.current.arn
+    terraform_source    = local.terraform_source
+    # Strip the session name from the assumed-role ARN so the tag is stable
+    # across plans regardless of the STS session identifier.
+    # e.g. arn:aws:sts::123:assumed-role/my-role/session -> arn:aws:sts::123:assumed-role/my-role
+    deployed_by         = replace(data.aws_iam_session_context.current.arn, "/\\/[^\\/]+$/", "")
     deployed_by_source  = data.aws_iam_session_context.current.issuer_arn
     tool                = var.tool
   }
@@ -185,6 +190,7 @@ locals {
     id_length_limit     = local.id_length_limit
     label_key_case      = local.label_key_case
     label_value_case    = local.label_value_case
+    terraform_source    = local.terraform_source
     labels_as_tags      = local.labels_as_tags
     descriptor_formats  = local.descriptor_formats
   }

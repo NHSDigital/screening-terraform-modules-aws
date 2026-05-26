@@ -39,6 +39,7 @@ module "this" {
   id_length_limit     = var.id_length_limit
   label_key_case      = var.label_key_case
   label_value_case    = var.label_value_case
+  terraform_source    = coalesce(var.terraform_source, path.module)
   descriptor_formats  = var.descriptor_formats
   labels_as_tags      = var.labels_as_tags
 
@@ -67,6 +68,7 @@ variable "context" {
     environment         = null
     stack               = null
     workspace           = null
+    name                = null
     delimiter           = null
     attributes          = []
     tags                = {}
@@ -76,6 +78,7 @@ variable "context" {
     id_length_limit     = null
     label_key_case      = null
     label_value_case    = null
+    terraform_source    = null
     descriptor_formats  = {}
     # Note: we have to use [] instead of null for unset lists due to
     # https://github.com/hashicorp/terraform/issues/28137
@@ -103,6 +106,12 @@ variable "context" {
     condition     = lookup(var.context, "label_value_case", null) == null ? true : contains(["lower", "title", "upper", "none"], var.context["label_value_case"])
     error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
   }
+}
+
+variable "terraform_source" {
+  type        = string
+  default     = null
+  description = "Source location to record in the Terraform_source tag. Defaults to the caller module path when not set."
 }
 
 variable "enabled" {
