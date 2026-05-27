@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.1.1...v2.2.0) (2026-05-27)
+
+### Features
+
+* **s3_bucket:** add new S3 module with detailed README and context configuration ([#28](https://github.com/NHSDigital/screening-terraform-modules-aws/issues/28)) ([cd7e85a](https://github.com/NHSDigital/screening-terraform-modules-aws/commit/cd7e85ab15a56a9d50ddf3e26a0ef629271cc94e))
+
 ## [2.1.1](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.1.0...v2.1.1) (2026-05-27)
 
 ### Bug Fixes
