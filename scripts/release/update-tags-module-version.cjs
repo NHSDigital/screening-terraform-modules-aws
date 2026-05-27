@@ -31,6 +31,7 @@ const path = require("node:path");
 const MODULES_ROOT = path.join("infrastructure", "modules");
 const PIN_TOKEN = "semantic-release:pin";
 const UNPIN_TOKEN = "semantic-release:unpin";
+const REGEX_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g;
 
 const [lastVersion, nextVersion] = process.argv.slice(2);
 
@@ -103,7 +104,7 @@ function isTargetFile(filePath) {
  * Escape user-provided values before embedding into a regular expression.
  */
 function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return value.replace(REGEX_SPECIAL_CHARS, String.raw`\$&`);
 }
 
 /**
