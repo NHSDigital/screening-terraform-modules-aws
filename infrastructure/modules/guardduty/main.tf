@@ -119,7 +119,7 @@ resource "aws_guardduty_detector_feature" "eks_runtime_monitoring" {
 # are derived from the same context but disambiguated from the
 # detector.
 module "findings_label" {
-  source  = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.4.1"
+  source  = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.5.0"
   context = module.this.context
 
   attributes = concat(module.this.attributes, ["findings"])

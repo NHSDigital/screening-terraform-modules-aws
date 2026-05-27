@@ -28,7 +28,7 @@ locals {
 ################################################################
 
 module "policy_label" {
-  source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.4.1"
+  source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.5.0"
   for_each = var.policies
 
   context    = module.this.context
@@ -36,7 +36,7 @@ module "policy_label" {
 }
 
 module "role_label" {
-  source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.4.1"
+  source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.5.0"
   for_each = var.roles
 
   context    = module.this.context

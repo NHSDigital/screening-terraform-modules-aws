@@ -164,7 +164,7 @@ No providers.
 | <a name="module_policy_label"></a> [policy\_label](#module\_policy\_label) | ../tags | n/a |
 | <a name="module_role_label"></a> [role\_label](#module\_role\_label) | ../tags | n/a |
 | <a name="module_roles"></a> [roles](#module\_roles) | terraform-aws-modules/iam/aws//modules/iam-role | 6.6.0 |
-| <a name="module_this"></a> [this](#module\_this) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.4.1 |
+| <a name="module_this"></a> [this](#module\_this) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.5.0 |
 
 ## Resources
 
