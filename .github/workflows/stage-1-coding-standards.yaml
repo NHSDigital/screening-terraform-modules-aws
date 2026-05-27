@@ -39,7 +39,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
@@ -51,7 +51,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check file format"
@@ -63,7 +63,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check Markdown format"
@@ -75,7 +75,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check English usage"
@@ -87,7 +87,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: "Lint Terraform"
         uses: ./.github/actions/lint-terraform
 
@@ -100,7 +100,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: "Count lines of code"
         uses: ./.github/actions/create-lines-of-code-report
         with:
@@ -120,7 +120,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: "Scan dependencies"
         uses: ./.github/actions/scan-dependencies
         with:
