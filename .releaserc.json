@@ -24,10 +24,21 @@
       }
     ],
     [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": [
+          "find infrastructure/modules -name context.tf -exec sed -i '' -e 's#//infrastructure/modules/tags?ref=${lastRelease.version}#//infrastructure/modules/tags?ref=${nextRelease.version}#g' {} +",
+          "find infrastructure/modules -iname readme.md -exec sed -i '' -e 's#//infrastructure/modules/tags | ${lastRelease.version} |#//infrastructure/modules/tags | ${nextRelease.version} |#g' {} +"
+        ]
+      }
+    ],
+    [
       "@semantic-release/git",
       {
         "assets": [
-          "CHANGELOG.md"
+          "CHANGELOG.md",
+          "infrastructure/modules/**/README.md",
+          "infrastructure/modules/**/context.tf"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
