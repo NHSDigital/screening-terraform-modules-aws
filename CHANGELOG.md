@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.3.0...v2.4.0) (2026-05-27)
+
+### Features
+
+* **license-manager:** add new License Manager module with README and context configuration ([#27](https://github.com/NHSDigital/screening-terraform-modules-aws/issues/27)) ([35d6ae1](https://github.com/NHSDigital/screening-terraform-modules-aws/commit/35d6ae1d8174c6ece950875c190751e2ca48ffd4))
+
 ## [2.3.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.2.0...v2.3.0) (2026-05-27)
 
 ### Features
