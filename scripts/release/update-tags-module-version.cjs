@@ -53,18 +53,49 @@ function listFilesRecursively(dirPath) {
 }
 
 /**
+ * Ensure a semantic version has a leading v (for example 1.2.3 -> v1.2.3).
+ */
+function withVPrefix(version) {
+  return version.startsWith("v") ? version : `v${version}`;
+}
+
+/**
+ * Build equivalent from/to version pairs so replacements work for both:
+ * - plain versions (1.2.3)
+ * - v-prefixed tags (v1.2.3)
+ */
+function buildVersionPairs(fromVersion, toVersion) {
+  const pairs = [
+    { from: fromVersion, to: toVersion },
+    { from: withVPrefix(fromVersion), to: withVPrefix(toVersion) }
+  ];
+
+  // De-duplicate if the input was already v-prefixed.
+  return pairs.filter(
+    (pair, index, all) =>
+      all.findIndex((item) => item.from === pair.from && item.to === pair.to) === index
+  );
+}
+
+/**
  * Replace all occurrences of release-pinned tags module references.
  */
 function updateContent(content, fromVersion, toVersion) {
-  return content
-    .replaceAll(
-      `//infrastructure/modules/tags?ref=${fromVersion}`,
-      `//infrastructure/modules/tags?ref=${toVersion}`
-    )
-    .replaceAll(
-      `//infrastructure/modules/tags | ${fromVersion} |`,
-      `//infrastructure/modules/tags | ${toVersion} |`
-    );
+  let updated = content;
+
+  for (const pair of buildVersionPairs(fromVersion, toVersion)) {
+    updated = updated
+      .replaceAll(
+        `//infrastructure/modules/tags?ref=${pair.from}`,
+        `//infrastructure/modules/tags?ref=${pair.to}`
+      )
+      .replaceAll(
+        `//infrastructure/modules/tags | ${pair.from} |`,
+        `//infrastructure/modules/tags | ${pair.to} |`
+      );
+  }
+
+  return updated;
 }
 
 if (!fs.existsSync(MODULES_ROOT)) {
