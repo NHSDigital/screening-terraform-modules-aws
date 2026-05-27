@@ -324,7 +324,7 @@ environment-tear-down: # Use only for ephemeral environments, e.g. dev and test 
 
 ### Secrets
 
-GitHub secrets for Terraform must be granular to avoid appearing in logs. For example, use `arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ASSUME_ROLE_NAME }}`. It has been proven that if a role ARN is defined as `AWS_ROLE_ARN`, details such as the account number are not redacted from the output and are visible in plain text. While this information may not be considered sensitive on its own, it could contribute to a vector attack and therefore be used to exploit the service.
+GitHub secrets for Terraform must be granular to avoid appearing in logs. For example, use `arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ASSUME_ROLE_NAME }}`. It has been proven that if a role arn is defined as `AWS_ROLE_ARN`, details such as the account number are not redacted from the output and are visible in plain text. While this information may not be considered sensitive on its own, it could contribute to a vector attack and therefore be used to exploit the service.
 
 ### Variables
 

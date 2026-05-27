@@ -16,6 +16,8 @@ module "test_aws_backup" {
 }
 ```
 
+<!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -29,8 +31,8 @@ module "test_aws_backup" {
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_archive"></a> [archive](#provider\_archive) | 2.7.1 |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.43.0 |
+| <a name="provider_archive"></a> [archive](#provider\_archive) | ~> 2 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | > 6 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
@@ -157,3 +159,5 @@ module "test_aws_backup" {
 | <a name="output_restore_validation_lambda_arn"></a> [restore\_validation\_lambda\_arn](#output\_restore\_validation\_lambda\_arn) | ARN of the restore validation Lambda function |
 | <a name="output_restore_validation_lambda_name"></a> [restore\_validation\_lambda\_name](#output\_restore\_validation\_lambda\_name) | Name of the restore validation Lambda function |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
+<!-- vale on -->

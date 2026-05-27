@@ -19,6 +19,7 @@ variable "context" {
     environment         = null
     stack               = null
     workspace           = null
+    name                = null
     delimiter           = null
     attributes          = []
     tags                = {}
@@ -28,6 +29,7 @@ variable "context" {
     id_length_limit     = null
     label_key_case      = null
     label_value_case    = null
+    terraform_source    = null
     descriptor_formats  = {}
     # Note: we have to use [] instead of null for unset lists due to
     # https://github.com/hashicorp/terraform/issues/28137
@@ -55,6 +57,12 @@ variable "context" {
     condition     = lookup(var.context, "label_value_case", null) == null ? true : contains(["lower", "title", "upper", "none"], var.context["label_value_case"])
     error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
   }
+}
+
+variable "terraform_source" {
+  type        = string
+  default     = null
+  description = "Source location to record in the Terraform_source tag. Defaults to the caller module path when not set."
 }
 
 variable "enabled" {
@@ -236,8 +244,8 @@ variable "descriptor_formats" {
     Describe additional descriptors to be output in the `descriptors` output map.
     Map of maps. Keys are names of descriptors. Values are maps of the form
     `{
-       format = string
-       labels = list(string)
+        format = string
+        labels = list(string)
     }`
     (Type is `any` so the map values can later be enhanced to provide additional options.)
     `format` is a Terraform format string to be passed to the `format()` function.
