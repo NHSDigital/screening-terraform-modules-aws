@@ -14,4 +14,3 @@ variable "name_prefix" {
 variable "vpc_cidr_prefix" {
   description = "The CIDR block prefix for the VPC"
 }
-

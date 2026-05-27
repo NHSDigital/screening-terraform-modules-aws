@@ -22,4 +22,3 @@ output "api_key_secret_arn" {
   description = "The ARN of the API key secret in Secrets Manager"
   value       = aws_secretsmanager_secret.api_token.arn
 }
-

@@ -27,4 +27,3 @@ output "restore_validation_eventbridge_rule_name" {
   value       = var.backup_plan_config_rds.enable && var.restore_validation_enable ? aws_cloudwatch_event_rule.restore_testing_complete[0].name : null
   description = "Name of the EventBridge rule that triggers restore validation"
 }
-

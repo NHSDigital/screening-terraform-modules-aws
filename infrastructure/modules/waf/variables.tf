@@ -33,4 +33,3 @@ variable "webservices_ip_set_addresses" {
 variable "environment" {
   description = "Environment i.e prod, nonprod"
 }
-
