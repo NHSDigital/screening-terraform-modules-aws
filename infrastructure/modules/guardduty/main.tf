@@ -3,7 +3,7 @@
 ################################################################
 
 resource "aws_guardduty_detector" "this" {
-  count = module.this.enabled ? 1 : 0
+  count = module.this.enabled && var.enable_detector ? 1 : 0
 
   enable                       = true
   finding_publishing_frequency = var.finding_publishing_frequency
@@ -19,7 +19,7 @@ resource "aws_guardduty_detector" "this" {
 ################################################################
 
 resource "aws_guardduty_detector_feature" "s3_data_events" {
-  count = module.this.enabled ? 1 : 0
+  count = module.this.enabled && var.enable_detector ? 1 : 0
 
   detector_id = aws_guardduty_detector.this[0].id
   name        = "S3_DATA_EVENTS"
@@ -27,7 +27,7 @@ resource "aws_guardduty_detector_feature" "s3_data_events" {
 }
 
 resource "aws_guardduty_detector_feature" "eks_audit_logs" {
-  count = module.this.enabled ? 1 : 0
+  count = module.this.enabled && var.enable_detector ? 1 : 0
 
   detector_id = aws_guardduty_detector.this[0].id
   name        = "EKS_AUDIT_LOGS"
@@ -35,7 +35,7 @@ resource "aws_guardduty_detector_feature" "eks_audit_logs" {
 }
 
 resource "aws_guardduty_detector_feature" "ebs_malware_protection" {
-  count = module.this.enabled ? 1 : 0
+  count = module.this.enabled && var.enable_detector ? 1 : 0
 
   detector_id = aws_guardduty_detector.this[0].id
   name        = "EBS_MALWARE_PROTECTION"
@@ -43,7 +43,7 @@ resource "aws_guardduty_detector_feature" "ebs_malware_protection" {
 }
 
 resource "aws_guardduty_detector_feature" "lambda_network_logs" {
-  count = module.this.enabled ? 1 : 0
+  count = module.this.enabled && var.enable_detector ? 1 : 0
 
   detector_id = aws_guardduty_detector.this[0].id
   name        = "LAMBDA_NETWORK_LOGS"
@@ -53,7 +53,7 @@ resource "aws_guardduty_detector_feature" "lambda_network_logs" {
 # Runtime Monitoring (EC2 + ECS + EKS). Mutually exclusive with
 # eks_runtime_monitoring_enabled — guarded by the precondition below.
 resource "aws_guardduty_detector_feature" "runtime_monitoring" {
-  count = module.this.enabled ? 1 : 0
+  count = module.this.enabled && var.enable_detector ? 1 : 0
 
   detector_id = aws_guardduty_detector.this[0].id
   name        = "RUNTIME_MONITORING"
@@ -93,7 +93,7 @@ resource "aws_guardduty_detector_feature" "runtime_monitoring" {
 
 # Standalone EKS Runtime Monitoring (only enable when RUNTIME_MONITORING is off).
 resource "aws_guardduty_detector_feature" "eks_runtime_monitoring" {
-  count = module.this.enabled ? 1 : 0
+  count = module.this.enabled && var.enable_detector ? 1 : 0
 
   detector_id = aws_guardduty_detector.this[0].id
   name        = "EKS_RUNTIME_MONITORING"
@@ -119,7 +119,7 @@ resource "aws_guardduty_detector_feature" "eks_runtime_monitoring" {
 # are derived from the same context but disambiguated from the
 # detector.
 module "findings_label" {
-  source  = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=feature/BCSS-23189-add-new-modules-to-suppport-bcss"
+  source  = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.2.0"
   context = module.this.context
 
   attributes = concat(module.this.attributes, ["findings"])
@@ -140,7 +140,9 @@ resource "aws_cloudwatch_event_rule" "findings" {
 }
 
 resource "aws_cloudwatch_event_target" "findings" {
-  count = module.this.enabled && var.enable_cloudwatch && var.findings_notification_arn != null ? 1 : 0
+  # Do not gate count on ARN nullability because callers often pass a
+  # module output ARN that is unknown until apply.
+  count = module.this.enabled && var.enable_cloudwatch ? 1 : 0
 
   rule      = aws_cloudwatch_event_rule.findings[0].name
   target_id = module.findings_label.id

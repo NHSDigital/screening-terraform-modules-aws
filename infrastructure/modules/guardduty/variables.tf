@@ -6,6 +6,11 @@
 # list of inherited inputs (service, project, environment,
 # stack, name, owner, data_classification, tags, etc.).
 ################################################################
+variable "enable_detector" {
+  description = "Enable the GuardDuty detector."
+  type        = bool
+  default     = false
+}
 
 variable "finding_publishing_frequency" {
   description = "Frequency of finding notifications. Valid values: FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS. Only meaningful for standalone/master accounts."
