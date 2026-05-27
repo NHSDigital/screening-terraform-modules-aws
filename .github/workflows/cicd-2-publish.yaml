@@ -13,45 +13,37 @@ on:
 
 jobs:
   metadata:
-    name: "Set CI/CD metadata"
+    name: "Set Metadata"
     runs-on: ubuntu-latest
     timeout-minutes: 1
     outputs:
-      build_datetime: ${{ steps.variables.outputs.build_datetime }}
-      build_timestamp: ${{ steps.variables.outputs.build_timestamp }}
-      build_epoch: ${{ steps.variables.outputs.build_epoch }}
-      nodejs_version: ${{ steps.variables.outputs.nodejs_version }}
-      python_version: ${{ steps.variables.outputs.python_version }}
-      terraform_version: ${{ steps.variables.outputs.terraform_version }}
-      version: ${{ steps.variables.outputs.version }}
+      build_datetime_london: ${{ steps.set-metadata.outputs.build_datetime_london }}
+      build_datetime: ${{ steps.set-metadata.outputs.build_datetime }}
+      build_timestamp: ${{ steps.set-metadata.outputs.build_timestamp }}
+      build_epoch: ${{ steps.set-metadata.outputs.build_epoch }}
+      nodejs_version: ${{ steps.set-metadata.outputs.nodejs_version }}
+      python_version: ${{ steps.set-metadata.outputs.python_version }}
+      terraform_version: ${{ steps.set-metadata.outputs.terraform_version }}
+      version: ${{ steps.set-metadata.outputs.version }}
+      action: ${{ steps.set-metadata.outputs.action }}
+      environment: ${{ steps.set-metadata.outputs.environment }}
+      nation: ${{ steps.set-metadata.outputs.nation }}
+      branch_name: ${{ steps.set-metadata.outputs.branch_name }}
+      sql_file: ${{ steps.set-metadata.outputs.sql_file }}
+      image_tag: ${{ steps.set-metadata.outputs.image_tag }}
+
     steps:
       - name: "Checkout code"
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: "Set CI/CD variables"
-        id: variables
-        run: |
-          datetime=$(date -u +'%Y-%m-%dT%H:%M:%S%z')
-          echo "build_datetime=$datetime" >> $GITHUB_OUTPUT
-          echo "build_timestamp=$(date --date=$datetime -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-          echo "build_epoch=$(date --date=$datetime -u +'%s')" >> $GITHUB_OUTPUT
-          echo "nodejs_version=$(grep "^nodejs" .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
-          echo "python_version=$(grep "^nodejs" .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
-          echo "terraform_version=$(grep "^terraform" .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
-          # TODO: Get the version, but it may not be the .version file as this should come from the CI/CD Pull Request Workflow
-          echo "version=$(head -n 1 .version 2> /dev/null || echo unknown)" >> $GITHUB_OUTPUT
-      - name: "List variables"
-        run: |
-          export BUILD_DATETIME="${{ steps.variables.outputs.build_datetime }}"
-          export BUILD_TIMESTAMP="${{ steps.variables.outputs.build_timestamp }}"
-          export BUILD_EPOCH="${{ steps.variables.outputs.build_epoch }}"
-          export NODEJS_VERSION="${{ steps.variables.outputs.nodejs_version }}"
-          export PYTHON_VERSION="${{ steps.variables.outputs.python_version }}"
-          export TERRAFORM_VERSION="${{ steps.variables.outputs.terraform_version }}"
-          export VERSION="${{ steps.variables.outputs.version }}"
-          make list-variables
+
+      - name: "Set CI/CD metadata"
+        id: set-metadata
+        uses: ./.github/actions/set-metadata
+        with:
+          calling_workflow: ${{ github.workflow }}
   publish:
     name: "Publish packages"
     runs-on: ubuntu-latest
