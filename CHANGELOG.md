@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.1.0...v2.1.1) (2026-05-27)
+
+### Bug Fixes
+
+* **release:** correct module reference version updates and add safety tests ([#37](https://github.com/NHSDigital/screening-terraform-modules-aws/issues/37)) ([8079edd](https://github.com/NHSDigital/screening-terraform-modules-aws/commit/8079edd65acb9b872e84fc2678b6ffba24f2c7bb))
+
 ## [2.1.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.0.0...v2.1.0) (2026-05-27)
 
 ### Features
