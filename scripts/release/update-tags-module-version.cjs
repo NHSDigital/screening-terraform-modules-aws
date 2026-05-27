@@ -16,8 +16,8 @@
  *   node scripts/release/update-tags-module-version.cjs "${lastRelease.version}" "${nextRelease.version}"
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const MODULES_ROOT = path.join("infrastructure", "modules");
 
@@ -105,13 +105,17 @@ function updateContent(content, fromVersion, toVersion) {
   let updated = content;
 
   for (const pair of buildVersionPairs(fromVersion, toVersion)) {
+    const sourcePrefixPattern = String.raw`(git::https://github\.com/NHSDigital/screening-terraform-modules-aws\.git//infrastructure/modules/[^?\s"']+\?ref=)`;
+    const readmePrefixPattern = String.raw`(\|\s*git::https://github\.com/NHSDigital/screening-terraform-modules-aws\.git//infrastructure/modules/[^|\s]+\s*\|\s*)`;
+    const readmeSuffixPattern = String.raw`(\s*\|)`;
+
     const sourcePattern = new RegExp(
-      `(git::https://github\\.com/NHSDigital/screening-terraform-modules-aws\\.git//infrastructure/modules/[^?\\s"']+\\?ref=)${escapeRegex(pair.from)}`,
+      sourcePrefixPattern + escapeRegex(pair.from),
       "g"
     );
 
     const readmeTablePattern = new RegExp(
-      `(\\|\\s*git::https://github\\.com/NHSDigital/screening-terraform-modules-aws\\.git//infrastructure/modules/[^|\\s]+\\s*\\|\\s*)${escapeRegex(pair.from)}(\\s*\\|)`,
+      readmePrefixPattern + escapeRegex(pair.from) + readmeSuffixPattern,
       "g"
     );
 
