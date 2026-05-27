@@ -1,6 +1,7 @@
 # GuardDuty
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -89,4 +90,5 @@ No requirements.
 | <a name="output_detector_arn"></a> [detector\_arn](#output\_detector\_arn) | The ARN of the GuardDuty detector. |
 | <a name="output_detector_id"></a> [detector\_id](#output\_detector\_id) | The ID of the GuardDuty detector. |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->
