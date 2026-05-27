@@ -35,7 +35,8 @@
         "assets": [
           "CHANGELOG.md",
           "infrastructure/modules/**/README.md",
-          "infrastructure/modules/**/context.tf"
+          "infrastructure/modules/**/context.tf",
+          "infrastructure/modules/**/*.tf"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
