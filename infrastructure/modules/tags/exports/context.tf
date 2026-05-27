@@ -21,7 +21,7 @@
 #
 
 module "this" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=feature/BCSS-23189-add-new-modules-to-suppport-bcss"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.0.0"
 
   service             = var.service
   project             = var.project
