@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.2.0...v2.3.0) (2026-05-27)
+
+### Features
+
+* **guardduty:** add new GuardDuty module with updated context and README ([#24](https://github.com/NHSDigital/screening-terraform-modules-aws/issues/24)) ([deda21a](https://github.com/NHSDigital/screening-terraform-modules-aws/commit/deda21a792762f1278afb7f00f25c4a895bd7535))
+
 ## [2.2.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.1.1...v2.2.0) (2026-05-27)
 
 ### Features
