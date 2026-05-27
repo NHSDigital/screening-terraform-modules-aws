@@ -26,10 +26,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": [
-          "find infrastructure/modules -name context.tf -exec sed -i '' -e 's#//infrastructure/modules/tags?ref=${lastRelease.version}#//infrastructure/modules/tags?ref=${nextRelease.version}#g' {} +",
-          "find infrastructure/modules -iname readme.md -exec sed -i '' -e 's#//infrastructure/modules/tags | ${lastRelease.version} |#//infrastructure/modules/tags | ${nextRelease.version} |#g' {} +"
-        ]
+        "prepareCmd": "node scripts/release/update-tags-module-version.cjs ${lastRelease.version} ${nextRelease.version}"
       }
     ],
     [
@@ -41,6 +38,14 @@
           "infrastructure/modules/**/context.tf"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "addReleases": "bottom",
+        "successComment": false,
+        "releaseBodyTemplate": "## What's Changed\n\n<%= nextRelease.notes %>\n\n**Full Changelog**:\n[CHANGELOG.md](https://github.com/NHSDigital/screening-terraform-modules-aws/blob/main/CHANGELOG.md)\n**Comparison**:\nhttps://github.com/NHSDigital/screening-terraform-modules-aws/compare/<%= lastRelease.gitTag %>...<%= nextRelease.gitTag %>"
       }
     ]
   ]
