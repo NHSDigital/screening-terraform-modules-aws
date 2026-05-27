@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.0.0...v2.1.0) (2026-05-27)
+
+### Features
+
+* **inspector:** add inspector module and context integration ([#29](https://github.com/NHSDigital/screening-terraform-modules-aws/issues/29)) ([4fed195](https://github.com/NHSDigital/screening-terraform-modules-aws/commit/4fed1951a7b41ba85cd1043a5c215f2a1b3d213d))
+
 ## [2.0.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v1.1.0...v2.0.0) (2026-05-27)
 
 ### ⚠ BREAKING CHANGES
