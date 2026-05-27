@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Update references to the local tags module between semantic-release versions.
+ * Update local module source version references between semantic-release versions.
  *
  * Why this exists:
  * - Keeping release-time string replacements in a standalone script is easier
@@ -20,7 +20,6 @@ const fs = require("fs");
 const path = require("path");
 
 const MODULES_ROOT = path.join("infrastructure", "modules");
-const TARGET_FILE_NAMES = new Set(["context.tf", "readme.md"]);
 
 const [lastVersion, nextVersion] = process.argv.slice(2);
 
@@ -78,21 +77,47 @@ function buildVersionPairs(fromVersion, toVersion) {
 }
 
 /**
- * Replace all occurrences of release-pinned tags module references.
+ * Return true for files that may contain version-pinned local module references:
+ * - Terraform source files (.tf)
+ * - Module README files (README.md / readme.md)
+ */
+function isTargetFile(filePath) {
+  const fileExt = path.extname(filePath).toLowerCase();
+  const baseName = path.basename(filePath).toLowerCase();
+
+  return fileExt === ".tf" || baseName === "readme.md";
+}
+
+/**
+ * Escape user-provided values before embedding into a regular expression.
+ */
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Replace all release-pinned local module source references, for example:
+ * git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/<any-module>?ref=<version>
+ * and README table rows such as:
+ * | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/<any-module> | <version> |
  */
 function updateContent(content, fromVersion, toVersion) {
   let updated = content;
 
   for (const pair of buildVersionPairs(fromVersion, toVersion)) {
+    const sourcePattern = new RegExp(
+      `(git::https://github\\.com/NHSDigital/screening-terraform-modules-aws\\.git//infrastructure/modules/[^?\\s"']+\\?ref=)${escapeRegex(pair.from)}`,
+      "g"
+    );
+
+    const readmeTablePattern = new RegExp(
+      `(\\|\\s*git::https://github\\.com/NHSDigital/screening-terraform-modules-aws\\.git//infrastructure/modules/[^|\\s]+\\s*\\|\\s*)${escapeRegex(pair.from)}(\\s*\\|)`,
+      "g"
+    );
+
     updated = updated
-      .replaceAll(
-        `//infrastructure/modules/tags?ref=${pair.from}`,
-        `//infrastructure/modules/tags?ref=${pair.to}`
-      )
-      .replaceAll(
-        `//infrastructure/modules/tags | ${pair.from} |`,
-        `//infrastructure/modules/tags | ${pair.to} |`
-      );
+      .replace(sourcePattern, `$1${pair.to}`)
+      .replace(readmeTablePattern, `$1${pair.to}$2`);
   }
 
   return updated;
@@ -107,10 +132,7 @@ const allFiles = listFilesRecursively(MODULES_ROOT);
 let updatedFilesCount = 0;
 
 for (const filePath of allFiles) {
-  const fileName = path.basename(filePath).toLowerCase();
-
-  // Only process files where these references are expected.
-  if (!TARGET_FILE_NAMES.has(fileName)) continue;
+  if (!isTargetFile(filePath)) continue;
 
   const original = fs.readFileSync(filePath, "utf8");
   const updated = updateContent(original, lastVersion, nextVersion);
@@ -123,5 +145,5 @@ for (const filePath of allFiles) {
 }
 
 console.log(
-  `Updated tags module references from ${lastVersion} to ${nextVersion} in ${updatedFilesCount} file(s).`
+  `Updated local module source references from ${lastVersion} to ${nextVersion} in ${updatedFilesCount} file(s).`
 );
