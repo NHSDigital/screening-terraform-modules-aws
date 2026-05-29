@@ -1,0 +1,45 @@
+################################################################
+# Secrets Manager secret
+#
+# Thin NHS wrapper around the community secrets-manager module
+# that enforces the screening platform's baseline controls:
+#
+#   * Naming:        derived from context labels via module.this.id
+#   * Tagging:       all NHS-required tags applied automatically
+#   * Public policy: always blocked (block_public_policy = true)
+#   * Enabled flag:  create = module.this.enabled
+#
+# Inputs intentionally NOT exposed (hardcoded below):
+#   - block_public_policy → always true; callers cannot override
+################################################################
+
+module "secret" {
+  source  = "terraform-aws-modules/secrets-manager/aws"
+  version = "2.1.0"
+
+  create = module.this.enabled
+
+  # Naming — always derived from context labels
+  name = local.secret_name
+
+  description             = var.description
+  kms_key_id              = var.kms_key_id
+  recovery_window_in_days = var.recovery_window_in_days
+
+  # Secret value
+  secret_string         = var.secret_string
+  ignore_secret_changes = var.ignore_secret_changes
+
+  # Policy
+  create_policy       = var.create_policy
+  block_public_policy = true # hardcoded — public access is never permitted
+  policy_statements   = var.policy_statements
+
+  # Rotation
+  enable_rotation     = var.enable_rotation
+  rotation_lambda_arn = var.rotation_lambda_arn
+  rotation_rules      = var.rotation_rules
+
+  # Tags — automatically populated from context
+  tags = module.this.tags
+}
