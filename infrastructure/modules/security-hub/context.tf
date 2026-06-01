@@ -61,12 +61,16 @@ variable "context" {
   type = any
   default = {
     enabled             = true
+    namespace           = null
     service             = null
+    stage               = null
     project             = null
+    tenant              = null
     region              = null
     environment         = null
     stack               = null
     workspace           = null
+    name                = null
     delimiter           = null
     attributes          = []
     tags                = {}
@@ -76,6 +80,7 @@ variable "context" {
     id_length_limit     = null
     label_key_case      = null
     label_value_case    = null
+    terraform_source    = null
     descriptor_formats  = {}
     # Note: we have to use [] instead of null for unset lists due to
     # https://github.com/hashicorp/terraform/issues/28137

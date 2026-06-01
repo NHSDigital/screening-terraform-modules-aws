@@ -29,5 +29,11 @@ module "security_hub" {
   imported_findings_notification_arn        = var.findings_notification_arn
   cloudwatch_event_rule_pattern_detail_type = var.cloudwatch_event_rule_pattern_detail_type
 
-  context = module.this.context
+  # Cloud Posse modules still expect namespace/stage style context keys.
+  # Our in-repo tags context uses service/environment naming, so map them.
+  context = merge(module.this.context, {
+    namespace = module.this.service
+    stage     = module.this.environment
+    tenant    = module.this.project
+  })
 }
