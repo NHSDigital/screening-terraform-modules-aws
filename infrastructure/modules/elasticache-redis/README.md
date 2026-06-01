@@ -126,7 +126,7 @@ module "redis" {
 
 * Create user groups or Redis users. Use the upstream user-group submodule if
   you need Redis ACL management.
-* Create a KMS key. Pass an existing key ARN through `kms_key_arn`.
+* Create a KMS key. Pass an existing key arn through `kms_key_arn`.
 * Manage global replication groups or serverless caches. Those are different
   deployment patterns and should be wrapped separately if needed.
 
