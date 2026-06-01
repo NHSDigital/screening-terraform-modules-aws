@@ -40,6 +40,7 @@ When running the nonprod-shared infrastructure pipeline, all the users listed in
 will be automatically marked as being valid. All users are created with the same default password specified in the variables.tf file.
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -48,9 +49,9 @@ No requirements.
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider_aws) | n/a |
-| <a name="provider_random"></a> [random](#provider_random) | n/a |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.9.0 |
 
 ## Modules
 
@@ -59,7 +60,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_cognito_user.cognito_user_creation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cognito_user) | resource |
 | [aws_cognito_user_pool.cognito_user_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cognito_user_pool) | resource |
 | [aws_cognito_user_pool_domain.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cognito_user_pool_domain) | resource |
@@ -71,26 +72,27 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_acr"></a> [acr](#input_acr) | n/a | `string` | `"AAL1_USERPASS"` | no |
-| <a name="input_amr"></a> [amr](#input_amr) | n/a | `string` | `"USERPASS"` | no |
-| <a name="input_attribute_names"></a> [attribute_names](#input_attribute_names) | n/a | `list(string)` | <pre>[<br/>  "acr",<br/>  "amr",<br/>  "email",<br/>  "idassurancelevel",<br/>  "nhsid_nrbac_roles",<br/>  "bss_username",<br/>  "sid",<br/>  "uid"<br/>]</pre> | no |
-| <a name="input_deletion_protection"></a> [deletion_protection](#input_deletion_protection) | ################################################################################# COGNITO ################################################################################# | `string` | `"INACTIVE"` | no |
-| <a name="input_environment"></a> [environment](#input_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `string` | n/a | yes |
-| <a name="input_message_action"></a> [message_action](#input_message_action) | n/a | `string` | `"SUPPRESS"` | no |
-| <a name="input_mfa_configuration"></a> [mfa_configuration](#input_mfa_configuration) | n/a | `string` | `"OFF"` | no |
-| <a name="input_name_prefix"></a> [name_prefix](#input_name_prefix) | The account, environment etc | `string` | n/a | yes |
-| <a name="input_recovery_window"></a> [recovery_window](#input_recovery_window) | The number of days that credentials should be retained for | `number` | n/a | yes |
-| <a name="input_secret_replication_regions"></a> [secret_replication_regions](#input_secret_replication_regions) | List of additional regions where created secrets should be replicated | `list(string)` | n/a | yes |
-| <a name="input_user_email"></a> [user_email](#input_user_email) | n/a | `string` | `"nhsdigital.axe@nhs.net"` | no |
-| <a name="input_user_password"></a> [user_password](#input_user_password) | n/a | `string` | `"changeme"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_acr"></a> [acr](#input\_acr) | n/a | `string` | `"AAL1_USERPASS"` | no |
+| <a name="input_amr"></a> [amr](#input\_amr) | n/a | `string` | `"USERPASS"` | no |
+| <a name="input_attribute_names"></a> [attribute\_names](#input\_attribute\_names) | n/a | `list(string)` | <pre>[<br/>  "acr",<br/>  "amr",<br/>  "email",<br/>  "idassurancelevel",<br/>  "nhsid_nrbac_roles",<br/>  "bss_username",<br/>  "sid",<br/>  "uid"<br/>]</pre> | no |
+| <a name="input_deletion_protection"></a> [deletion\_protection](#input\_deletion\_protection) | ################################################################################# COGNITO ################################################################################# | `string` | `"INACTIVE"` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `string` | n/a | yes |
+| <a name="input_message_action"></a> [message\_action](#input\_message\_action) | n/a | `string` | `"SUPPRESS"` | no |
+| <a name="input_mfa_configuration"></a> [mfa\_configuration](#input\_mfa\_configuration) | n/a | `string` | `"OFF"` | no |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The account, environment etc | `string` | n/a | yes |
+| <a name="input_recovery_window"></a> [recovery\_window](#input\_recovery\_window) | The number of days that credentials should be retained for | `number` | n/a | yes |
+| <a name="input_secret_replication_regions"></a> [secret\_replication\_regions](#input\_secret\_replication\_regions) | List of additional regions where created secrets should be replicated | `list(string)` | n/a | yes |
+| <a name="input_user_email"></a> [user\_email](#input\_user\_email) | n/a | `string` | `"nhsdigital.axe@nhs.net"` | no |
+| <a name="input_user_password"></a> [user\_password](#input\_user\_password) | n/a | `string` | `"changeme"` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_secrets_manager_random_passsword_arn"></a> [secrets_manager_random_passsword_arn](#output_secrets_manager_random_passsword_arn) | n/a |
-| <a name="output_user_pool_domain_prefix"></a> [user_pool_domain_prefix](#output_user_pool_domain_prefix) | n/a |
-| <a name="output_user_pool_id"></a> [user_pool_id](#output_user_pool_id) | n/a |
+| ---- | ----------- |
+| <a name="output_secrets_manager_random_passsword_arn"></a> [secrets\_manager\_random\_passsword\_arn](#output\_secrets\_manager\_random\_passsword\_arn) | n/a |
+| <a name="output_user_pool_domain_prefix"></a> [user\_pool\_domain\_prefix](#output\_user\_pool\_domain\_prefix) | n/a |
+| <a name="output_user_pool_id"></a> [user\_pool\_id](#output\_user\_pool\_id) | n/a |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->

@@ -119,4 +119,3 @@ resource "aws_cognito_user" "cognito_user_creation" {
     uid               = each.value.uuid
   }
 }
-

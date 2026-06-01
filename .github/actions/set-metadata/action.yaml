@@ -119,19 +119,37 @@ runs:
   using: "composite"
   steps:
     - name: "Checkout code"
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: "Set default variables"
       shell: bash
       id: default_variables
       run: |
+        get_tool_version() {
+          local tool_name="$1"
+
+          # Preferred legacy format in this repository.
+          if [[ -f .tool-versions ]]; then
+            awk -v tool="$tool_name" '$1 == tool { print $2; exit }' .tool-versions
+            return
+          fi
+
+          # Backward-compatible YAML format support if present.
+          if [[ -f .tool-versions.yml ]]; then
+            yq ".infrastructure.${tool_name} // \"unknown\"" .tool-versions.yml
+            return
+          fi
+
+          echo "unknown"
+        }
+
         datetime=$(date -u +'%Y-%m-%dT%H:%M:%S%z')
         echo "build_datetime=$datetime" >> $GITHUB_OUTPUT
         echo "build_timestamp=$(date --date=$datetime -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
         echo "build_epoch=$(date --date=$datetime -u +'%s')" >> $GITHUB_OUTPUT
-        echo "nodejs_version=$(yq '.infrastructure.nodejs // "unknown"' .tool-versions.yml)" >> $GITHUB_OUTPUT
-        echo "python_version=$(yq '.infrastructure.python // "unknown"' .tool-versions.yml)" >> $GITHUB_OUTPUT
-        echo "terraform_version=$(yq '.infrastructure.terraform // "unknown"' .tool-versions.yml)" >> $GITHUB_OUTPUT
+        echo "nodejs_version=$(get_tool_version nodejs)" >> $GITHUB_OUTPUT
+        echo "python_version=$(get_tool_version python)" >> $GITHUB_OUTPUT
+        echo "terraform_version=$(get_tool_version terraform)" >> $GITHUB_OUTPUT
         echo "version=$(head -n 1 .version 2> /dev/null || echo unknown)" >> $GITHUB_OUTPUT
 
     - name: "Set Deploy Variables"

@@ -1,6 +1,7 @@
 # WAF
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -9,9 +10,9 @@ No requirements.
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider_aws) | n/a |
-| <a name="provider_time"></a> [time](#provider_time) | n/a |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_time"></a> [time](#provider\_time) | 0.14.0 |
 
 ## Modules
 
@@ -20,7 +21,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_cloudwatch_event_rule.shield_ddos_rule](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
 | [aws_cloudwatch_event_target.shield_ddos_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_cloudwatch_log_group.waf_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
@@ -48,21 +49,22 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_aws_account_id"></a> [aws_account_id](#input_aws_account_id) | n/a | `any` | n/a | yes |
-| <a name="input_aws_region"></a> [aws_region](#input_aws_region) | n/a | `any` | n/a | yes |
-| <a name="input_environment"></a> [environment](#input_environment) | Environment i.e prod, nonprod | `any` | n/a | yes |
-| <a name="input_exclude_ip_set_name"></a> [exclude_ip_set_name](#input_exclude_ip_set_name) | Service | `any` | n/a | yes |
-| <a name="input_name_prefix"></a> [name_prefix](#input_name_prefix) | n/a | `any` | n/a | yes |
-| <a name="input_waf_log_group_name"></a> [waf_log_group_name](#input_waf_log_group_name) | waf log group | `any` | n/a | yes |
-| <a name="input_waf_name"></a> [waf_name](#input_waf_name) | waf name | `any` | n/a | yes |
-| <a name="input_web_services_ip_set_name"></a> [web_services_ip_set_name](#input_web_services_ip_set_name) | n/a | `any` | n/a | yes |
-| <a name="input_webservices_ip_set_addresses"></a> [webservices_ip_set_addresses](#input_webservices_ip_set_addresses) | List of IP addresses for web services | `list(string)` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | n/a | `any` | n/a | yes |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `any` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment i.e prod, nonprod | `any` | n/a | yes |
+| <a name="input_exclude_ip_set_name"></a> [exclude\_ip\_set\_name](#input\_exclude\_ip\_set\_name) | Service | `any` | n/a | yes |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | n/a | `any` | n/a | yes |
+| <a name="input_waf_log_group_name"></a> [waf\_log\_group\_name](#input\_waf\_log\_group\_name) | waf log group | `any` | n/a | yes |
+| <a name="input_waf_name"></a> [waf\_name](#input\_waf\_name) | waf name | `any` | n/a | yes |
+| <a name="input_web_services_ip_set_name"></a> [web\_services\_ip\_set\_name](#input\_web\_services\_ip\_set\_name) | n/a | `any` | n/a | yes |
+| <a name="input_webservices_ip_set_addresses"></a> [webservices\_ip\_set\_addresses](#input\_webservices\_ip\_set\_addresses) | List of IP addresses for web services | `list(string)` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_web_acl_arn"></a> [web_acl_arn](#output_web_acl_arn) | n/a |
+| ---- | ----------- |
+| <a name="output_web_acl_arn"></a> [web\_acl\_arn](#output\_web\_acl\_arn) | n/a |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->
