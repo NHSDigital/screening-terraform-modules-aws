@@ -1,220 +1,91 @@
-# For eks to work with fargate we need to setup both public and private subnets
-# The fargate nodes will deploy into the private subnets, any outbound traffic
-# Will pass from the private subnets > Nat gateway > Public Subnets > Internet Gateway
-# This is a complicated setup but is required to allow external acces to do things like
-# pull container images
+################################################################
+# VPC Module
+#
+# Screening wrapper
+# `terraform-aws-modules/vpc/aws` module
+#   /28  firewall  – Network Firewall endpoints
+#   /24  public    – public-facing resources, NAT gateways
+#   /23  private   – private workloads with internet via NAT
+#   /23  isolated  – fully isolated, no internet route
+#
+# Naming and tagging are derived from context.tf via module.this.
+################################################################
 
-# Create the VPC
-resource "aws_vpc" "vpc" {
-  cidr_block           = "${var.vpc_cidr_prefix}.0.0/16"
-  instance_tenancy     = "default"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-  tags = {
-    Name = var.name_prefix
-  }
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "6.6.1"
+
+  create_vpc = module.this.enabled
+
+  name = module.this.id
+  cidr = var.vpc_cidr
+
+  azs             = local.azs
+  public_subnets  = local.public_subnets
+  private_subnets = local.private_subnets
+  intra_subnets   = local.isolated_subnets
+
+  # NAT gateway configuration
+  enable_nat_gateway     = true
+  single_nat_gateway     = var.single_nat_gateway
+  one_nat_gateway_per_az = !var.single_nat_gateway
+
+  # DNS
+  enable_dns_hostnames = var.enable_dns_hostnames
+  enable_dns_support   = var.enable_dns_support
+
+  # Public subnets
+  map_public_ip_on_launch = var.map_public_ip_on_launch
+
+  # Security defaults
+  manage_default_security_group  = var.manage_default_security_group
+  default_security_group_ingress = []
+  default_security_group_egress  = []
+
+  manage_default_network_acl = var.manage_default_network_acl
+  manage_default_route_table = true
+
+  # Subnet tags
+  public_subnet_tags  = var.public_subnet_tags
+  private_subnet_tags = var.private_subnet_tags
+  intra_subnet_tags   = var.isolated_subnet_tags
+
+  tags = module.this.tags
 }
 
-# attach public subnets to vpc
-resource "aws_subnet" "public_subnet_a" {
-  cidr_block              = "${var.vpc_cidr_prefix}.0.0/24"
-  availability_zone       = "eu-west-2a"
-  vpc_id                  = aws_vpc.vpc.id
-  map_public_ip_on_launch = true
-  tags = {
-    "Name" = "${var.name_prefix}-public-a"
-    "Type" = "public"
-  }
+################################################################
+# Firewall subnets
+#
+# Created as standalone resources because the upstream module
+# does not have a dedicated firewall subnet tier.
+################################################################
+
+resource "aws_subnet" "firewall" {
+  count = module.this.enabled ? local.az_count : 0
+
+  vpc_id            = module.vpc.vpc_id
+  cidr_block        = local.firewall_subnets[count.index]
+  availability_zone = local.azs[count.index]
+
+  tags = merge(module.this.tags, var.firewall_subnet_tags, {
+    Name = "${module.this.id}-firewall-${local.azs[count.index]}"
+    Type = "firewall"
+  })
 }
 
-resource "aws_subnet" "public_subnet_b" {
-  cidr_block              = "${var.vpc_cidr_prefix}.1.0/24"
-  availability_zone       = "eu-west-2b"
-  vpc_id                  = aws_vpc.vpc.id
-  map_public_ip_on_launch = true
-  tags = {
-    "Name" = "${var.name_prefix}-public-b"
-    "Type" = "public"
-  }
+resource "aws_route_table" "firewall" {
+  count = module.this.enabled ? local.az_count : 0
+
+  vpc_id = module.vpc.vpc_id
+
+  tags = merge(module.this.tags, {
+    Name = "${module.this.id}-firewall-${local.azs[count.index]}"
+  })
 }
 
-resource "aws_subnet" "public_subnet_c" {
-  cidr_block              = "${var.vpc_cidr_prefix}.4.0/24"
-  availability_zone       = "eu-west-2c"
-  vpc_id                  = aws_vpc.vpc.id
-  map_public_ip_on_launch = true
-  tags = {
-    "Name" = "${var.name_prefix}-public-c"
-    "Type" = "public"
-  }
-}
+resource "aws_route_table_association" "firewall" {
+  count = module.this.enabled ? local.az_count : 0
 
-# attach private subnets to vpc
-resource "aws_subnet" "private_subnet_a" {
-  cidr_block              = "${var.vpc_cidr_prefix}.2.0/24"
-  availability_zone       = "eu-west-2a"
-  vpc_id                  = aws_vpc.vpc.id
-  map_public_ip_on_launch = false
-  tags = {
-    "Name" = "${var.name_prefix}-private-a"
-    "Type" = "private"
-  }
-}
-
-resource "aws_subnet" "private_subnet_b" {
-  cidr_block              = "${var.vpc_cidr_prefix}.3.0/24"
-  availability_zone       = "eu-west-2b"
-  vpc_id                  = aws_vpc.vpc.id
-  map_public_ip_on_launch = false
-  tags = {
-    "Name" = "${var.name_prefix}-private-b"
-    "Type" = "private"
-  }
-}
-
-resource "aws_subnet" "private_subnet_c" {
-  cidr_block              = "${var.vpc_cidr_prefix}.5.0/24"
-  availability_zone       = "eu-west-2c"
-  vpc_id                  = aws_vpc.vpc.id
-  map_public_ip_on_launch = false
-  tags = {
-    "Name" = "${var.name_prefix}-private-c"
-    "Type" = "private"
-  }
-}
-
-# Create the internet gateway,
-# this will allow traffic from the public subnets out to the internet
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.vpc.id
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-# create a route table so traffic in the public subnets
-# can breakout to the internet using the internet gateway
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-# Create the nat gateways that allow traffic from the private subnets
-# To break out into the public subnets
-resource "aws_nat_gateway" "nat_gw_a" {
-  allocation_id = aws_eip.eip_a.id
-  subnet_id     = aws_subnet.public_subnet_a.id
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-resource "aws_eip" "eip_a" {
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-resource "aws_nat_gateway" "nat_gw_b" {
-  allocation_id = aws_eip.eip_b.id
-  subnet_id     = aws_subnet.public_subnet_b.id
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-resource "aws_eip" "eip_b" {
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-resource "aws_nat_gateway" "nat_gw_c" {
-  allocation_id = aws_eip.eip_c.id
-  subnet_id     = aws_subnet.public_subnet_c.id
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-resource "aws_eip" "eip_c" {
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-
-# create a route table so traffic in the private subnets
-# can use the nat gateways
-resource "aws_route_table" "private_rt_a" {
-  vpc_id = aws_vpc.vpc.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gw_a.id
-  }
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-resource "aws_route_table" "private_rt_b" {
-  vpc_id = aws_vpc.vpc.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gw_b.id
-  }
-  tags = {
-    Name = var.name_prefix
-  }
-}
-resource "aws_route_table" "private_rt_c" {
-  vpc_id = aws_vpc.vpc.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gw_c.id
-  }
-  tags = {
-    Name = var.name_prefix
-  }
-}
-
-# associate the route tables with the subnets
-resource "aws_route_table_association" "private_rta_a" {
-  subnet_id      = aws_subnet.private_subnet_a.id
-  route_table_id = aws_route_table.private_rt_a.id
-}
-
-resource "aws_route_table_association" "private_rta_b" {
-  subnet_id      = aws_subnet.private_subnet_b.id
-  route_table_id = aws_route_table.private_rt_b.id
-}
-
-resource "aws_route_table_association" "private_rta_c" {
-  subnet_id      = aws_subnet.private_subnet_c.id
-  route_table_id = aws_route_table.private_rt_c.id
-}
-
-resource "aws_route_table_association" "public_rta_a" {
-  subnet_id      = aws_subnet.public_subnet_a.id
-  route_table_id = aws_route_table.public_rt.id
-}
-
-resource "aws_route_table_association" "public_rta_b" {
-  subnet_id      = aws_subnet.public_subnet_b.id
-  route_table_id = aws_route_table.public_rt.id
-}
-
-resource "aws_route_table_association" "public_rta_c" {
-  subnet_id      = aws_subnet.public_subnet_c.id
-  route_table_id = aws_route_table.public_rt.id
+  subnet_id      = aws_subnet.firewall[count.index].id
+  route_table_id = aws_route_table.firewall[count.index].id
 }
