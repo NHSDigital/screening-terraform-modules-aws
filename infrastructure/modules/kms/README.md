@@ -43,7 +43,7 @@ No providers.
 | Name | Source | Version |
 | ---- | ------ | ------- |
 | <a name="module_kms_key"></a> [kms\_key](#module\_kms\_key) | terraform-aws-modules/kms/aws | 4.2.0 |
-| <a name="module_this"></a> [this](#module\_this) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.5.0 |
+| <a name="module_this"></a> [this](#module\_this) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.6.0 |
 
 ## Resources
 

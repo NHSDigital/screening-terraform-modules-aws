@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.5.0...v2.6.0) (2026-06-02)
+
+### Features
+
+* **securityhub:** add new SecurityHub module ([#26](https://github.com/NHSDigital/screening-terraform-modules-aws/issues/26)) ([b1cadce](https://github.com/NHSDigital/screening-terraform-modules-aws/commit/b1cadcea2861d9537facdc2fccef4250acbcd810))
+
 ## [2.5.0](https://github.com/NHSDigital/screening-terraform-modules-aws/compare/v2.4.1...v2.5.0) (2026-05-27)
 
 ### Features
