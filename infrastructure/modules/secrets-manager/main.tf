@@ -27,8 +27,10 @@ module "secret" {
   recovery_window_in_days = var.recovery_window_in_days
 
   # Secret value
-  secret_string         = var.secret_string
-  ignore_secret_changes = var.ignore_secret_changes
+  secret_string            = var.secret_string
+  secret_string_wo         = var.secret_string_wo
+  secret_string_wo_version = var.secret_string_wo_version
+  ignore_secret_changes    = var.ignore_secret_changes
 
   # Policy
   create_policy       = var.create_policy

@@ -11,6 +11,12 @@
 #   - replica              → replication not required for this use case
 ################################################################
 
+variable "secret_name" {
+  type        = string
+  default     = null
+  description = "Optional explicit name for the secret. When null, the name is derived from context labels via module.this.id."
+}
+
 variable "description" {
   type        = string
   default     = null
@@ -27,6 +33,10 @@ variable "recovery_window_in_days" {
   type        = number
   default     = 30
   description = "Number of days AWS Secrets Manager waits before permanently deleting the secret. Valid values: 0 (immediate deletion) or 7-30."
+  validation {
+    condition     = var.recovery_window_in_days == 0 || (var.recovery_window_in_days >= 7 && var.recovery_window_in_days <= 30)
+    error_message = "recovery_window_in_days must be 0 (immediate deletion) or between 7 and 30 inclusive."
+  }
 }
 
 variable "secret_string" {
@@ -34,6 +44,19 @@ variable "secret_string" {
   default     = null
   sensitive   = true
   description = "The secret value to store as a plaintext string. Use jsonencode() to store structured data such as database credentials. Mutually exclusive with secret_string_wo."
+}
+
+variable "secret_string_wo" {
+  type        = string
+  default     = null
+  sensitive   = true
+  description = "Write-only variant of secret_string. The value is accepted by Terraform but never stored in state, making it safer for production secrets. Use jsonencode() for structured data. Mutually exclusive with secret_string."
+}
+
+variable "secret_string_wo_version" {
+  type        = string
+  default     = null
+  description = "Trigger value used alongside secret_string_wo. Increment this (e.g. a timestamp or counter) whenever the secret value changes, so Terraform knows to push the new value."
 }
 
 variable "ignore_secret_changes" {
