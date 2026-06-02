@@ -126,3 +126,36 @@ variable "firewall_subnet_tags" {
   type        = map(string)
   default     = {}
 }
+
+################################################################
+# VPC Flow Logs
+################################################################
+
+variable "enable_flow_log" {
+  description = "Enable VPC flow logs to CloudWatch Logs."
+  type        = bool
+  default     = true
+}
+
+variable "flow_log_retention_in_days" {
+  description = "Number of days to retain VPC flow logs in CloudWatch."
+  type        = number
+  default     = 365
+}
+
+variable "flow_log_traffic_type" {
+  description = "The type of traffic to capture. Valid values: ACCEPT, REJECT, ALL."
+  type        = string
+  default     = "ALL"
+
+  validation {
+    condition     = contains(["ACCEPT", "REJECT", "ALL"], var.flow_log_traffic_type)
+    error_message = "flow_log_traffic_type must be one of ACCEPT, REJECT, ALL."
+  }
+}
+
+variable "flow_log_kms_key_id" {
+  description = "ARN of a KMS key to encrypt the CloudWatch log group. Leave null for no encryption."
+  type        = string
+  default     = null
+}

@@ -133,3 +133,22 @@ output "default_security_group_id" {
   description = "The ID of the default security group."
   value       = module.vpc.default_security_group_id
 }
+
+################################################################
+# VPC Flow Logs
+################################################################
+
+output "flow_log_id" {
+  description = "The ID of the VPC Flow Log."
+  value       = try(aws_flow_log.this[0].id, null)
+}
+
+output "flow_log_cloudwatch_log_group_arn" {
+  description = "The ARN of the CloudWatch Log Group for VPC flow logs."
+  value       = try(aws_cloudwatch_log_group.flow_log[0].arn, null)
+}
+
+output "flow_log_iam_role_arn" {
+  description = "The ARN of the IAM role used by VPC flow logs."
+  value       = try(aws_iam_role.flow_log[0].arn, null)
+}
