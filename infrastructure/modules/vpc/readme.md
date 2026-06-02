@@ -1,129 +1,63 @@
 # VPC
 
-This module will create an RDS Instance, This instance can then have multiple databases created within it. In the BSS environment we have a single RDS instance and all the developers have databases created within it which are created by GitHub pipelines.
+Screening wrapper around the [`terraform-aws-modules/vpc/aws`](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest) upstream module (v6.6.1), providing a standardised four-tier subnet layout.
 
-## Preprequisites
+## Subnet tiers
 
-In order for this to work you will need to have a VPC running, there is a module defined to deploy a VPC in this repo
+| Tier | Prefix | Purpose |
+|------|--------|---------|
+| Firewall | /28 | Network Firewall endpoints |
+| Public | /24 | Public-facing resources, NAT gateways |
+| Private | /23 | Private workloads with internet access via NAT |
+| Isolated | /23 | Fully isolated, no internet route |
 
-## Setup
+Subnet CIDRs are auto-calculated from the VPC CIDR (assumes a /16) across all available AZs in the region. Explicit overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `isolated_subnets` variables.
 
-To use this module simply call it from your Terraform stack, here is an example Terraform file:
+## Features
+
+- **Naming and tagging** via `context.tf` / `module.this` (tags module v2.5.0)
+- **NAT gateways** — one per AZ by default, with `single_nat_gateway` option for cost savings
+- **VPC Flow Logs** — enabled by default, sending to CloudWatch Logs with a 365-day retention. Implemented as standalone resources (upstream deprecated flow logs in v6.x, removing in v7.0.0)
+- **Security defaults** — default security group adopted and stripped of all rules
+- **Firewall subnets** — standalone resources (upstream module has no firewall tier)
+
+## Usage
 
 ```terraform
-terraform {
-  backend "s3" {
-    bucket       = "nhse-bss-cicd-state"
-    key          = "terraform-state/vpc.tfstate"
-    region       = "eu-west-2"
-    encrypt      = true
-    use_lockfile = true
-  }
-}
-provider "aws" {
-  region = "eu-west-2"
-  default_tags {
-    tags = {
-      Environment = var.environment
-      Terraform   = "True"
-      Stack       = "VPC"
-    }
-  }
-}
 module "vpc" {
-  source      = "./modules/"
-  environment = var.environment
-  name        = var.name
-  name_prefix = var.name_prefix
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "dev"
+  service     = "bcss"
+  name        = "vpc"
+
+  vpc_cidr           = "10.0.0.0/16"
+  single_nat_gateway = true  # cost saving for non-prod
+
+  flow_log_kms_key_id = aws_kms_key.cloudwatch.arn  # optional encryption
 }
 ```
 
-## Variables
+## Key variables
 
-There are a few key values that need to be passed in:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `vpc_cidr` | VPC CIDR block (/16 for auto-calculation) | `10.0.0.0/16` |
+| `single_nat_gateway` | Use one shared NAT instead of per-AZ | `false` |
+| `enable_flow_log` | Enable VPC flow logs | `true` |
+| `flow_log_retention_in_days` | CloudWatch log retention | `365` |
+| `flow_log_traffic_type` | ACCEPT, REJECT, or ALL | `ALL` |
+| `flow_log_kms_key_id` | KMS key ARN for log encryption | `null` |
+| `map_public_ip_on_launch` | Auto-assign public IPs in public subnets | `false` |
 
-### prefix
+## Key outputs
 
-The `name_prefix` is the consistant part of the name which will be applied to all resources. In BSS that is `bss-cicd-en` for England and `bss-cicd-ni` for Northern Ireland. These would usually be passed in via either a `tfvar` file or via the command line interface from a pipeline, we use GitHub actions in the BSS team.
-
-### name
-
-This is the name of the resource, in BSS we are using `eks` as we have a single eks cluster which is shared by all developers, if you wanted multiple you would need to ensure the name was unique for each stack.
-
-### environment
-
-This is the name of the environment it is deployed into, this might be `CICD`, `NTF`, `UFT` or `Prod`.
-
-### Optional variables
-
-There are many other variables which have default values which can be overwritten if desired, you can look in the variables.tf file for the full list which should all have descriptions explaining what they do.
-
-<!-- vale off -->
-<!-- markdownlint-disable -->
-<!-- BEGIN_TF_DOCS -->
-## Requirements
-
-| Name | Version |
-| ---- | ------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.47.0 |
-
-## Providers
-
-| Name | Version |
-| ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
-
-## Modules
-
-No modules.
-
-## Resources
-
-| Name | Type |
-| ---- | ---- |
-| [aws_eip.eip_a](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
-| [aws_eip.eip_b](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
-| [aws_eip.eip_c](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
-| [aws_internet_gateway.igw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
-| [aws_nat_gateway.nat_gw_a](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
-| [aws_nat_gateway.nat_gw_b](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
-| [aws_nat_gateway.nat_gw_c](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
-| [aws_route_table.private_rt_a](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.private_rt_b](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.private_rt_c](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.public_rt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table_association.private_rta_a](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.private_rta_b](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.private_rta_c](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.public_rta_a](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.public_rta_b](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.public_rta_c](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_subnet.private_subnet_a](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.private_subnet_b](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.private_subnet_c](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.public_subnet_a](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.public_subnet_b](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.public_subnet_c](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_vpc.vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
-
-## Inputs
-
-| Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_environment"></a> [environment](#input\_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `string` | n/a | yes |
-| <a name="input_name"></a> [name](#input\_name) | The name of the resource | `string` | `""` | no |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | the environment and project | `string` | n/a | yes |
-| <a name="input_vpc_cidr_prefix"></a> [vpc\_cidr\_prefix](#input\_vpc\_cidr\_prefix) | The CIDR block prefix for the VPC | `string` | n/a | yes |
-
-## Outputs
-
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | IDs of the public subnets |
-| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | IDs of the public subnets |
-| <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | CIDR range of the VPC |
-| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | ID of the VPC |
-<!-- END_TF_DOCS -->
-<!-- markdownlint-restore -->
-<!-- vale on -->
+| Output | Description |
+|--------|-------------|
+| `vpc_id` | The VPC ID |
+| `public_subnet_ids` | Public subnet IDs |
+| `private_subnet_ids` | Private (NAT-routed) subnet IDs |
+| `isolated_subnet_ids` | Isolated (no internet) subnet IDs |
+| `firewall_subnet_ids` | Firewall subnet IDs |
+| `nat_public_ips` | NAT gateway Elastic IPs |
+| `flow_log_id` | VPC Flow Log ID |
