@@ -27,6 +27,7 @@ module "secret" {
   recovery_window_in_days = var.recovery_window_in_days
 
   # Secret value
+  create_random_password   = var.create_random_password
   secret_string            = var.secret_string
   secret_string_wo         = var.secret_string_wo
   secret_string_wo_version = var.secret_string_wo_version

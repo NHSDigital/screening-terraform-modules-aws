@@ -39,6 +39,12 @@ variable "recovery_window_in_days" {
   }
 }
 
+variable "create_random_password" {
+  type        = bool
+  default     = false
+  description = "When true, generates a random password as the secret value. When set, secret_string and secret_string_wo should not be set."
+}
+
 variable "secret_string" {
   type        = string
   default     = null
