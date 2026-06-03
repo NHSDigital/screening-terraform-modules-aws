@@ -2,7 +2,7 @@
 
 Screening wrapper around the [`terraform-aws-modules/vpc/aws`](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest) upstream module (v6.6.1), providing a standardised four-tier subnet layout.
 
-## Subnet tiers
+## subnet tiers
 
 | Tier | Prefix | Purpose |
 |------|--------|---------|
@@ -11,7 +11,7 @@ Screening wrapper around the [`terraform-aws-modules/vpc/aws`](https://registry.
 | Private | /23 | Private workloads with internet access via NAT |
 | Isolated | /23 | Fully isolated, no internet route |
 
-Subnet CIDRs are auto-calculated from the VPC CIDR (assumes a /16) across all available AZs in the region. Explicit overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `isolated_subnets` variables.
+subnet CIDRs are auto-calculated from the VPC CIDR (assumes a /16) across all available AZs in the region. Explicit overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `isolated_subnets` variables.
 
 ## Features
 
@@ -47,7 +47,7 @@ module "vpc" {
 | `enable_flow_log` | Enable VPC flow logs | `true` |
 | `flow_log_retention_in_days` | CloudWatch log retention | `365` |
 | `flow_log_traffic_type` | ACCEPT, REJECT, or ALL | `ALL` |
-| `flow_log_kms_key_id` | KMS key ARN for log encryption | `null` |
+| `flow_log_kms_key_id` | KMS key arn for log encryption | `null` |
 | `map_public_ip_on_launch` | Auto-assign public IPs in public subnets | `false` |
 
 ## Key outputs
