@@ -24,7 +24,7 @@ No providers.
 | Name | Source | Version |
 | ---- | ------ | ------- |
 | <a name="module_inspector"></a> [inspector](#module\_inspector) | cloudposse/inspector/aws | 0.4.0 |
-| <a name="module_this"></a> [this](#module\_this) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.5.0 |
+| <a name="module_this"></a> [this](#module\_this) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.6.0 |
 
 ## Resources
 
