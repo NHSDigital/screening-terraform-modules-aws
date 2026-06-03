@@ -40,20 +40,20 @@ module "network_firewall" {
   # ------------------------------------------------------------------
   # Policy
   # ------------------------------------------------------------------
-  create_policy    = var.create_policy
+  create_policy       = var.create_policy
   firewall_policy_arn = var.firewall_policy_arn
 
-  policy_name                            = module.this.id
-  policy_description                     = coalesce(var.description, "Firewall policy for ${module.this.id}")
-  policy_encryption_configuration        = local.encryption_configuration
-  policy_variables                       = var.policy_variables
-  policy_stateful_default_actions        = var.policy_stateful_default_actions
-  policy_stateful_engine_options         = var.policy_stateful_engine_options
-  policy_stateful_rule_group_reference   = var.policy_stateful_rule_group_reference
-  policy_stateless_default_actions       = var.policy_stateless_default_actions
+  policy_name                               = module.this.id
+  policy_description                        = coalesce(var.description, "Firewall policy for ${module.this.id}")
+  policy_encryption_configuration           = local.encryption_configuration
+  policy_variables                          = var.policy_variables
+  policy_stateful_default_actions           = var.policy_stateful_default_actions
+  policy_stateful_engine_options            = var.policy_stateful_engine_options
+  policy_stateful_rule_group_reference      = var.policy_stateful_rule_group_reference
+  policy_stateless_default_actions          = var.policy_stateless_default_actions
   policy_stateless_fragment_default_actions = var.policy_stateless_fragment_default_actions
-  policy_stateless_rule_group_reference  = var.policy_stateless_rule_group_reference
-  policy_stateless_custom_action         = var.policy_stateless_custom_action
+  policy_stateless_rule_group_reference     = var.policy_stateless_rule_group_reference
+  policy_stateless_custom_action            = var.policy_stateless_custom_action
 
   tags = module.this.tags
 }

@@ -35,6 +35,6 @@ locals {
     log_type             = "FLOW"
   }] : []
 
-  logging_config  = concat(local.alert_log_config, local.flow_log_config)
-  create_logging  = length(local.logging_config) > 0
+  logging_config = concat(local.alert_log_config, local.flow_log_config)
+  create_logging = length(local.logging_config) > 0
 }
