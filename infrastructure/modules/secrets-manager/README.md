@@ -2,7 +2,7 @@
 
 Thin NHS wrapper around [terraform-aws-modules/secrets-manager/aws](https://registry.terraform.io/modules/terraform-aws-modules/secrets-manager/aws) that enforces the screening platform's baseline controls.
 
-## Hardcoded controls
+## Fixed controls
 
 | Setting | Value | Reason |
 |---|---|---|
