@@ -85,6 +85,7 @@ module "security_hub" {
   belong in a separate account-scope module.
 
 <!-- vale off -->
+<!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -155,4 +156,5 @@ No resources.
 | <a name="output_sns_topic"></a> [sns\_topic](#output\_sns\_topic) | The SNS topic that the upstream module created (null when `create_sns_topic` is false, which is the default for this wrapper). |
 | <a name="output_sns_topic_subscriptions"></a> [sns\_topic\_subscriptions](#output\_sns\_topic\_subscriptions) | Any SNS topic subscriptions that the upstream module created. |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
 <!-- vale on -->
