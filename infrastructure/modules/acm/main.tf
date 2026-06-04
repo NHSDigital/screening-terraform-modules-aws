@@ -1,4 +1,13 @@
-# DAVEH
+################################################################
+# AWS Certificate Manager (ACM)
+#
+# A thin wrapper around the terraform-aws-modules/acm/aws module,
+# enforcing the following opinions:
+#
+#   * new certificates are validated via DNS
+#
+# Tagging is derived from context.tf via module.this.
+################################################################
 
 module "acm" {
   source  = "terraform-aws-modules/acm/aws"
