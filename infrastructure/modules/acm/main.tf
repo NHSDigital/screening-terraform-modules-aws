@@ -20,8 +20,8 @@ module "acm" {
   domain_name               = var.domain_name
   subject_alternative_names = var.subject_alternative_names
 
-  create_route53_records      = true
-  create_route53_records_only = false
+  key_algorithm         = var.key_algorithm
+  private_authority_arn = var.private_authority_arn
 
   certificate_transparency_logging_preference = true
   export                                      = "DISABLED"
@@ -35,12 +35,11 @@ module "acm" {
   wait_for_validation                = var.wait_for_validation
   zone_id                            = var.zone_id
   zones                              = var.zones
+  create_route53_records             = true
+  create_route53_records_only        = false
+  dns_ttl                            = var.dns_ttl
 
   # ----------------------------------------------------------------
-  acm_certificate_domain_validation_options = DAVEH
-  dns_ttl = DAVEH
-  key_algorithm = DAVEH
-  private_authority_arn = DAVEH
   region = module.this.region
   tags = module.this.tags
 }

@@ -51,3 +51,21 @@ variable "subject_alternative_names" {
   type        = list(string)
   default     = []
 }
+
+variable "dns_ttl" {
+  description = "The TTL of DNS recursive resolvers to cache information about this record."
+  type        = number
+  default     = 60
+}
+
+variable "key_algorithm" {
+  description = "Specifies the algorithm of the public and private key pair that your Amazon issued certificate uses to encrypt data"
+  type        = string
+  default     = null
+}
+
+variable "private_authority_arn" {
+  description = "Private Certificate Authority ARN for issuing private certificates"
+  type        = string
+  default     = null
+}
