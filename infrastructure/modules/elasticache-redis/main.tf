@@ -1,7 +1,7 @@
 locals {
   replication_group_id = coalesce(var.replication_group_id, module.this.id)
-  resolved_auth_token  = coalesce(var.auth_token, var.redis_auth_token)
-  resolved_port        = coalesce(var.port, var.elasticache_port, null)
+  resolved_auth_token  = try(coalesce(var.auth_token, var.redis_auth_token), null)
+  resolved_port        = try(coalesce(var.port, var.elasticache_port), null)
   engine_version_major = try(regex("^\\d+", var.engine_version), null)
 
   parameter_group_family = coalesce(
