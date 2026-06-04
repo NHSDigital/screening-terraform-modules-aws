@@ -6,7 +6,7 @@ module "acm" {
 
   acm_certificate_domain_validation_options = DAVEH
   certificate_transparency_logging_preference = DAVEH
-  create_certificate = DAVEH
+  create_certificate = module.this.enabled
   create_route53_records = DAVEH
   create_route53_records_only = DAVEH
   distinct_domain_names = DAVEH
@@ -15,7 +15,7 @@ module "acm" {
   export = DAVEH
   key_algorithm = DAVEH
   private_authority_arn = DAVEH
-  region = DAVEH
+  region = module.this.region
   subject_alternative_names = DAVEH
   tags = module.this.tags
   validate_certificate = DAVEH
