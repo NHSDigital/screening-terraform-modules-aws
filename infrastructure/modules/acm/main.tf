@@ -5,6 +5,7 @@
 # enforcing the following opinions:
 #
 #   * new certificates are validated via DNS, specifically via Route53
+#   * certificates cannot be exported
 #
 # Tagging is derived from context.tf via module.this.
 ################################################################
@@ -19,6 +20,9 @@ module "acm" {
   create_route53_records      = true
   create_route53_records_only = false
 
+  certificate_transparency_logging_preference = true
+  export                                      = "DISABLED"
+
   # ----------------------------------------------------------------
   # Validation: only DNS is supported, unless you have imported the certificate
   # ----------------------------------------------------------------
@@ -29,11 +33,8 @@ module "acm" {
 
   # ----------------------------------------------------------------
   acm_certificate_domain_validation_options = DAVEH
-  certificate_transparency_logging_preference = DAVEH
-  distinct_domain_names = DAVEH
   dns_ttl = DAVEH
   domain_name = DAVEH
-  export = DAVEH
   key_algorithm = DAVEH
   private_authority_arn = DAVEH
   region = module.this.region
