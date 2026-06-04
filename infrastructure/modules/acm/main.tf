@@ -17,6 +17,9 @@ module "acm" {
   create_certificate   = module.this.enabled
   validate_certificate = module.this.enabled
 
+  domain_name               = var.domain_name
+  subject_alternative_names = var.subject_alternative_names
+
   create_route53_records      = true
   create_route53_records_only = false
 
@@ -26,20 +29,18 @@ module "acm" {
   # ----------------------------------------------------------------
   # Validation: only DNS is supported, unless you have imported the certificate
   # ----------------------------------------------------------------
-  validation_method = var.validation_method
+  validation_method                  = var.validation_method
   validation_allow_overwrite_records = var.validation_allow_overwrite_records
-  validation_timeout = var.validation_timeout
-  wait_for_validation = var.wait_for_validation
+  validation_timeout                 = var.validation_timeout
+  wait_for_validation                = var.wait_for_validation
+  zone_id                            = var.zone_id
+  zones                              = var.zones
 
   # ----------------------------------------------------------------
   acm_certificate_domain_validation_options = DAVEH
   dns_ttl = DAVEH
-  domain_name = DAVEH
   key_algorithm = DAVEH
   private_authority_arn = DAVEH
   region = module.this.region
-  subject_alternative_names = DAVEH
   tags = module.this.tags
-  zone_id = DAVEH
-  zones = DAVEH
 }

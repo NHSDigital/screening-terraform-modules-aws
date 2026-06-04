@@ -28,3 +28,26 @@ variable "wait_for_validation" {
   type        = bool
   default     = true
 }
+
+variable "zone_id" {
+  description = "The ID of the hosted zone to contain this record, for validating via Route53."
+  type        = string
+}
+
+variable "zones" {
+  description = "Map containing the Route53 Zone IDs for additional domains."
+  type        = map(string)
+  default     = {}
+}
+
+variable "domain_name" {
+  description = "A domain name for which the certificate should be issued"
+  type        = string
+  default     = ""
+}
+
+variable "subject_alternative_names" {
+  description = "Additional domain names for which the certificate should be issued."
+  type        = list(string)
+  default     = []
+}
