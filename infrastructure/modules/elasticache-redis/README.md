@@ -6,6 +6,8 @@ module for ElastiCache replication groups. It consumes the shared `context.tf` f
 naming and tagging, keeps the interface close to upstream, and adds a few
 defaults that are useful for the platform.
 
+<!-- vale Vale.Spelling = NO -->
+
 ## What this module does
 
 * Provisions a Valkey or Redis OSS replication group using the upstream ElastiCache module.
@@ -125,6 +127,8 @@ module "redis" {
 
 If a caller cannot move to Valkey yet, set `engine = "redis"` explicitly and use a supported
 engine version such as `6.x` or `7.x`.
+
+<!-- vale Vale.Spelling = YES -->
 
 ## Conventions
 
