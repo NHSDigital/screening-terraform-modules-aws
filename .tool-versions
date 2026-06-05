@@ -8,8 +8,6 @@ vale 3.6.0
 gitleaks 8.30.1
 nodejs 24.16.0
 
-# DAVEH: restore markdownlint directives if underlying problem not fixed
-
 # ==============================================================================
 # The section below is reserved for Docker image versions.
 

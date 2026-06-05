@@ -1,5 +1,3 @@
-# DAVEH
-
 variable "validation_method" {
   description = "Which method to use for validation. Only DNS is valid. This parameter must not be set for certificates that were imported into ACM and then into Terraform."
   type        = string

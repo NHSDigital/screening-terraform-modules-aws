@@ -1,5 +1,3 @@
-# DAVEH
-
 output "acm_certificate_arn" {
   description = "The ARN of the certificate."
   value       = module.acm.acm_certificate_arn
@@ -14,8 +12,6 @@ output "acm_certificate_status" {
   description = "Status of the certificate."
   value       = module.acm.acm_certificate_status
 }
-
-# DAVEH: don't want acm_certificate_validation_emails output?
 
 output "distinct_domain_names" {
   description = "List of distinct domains names used for the validation."
