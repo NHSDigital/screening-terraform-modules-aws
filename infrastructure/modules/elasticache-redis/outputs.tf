@@ -9,7 +9,7 @@ output "cloudwatch_log_group_name" {
 }
 
 output "cloudwatch_log_groups" {
-  description = "Map of CloudWatch log groups created for Redis log delivery."
+  description = "Map of CloudWatch log groups created for Redis OSS or Valkey log delivery."
   value       = module.elasticache.cloudwatch_log_groups
 }
 
@@ -24,7 +24,7 @@ output "parameter_group_id" {
 }
 
 output "replication_group_arn" {
-  description = "ARN of the Redis replication group."
+  description = "ARN of the ElastiCache replication group."
   value       = module.elasticache.replication_group_arn
 }
 
@@ -34,12 +34,12 @@ output "replication_group_configuration_endpoint_address" {
 }
 
 output "replication_group_engine_version_actual" {
-  description = "Actual running Redis engine version after AWS applies minor or patch updates."
+  description = "Actual running cache engine version after AWS applies minor or patch updates."
   value       = module.elasticache.replication_group_engine_version_actual
 }
 
 output "replication_group_id" {
-  description = "ID of the Redis replication group."
+  description = "ID of the ElastiCache replication group."
   value       = module.elasticache.replication_group_id
 }
 

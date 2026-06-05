@@ -1,24 +1,32 @@
-# ElastiCache Redis
+# ElastiCache Redis/Valkey
 
 NHS Screening wrapper around the community
 [`terraform-aws-modules/elasticache/aws`](https://registry.terraform.io/modules/terraform-aws-modules/elasticache/aws/latest)
-module for Redis replication groups. It consumes the shared `context.tf` for
+module for ElastiCache replication groups. It consumes the shared `context.tf` for
 naming and tagging, keeps the interface close to upstream, and adds a few
 defaults that are useful for the platform.
 
 ## What this module does
 
-* Provisions a Redis replication group using the upstream ElastiCache module.
+* Provisions a Valkey or Redis OSS replication group using the upstream ElastiCache module.
 * Creates a subnet group, parameter group, and security group by default.
 * Derives `replication_group_id` from the shared context when you do not set it.
-* Derives `parameter_group_family` from `engine_version` when possible.
+* Defaults new deployments to `engine = "valkey"`.
+* Derives `parameter_group_family` from `engine` and `engine_version` when possible.
 * Enables encryption at rest and in transit by default.
-* Sends Redis slow logs to CloudWatch Logs by default unless you override
+* Rejects Redis OSS major versions 4 and 5 so new callers do not encode an EOL engine choice.
+* Sends slow logs to CloudWatch Logs by default unless you override
   `log_delivery_configuration`.
+
+## Important boundary
+
+This wrapper can provision a Valkey-backed ElastiCache replication group, but it does not prove
+application compatibility. If an existing connector or client library is tightly coupled to older
+Redis OSS behaviour, that compatibility check still needs to happen in the consuming service.
 
 ## Usage
 
-### Minimal Redis replication group
+### Minimal Valkey replication group
 
 ```hcl
 module "redis" {
@@ -29,8 +37,9 @@ module "redis" {
   environment = "dev"
   name        = "redis"
 
+  engine         = "valkey"
   node_type      = "cache.t4g.small"
-  engine_version = "7.1"
+  engine_version = "7.2"
   auth_token     = "replace-with-a-secret-value"
 
   vpc_id     = module.vpc.vpc_id
@@ -45,7 +54,7 @@ module "redis" {
 }
 ```
 
-### Highly available non-clustered Redis
+### Highly available non-clustered Valkey
 
 ```hcl
 module "redis" {
@@ -56,8 +65,9 @@ module "redis" {
   environment = "prod"
   name        = "redis"
 
+  engine                      = "valkey"
   node_type                   = "cache.r7g.large"
-  engine_version              = "7.1"
+  engine_version              = "7.2"
   auth_token                  = "replace-with-a-secret-value"
   num_cache_clusters          = 2
   automatic_failover_enabled  = true
@@ -78,7 +88,7 @@ module "redis" {
 }
 ```
 
-### Cluster mode Redis
+### Cluster mode Valkey
 
 ```hcl
 module "redis" {
@@ -89,8 +99,9 @@ module "redis" {
   environment = "prod"
   name        = "redis-cluster"
 
+  engine                      = "valkey"
   node_type                   = "cache.r7g.large"
-  engine_version              = "7.1"
+  engine_version              = "7.2"
   auth_token                  = "replace-with-a-secret-value"
   cluster_mode_enabled        = true
   num_node_groups             = 2
@@ -110,12 +121,17 @@ module "redis" {
 }
 ```
 
+### Redis OSS compatibility mode
+
+If a caller cannot move to Valkey yet, set `engine = "redis"` explicitly and use a supported
+engine version such as `6.x` or `7.x`.
+
 ## Conventions
 
 * `replication_group_id`, `subnet_group_name`, `parameter_group_name`, and
   `security_group_name` default to the shared context-derived module ID.
-* `parameter_group_family` defaults from the major `engine_version`, for
-  example `7.1` becomes `redis7`.
+* `parameter_group_family` defaults from the selected `engine` and the major
+  `engine_version`, for example `7.2` becomes `valkey7` when `engine = "valkey"`.
 * `redis_auth_token` and `elasticache_port` are supported as compatibility
   aliases for older callers, but new callers should prefer `auth_token` and
   `port`.

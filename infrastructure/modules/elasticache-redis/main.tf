@@ -1,12 +1,13 @@
 locals {
   replication_group_id = coalesce(var.replication_group_id, module.this.id)
+  engine               = var.engine
   resolved_auth_token  = try(coalesce(var.auth_token, var.redis_auth_token), null)
   resolved_port        = try(coalesce(var.port, var.elasticache_port), null)
   engine_version_major = try(regex("^\\d+", var.engine_version), null)
 
   parameter_group_family = coalesce(
     var.parameter_group_family,
-    local.engine_version_major != null ? "redis${local.engine_version_major}" : null
+    local.engine_version_major != null ? "${local.engine}${local.engine_version_major}" : null
   )
 
   log_delivery_configuration = length(var.log_delivery_configuration) > 0 ? var.log_delivery_configuration : {
@@ -25,9 +26,9 @@ module "elasticache" {
   create_cluster           = false
   create_replication_group = true
 
-  engine               = "redis"
+  engine               = local.engine
   replication_group_id = local.replication_group_id
-  description          = coalesce(var.description, "${local.replication_group_id} redis replication group")
+  description          = coalesce(var.description, "${local.replication_group_id} ${title(local.engine)} replication group")
 
   apply_immediately          = var.apply_immediately
   auto_minor_version_upgrade = var.auto_minor_version_upgrade

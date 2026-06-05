@@ -4,8 +4,19 @@ variable "create" {
   default     = true
 }
 
+variable "engine" {
+  description = "Cache engine to use for the replication group. Prefer valkey for new deployments. Valid values are redis and valkey."
+  type        = string
+  default     = "valkey"
+
+  validation {
+    condition     = contains(["redis", "valkey"], var.engine)
+    error_message = "engine must be either redis or valkey."
+  }
+}
+
 variable "node_type" {
-  description = "The instance class used for the Redis replication group."
+  description = "The instance class used for the ElastiCache replication group."
   type        = string
   default     = null
 
@@ -28,9 +39,14 @@ variable "description" {
 }
 
 variable "engine_version" {
-  description = "Redis engine version. When create_parameter_group is true and parameter_group_family is unset, the major version is used to derive the family, for example redis7."
+  description = "Engine version for the selected Redis OSS or Valkey engine. When create_parameter_group is true and parameter_group_family is unset, the major version is used to derive the family, for example valkey7 or redis7."
   type        = string
   default     = null
+
+  validation {
+    condition     = var.engine_version == null || !can(regex("^[45](\\.|$)", var.engine_version))
+    error_message = "Redis OSS major versions 4 and 5 are out of standard support. Use Valkey or Redis OSS 6 and later."
+  }
 }
 
 variable "apply_immediately" {
@@ -76,7 +92,7 @@ variable "transit_encryption_mode" {
 }
 
 variable "auth_token" {
-  description = "Primary auth token input for Redis AUTH. This can only be set when transit_encryption_enabled is true."
+  description = "Primary auth token input for Valkey or Redis AUTH. This can only be set when transit_encryption_enabled is true."
   type        = string
   default     = null
   sensitive   = true
@@ -93,7 +109,7 @@ variable "auth_token" {
 }
 
 variable "redis_auth_token" {
-  description = "Compatibility alias for auth_token used by the older bespoke elasticache module."
+  description = "Compatibility alias for auth_token used by the older bespoke elasticache module. New callers should prefer auth_token."
   type        = string
   default     = null
   sensitive   = true
@@ -112,7 +128,7 @@ variable "kms_key_arn" {
 }
 
 variable "cluster_mode_enabled" {
-  description = "Whether to enable Redis cluster mode."
+  description = "Whether to enable cluster mode for the replication group."
   type        = bool
   default     = false
 }
@@ -160,7 +176,7 @@ variable "ip_discovery" {
 }
 
 variable "log_delivery_configuration" {
-  description = "Log delivery configuration forwarded to the upstream module. Defaults to a slow-log CloudWatch Logs target when left empty."
+  description = "Log delivery configuration forwarded to the upstream module. Defaults to a slow-log CloudWatch Logs target when left empty for Redis OSS or Valkey."
   type        = any
   default     = {}
 }
@@ -184,7 +200,7 @@ variable "notification_topic_arn" {
 }
 
 variable "port" {
-  description = "Redis listener port. Defaults to the upstream module default of 6379 when unset."
+  description = "Listener port. Defaults to the upstream module default of 6379 when unset."
   type        = number
   default     = null
 
@@ -219,7 +235,7 @@ variable "parameter_group_name" {
 }
 
 variable "parameter_group_family" {
-  description = "Parameter group family. When omitted, it is derived from the major engine_version if possible."
+  description = "Parameter group family. When omitted, it is derived from the selected engine and the major engine_version when possible."
   type        = string
   default     = null
 
@@ -360,7 +376,7 @@ variable "timeouts" {
 }
 
 variable "user_group_ids" {
-  description = "Optional user group IDs to associate with the replication group. Only one value is valid for Redis."
+  description = "Optional user group IDs to associate with the replication group."
   type        = list(string)
   default     = null
 }
