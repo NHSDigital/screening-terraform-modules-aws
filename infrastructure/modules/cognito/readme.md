@@ -1,13 +1,5 @@
 # Cognito
 
-## Summary
-
-This is a OAuth2 client that allows us to log into the BS-Select application using the
-same controls and security that CIS2 offers. We have the ability to control the configuration
-of the client, including the users available for logging in.
-
-# Cognito
-
 Thin wrapper around [`lgallard/cognito-user-pool/aws`](https://registry.terraform.io/modules/lgallard/cognito-user-pool/aws/4.0.2)
 for the shared-resources stack.
 
@@ -23,62 +15,62 @@ Secrets Manager password flow.
 
 * Uses the upstream `lgallard/cognito-user-pool/aws` module pinned to `4.0.2`
 * Derives the user pool name from `user_pool_name`, then `name_prefix`, then the
-	shared context-derived module ID
+  shared context-derived module ID
 * Creates a Cognito domain by default, following the prior module behaviour
 * Enables `ignore_schema_changes = true` by default because this is recommended
-	for new Cognito deployments with custom schemas
+  for new Cognito deployments with custom schemas
 * Keeps a small compatibility layer for legacy inputs such as `name_prefix` and
-	`attribute_names`
+  `attribute_names`
 * Narrows application client configuration to an `app_clients` interface instead
-	of exposing the upstream generic `clients`, `resource_servers`, `user_groups`,
-	and `identity_providers` inputs directly
+  of exposing the upstream generic `clients`, `resource_servers`, `user_groups`,
+  and `identity_providers` inputs directly
 * Supports optional bootstrap user creation because the current BCSS Cognito
-	stacks still provision initial users during stack deployment
+  stacks still provision initial users during stack deployment
 
 ## What this module does not do
 
 * It does not create or replicate a Secrets Manager password secret
 * It does not create the KMS keys or SSM parameters used by the older external
-	and training stacks; those remain stack-level concerns and can consume this
-	module's outputs instead
+  and training stacks; those remain stack-level concerns and can consume this
+  module's outputs instead
 
 ## Usage
 
 ```hcl
 module "cognito" {
-	source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cognito?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cognito?ref=main"
 
-	name        = "cognito"
-	project     = "shared"
-	environment = "dev"
+  name        = "cognito"
+  project     = "shared"
+  environment = "dev"
 
-	app_clients = [
-		{
-			callback_urls        = ["https://example.internal/login/oauth2/code/nhs-identity"]
-			logout_urls          = ["https://example.internal/logout"]
-			default_redirect_uri = "https://example.internal/login/oauth2/code/nhs-identity"
+  app_clients = [
+    {
+      callback_urls        = ["https://example.internal/login/oauth2/code/nhs-identity"]
+      logout_urls          = ["https://example.internal/logout"]
+      default_redirect_uri = "https://example.internal/login/oauth2/code/nhs-identity"
 
-			allowed_oauth_flows_user_pool_client = true
-			allowed_oauth_flows                  = ["code"]
-			allowed_oauth_scopes = [
-				"email",
-				"openid",
-				"profile",
-				"aws.cognito.signin.user.admin",
-			]
-			supported_identity_providers = ["COGNITO"]
-			generate_secret              = true
-		}
-	]
+      allowed_oauth_flows_user_pool_client = true
+      allowed_oauth_flows                  = ["code"]
+      allowed_oauth_scopes = [
+        "email",
+        "openid",
+        "profile",
+        "aws.cognito.signin.user.admin",
+      ]
+      supported_identity_providers = ["COGNITO"]
+      generate_secret              = true
+    }
+  ]
 
-	bootstrap_users = [
-		{
-			uuid               = "11111111-1111-1111-1111-111111111111"
-			bcss_username      = "test.user"
-			id_assurance_level = "3"
-			rbac_role          = "[{activities=[BS-Select], activity_codes=[B1808]}]"
-		}
-	]
+  bootstrap_users = [
+    {
+      uuid               = "11111111-1111-1111-1111-111111111111"
+      bcss_username      = "test.user"
+      id_assurance_level = "3"
+      rbac_role          = "[{activities=[BS-Select], activity_codes=[B1808]}]"
+    }
+  ]
 }
 ```
 
@@ -115,6 +107,9 @@ Comparing against the current BCSS stacks showed that the module surface needs t
 The BCSS stacks also contain stack-specific KMS and SSM parameter resources for some environments.
 Those are intentionally not moved into this shared module.
 
+<!-- vale off -->
+<!-- markdownlint-disable -->
+<!-- BEGIN_TF_DOCS -->
 ## Providers
 
 | Name | Version |
@@ -165,4 +160,3 @@ No modules.
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->
-
