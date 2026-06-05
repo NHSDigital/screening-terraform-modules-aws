@@ -6,45 +6,114 @@ This is a OAuth2 client that allows us to log into the BS-Select application usi
 same controls and security that CIS2 offers. We have the ability to control the configuration
 of the client, including the users available for logging in.
 
-## Useful Values
+# Cognito
 
-The Cognito client when created will be accessible via the following url:
+Thin wrapper around [`lgallard/cognito-user-pool/aws`](https://registry.terraform.io/modules/lgallard/cognito-user-pool/aws/4.0.2)
+for the shared-resources stack.
 
-- <https://bs-select.auth.eu-west-2.amazoncognito.com/>
+## Summary
 
-```java
-The following values are needed by the BS-Select application to connect to this Cognito instance:
-|Value|Default Profile Value|Description|
-|-----|---------------------|-----------|
-|spring.security.oauth2.client.registration.nhs-identity.scope|email, openid, profile, aws.cognito.signin.user.admin|The scope used by OAuth2 for the users.|
-|spring.security.oauth2.client.registration.nhs-identity.client-id|COGNITO_CLIENT_ID_TO_BE_REPLACED|The client ID for the Cognito user client instance.|
-|spring.security.oauth2.client.registration.nhs-identity.client-secret|COGNITO_CLIENT_SECRET_TO_BE_REPLACED|The client secret for the Cognito user client instance.|
-|spring.security.oauth2.client.registration.nhs-identity.redirect-uri|https://<environment>/bss/login/oauth2/code/nhs-identity|The redirect once authentication has been completed.|
-|spring.security.oauth2.client.provider.nhs-identity.issuer-uri|<https://cognito-idp.eu-west-2.amazonaws.com/COGNITO_ISSUER_URI_TO_BE_REPLACED/>|The issuer-uri, the full URL is required but main value required is the ID of the Cognito user pool|
-| spring.security.oauth2.client.provider.nhs-identity.cognito-domain |<https://bs-select.auth.eu-west-2.amazoncognito.com/>|The domain to direct to for login.|
+This module standardises Cognito user pool creation around the preferred upstream
+community module while adopting this repository's shared `context.tf` pattern.
+It keeps the default pool/domain/schema behaviour from the existing bespoke
+module where practical, but deliberately avoids carrying forward the old
+Secrets Manager password flow.
+
+## Design choices
+
+* Uses the upstream `lgallard/cognito-user-pool/aws` module pinned to `4.0.2`
+* Derives the user pool name from `user_pool_name`, then `name_prefix`, then the
+	shared context-derived module ID
+* Creates a Cognito domain by default, following the prior module behaviour
+* Enables `ignore_schema_changes = true` by default because this is recommended
+	for new Cognito deployments with custom schemas
+* Keeps a small compatibility layer for legacy inputs such as `name_prefix` and
+	`attribute_names`
+* Narrows application client configuration to an `app_clients` interface instead
+	of exposing the upstream generic `clients`, `resource_servers`, `user_groups`,
+	and `identity_providers` inputs directly
+* Supports optional bootstrap user creation because the current BCSS Cognito
+	stacks still provision initial users during stack deployment
+
+## What this module does not do
+
+* It does not create or replicate a Secrets Manager password secret
+* It does not create the KMS keys or SSM parameters used by the older external
+	and training stacks; those remain stack-level concerns and can consume this
+	module's outputs instead
+
+## Usage
+
+```hcl
+module "cognito" {
+	source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cognito?ref=main"
+
+	name        = "cognito"
+	project     = "shared"
+	environment = "dev"
+
+	app_clients = [
+		{
+			callback_urls        = ["https://example.internal/login/oauth2/code/nhs-identity"]
+			logout_urls          = ["https://example.internal/logout"]
+			default_redirect_uri = "https://example.internal/login/oauth2/code/nhs-identity"
+
+			allowed_oauth_flows_user_pool_client = true
+			allowed_oauth_flows                  = ["code"]
+			allowed_oauth_scopes = [
+				"email",
+				"openid",
+				"profile",
+				"aws.cognito.signin.user.admin",
+			]
+			supported_identity_providers = ["COGNITO"]
+			generate_secret              = true
+		}
+	]
+
+	bootstrap_users = [
+		{
+			uuid               = "11111111-1111-1111-1111-111111111111"
+			bcss_username      = "test.user"
+			id_assurance_level = "3"
+			rbac_role          = "[{activities=[BS-Select], activity_codes=[B1808]}]"
+		}
+	]
+}
 ```
 
-## Creating users
+## Current defaults inherited from the old module
 
-Users for this Cognito client are managed via the users.csv file. The following values need to be
-specified:
+* `auto_verified_attributes = ["email"]`
+* `mfa_configuration = "OFF"`
+* `admin_create_user_config.allow_admin_create_user_only = false`
+* `email_configuration.email_sending_account = "COGNITO_DEFAULT"`
+* `verification_message_template.default_email_option = "CONFIRM_WITH_CODE"`
+* `username_configuration.case_sensitive = false`
+* `attribute_names` produces the same default custom string attributes as the old module
+* `bootstrap_users` can be used to preserve the current stack behavior where Cognito users are created during deployment
 
-| Column             | Value                                                                                                                                                                                                |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| UUID               | The UUID associated with the user in the BS-Select database. If the user is not in the BS-Select database for the environment, login will fail.                                                      |
-| bss_username       | The BS-Select username associated with the user and the value used for the Username value in Cognito.                                                                                                |
-| rbac_role          | This replicates the roles CIS2 would provide by using a subset of the data provided. Use the following as the default value for a valid user: `"[{activities=[BS-Select], activity_codes=[B1808]}]"` |
-| id_assurance_level | This replicates the assurance level that CIS2 would provide for the user.                                                                                                                            |
+## Intentionally omitted upstream surface
 
-When running the nonprod-shared infrastructure pipeline, all the users listed in the CSV file will be created (or modified if a change is made) and
-will be automatically marked as being valid. All users are created with the same default password specified in the variables.tf file.
+The wrapper does not directly expose the upstream generic inputs for:
 
-<!-- vale off -->
-<!-- markdownlint-disable -->
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+* identity providers
+* resource servers
+* user groups
+* arbitrary client definitions beyond the curated `app_clients` OAuth client shape
 
-No requirements.
+If those become required later, they can be added back with an explicit shared-resources use case.
+
+## Proven BCSS compatibility notes
+
+Comparing against the current BCSS stacks showed that the module surface needs to cover:
+
+* user pool settings such as deletion protection, MFA, schema attributes, and username settings
+* one or more OAuth app clients with callback URLs, logout URLs, token settings, and user-existence handling
+* optional bootstrap user creation for shared, external, and training environments
+
+The BCSS stacks also contain stack-specific KMS and SSM parameter resources for some environments.
+Those are intentionally not moved into this shared module.
 
 ## Providers
 
@@ -96,3 +165,4 @@ No modules.
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->
+
