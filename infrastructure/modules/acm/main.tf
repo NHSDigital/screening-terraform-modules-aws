@@ -41,5 +41,5 @@ module "acm" {
 
   # ----------------------------------------------------------------
   region = module.this.region
-  tags = module.this.tags
+  tags   = module.this.tags
 }
