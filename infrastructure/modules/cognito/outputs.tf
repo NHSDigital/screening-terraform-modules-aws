@@ -62,6 +62,6 @@ output "app_client_secrets" {
 }
 
 output "secrets_manager_random_passsword_arn" {
-  description = "ARN of the bootstrap-user secret when the module creates one for compatibility with the old BS-Select flow."
-  value       = try(aws_secretsmanager_secret.bootstrap_user_password[0].arn, null)
+  description = "Deprecated compatibility output from the bespoke BS-Select bootstrap-user flow. This wrapper does not create a bootstrap user secret."
+  value       = null
 }

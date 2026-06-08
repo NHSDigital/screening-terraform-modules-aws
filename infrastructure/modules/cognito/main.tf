@@ -1,15 +1,7 @@
-data "aws_ssm_parameter" "bootstrap_users" {
-  count = module.this.enabled && var.create && var.bootstrap_users_ssm_parameter_name != null ? 1 : 0
-
-  name = var.bootstrap_users_ssm_parameter_name
-}
-
 locals {
   user_pool_name          = coalesce(var.name_prefix != null ? "${var.name_prefix}-users-pool" : null, module.this.id)
   domain_name             = coalesce(var.domain, var.name_prefix, local.user_pool_name)
   default_app_client_name = coalesce(var.name_prefix != null ? "${var.name_prefix}-users-client" : null, "${local.user_pool_name}-client")
-  ssm_bootstrap_users     = var.bootstrap_users_ssm_parameter_name != null ? try(jsondecode(nonsensitive(data.aws_ssm_parameter.bootstrap_users[0].value)), []) : []
-  resolved_bootstrap_users = length(var.bootstrap_users) > 0 ? var.bootstrap_users : local.ssm_bootstrap_users
 
   default_admin_create_user_config = {
     allow_admin_create_user_only = false
@@ -85,37 +77,6 @@ locals {
   ]
 }
 
-resource "random_password" "bootstrap_user_password" {
-  count = module.this.enabled && var.create && length(local.resolved_bootstrap_users) > 0 ? 1 : 0
-
-  length           = 20
-  special          = true
-  override_special = "!%^*-_+="
-}
-
-resource "aws_secretsmanager_secret" "bootstrap_user_password" {
-  count = module.this.enabled && var.create && length(local.resolved_bootstrap_users) > 0 ? 1 : 0
-
-  name                    = "${local.user_pool_name}-cognito-user"
-  recovery_window_in_days = var.recovery_window
-
-  dynamic "replica" {
-    for_each = var.secret_replication_regions
-    content {
-      region = replica.value
-    }
-  }
-}
-
-resource "aws_secretsmanager_secret_version" "bootstrap_user_password" {
-  count = module.this.enabled && var.create && length(local.resolved_bootstrap_users) > 0 ? 1 : 0
-
-  secret_id = aws_secretsmanager_secret.bootstrap_user_password[0].id
-  secret_string = jsonencode({
-    password = coalesce(var.user_password, random_password.bootstrap_user_password[0].result)
-  })
-}
-
 module "cognito" {
   source  = "lgallard/cognito-user-pool/aws"
   version = "4.0.2"
@@ -142,11 +103,11 @@ module "cognito" {
 }
 
 resource "aws_cognito_user" "bootstrap_users" {
-  for_each = module.this.enabled && var.create ? { for user in local.resolved_bootstrap_users : user.uuid => user } : {}
+  for_each = module.this.enabled && var.create ? { for user in var.bootstrap_users : user.uuid => user } : {}
 
   user_pool_id   = module.cognito.id
-  username       = coalesce(try(each.value.bss_username, null), try(each.value.bcss_username, null))
-  password       = coalesce(try(each.value.user_password, null), var.user_password, random_password.bootstrap_user_password[0].result)
+  username       = each.value.bcss_username
+  password       = coalesce(try(each.value.user_password, null), var.user_password)
   message_action = var.message_action
 
   attributes = {
@@ -156,7 +117,7 @@ resource "aws_cognito_user" "bootstrap_users" {
     email_verified    = true
     idassurancelevel  = each.value.id_assurance_level
     nhsid_nrbac_roles = each.value.rbac_role
-    bss_username      = coalesce(try(each.value.bss_username, null), try(each.value.bcss_username, null))
+    bcss_username     = each.value.bcss_username
     sid               = each.value.uuid
     uid               = each.value.uuid
   }
