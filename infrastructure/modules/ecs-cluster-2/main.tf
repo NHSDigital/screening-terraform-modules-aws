@@ -8,7 +8,7 @@ module "ecs_cluster" {
   region = module.this.region
   tags   = module.this.tags
 
-  capacity_providers = null # DAVEH
+  capacity_providers = var.capacity_providers
 
   cloudwatch_log_group_class             = null # DAVEH
   cloudwatch_log_group_kms_key_id        = null # DAVEH
