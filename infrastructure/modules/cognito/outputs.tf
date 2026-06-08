@@ -19,13 +19,13 @@ output "user_pool_endpoint" {
 }
 
 output "user_pool_domain_prefix" {
-  description = "Configured Cognito domain value when create_domain is enabled."
+  description = "Configured Cognito domain value."
   value       = local.domain_name
 }
 
 output "user_pool_hosted_ui_url" {
   description = "Hosted UI URL for the Cognito domain when a default domain prefix is configured."
-  value       = local.domain_name != null && var.domain_certificate_arn == null ? "https://${local.domain_name}.auth.${var.aws_region}.amazoncognito.com" : null
+  value       = local.domain_name != null ? "https://${local.domain_name}.auth.${var.aws_region}.amazoncognito.com" : null
 }
 
 output "client_ids" {
@@ -62,6 +62,6 @@ output "app_client_secrets" {
 }
 
 output "secrets_manager_random_passsword_arn" {
-  description = "Deprecated compatibility output from the bespoke BS-Select bootstrap-user flow. This wrapper does not create a bootstrap user secret."
-  value       = null
+  description = "ARN of the bootstrap-user secret when the module creates one for compatibility with the old BS-Select flow."
+  value       = try(aws_secretsmanager_secret.bootstrap_user_password[0].arn, null)
 }
