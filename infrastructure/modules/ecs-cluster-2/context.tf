@@ -21,7 +21,7 @@
 #
 
 module "this" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags"
+  source = "../tags"
 
   service             = var.service
   project             = var.project
