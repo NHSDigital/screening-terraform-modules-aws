@@ -1,4 +1,111 @@
-# DAVEH
+# Security-Group
+
+NHS Screening wrapper around the community
+[`terraform-aws-modules/security-group/aws`][1]
+module that consumes the shared `context.tf` for naming and tagging.
+
+[1]: https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/latest
+
+DAVEH: check docs for accuracy
+
+## What this module enforces
+
+| Control                            | How it is enforced                                                     |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| Consistent naming and tagging      | `name = module.this.id` and `tags = module.this.tags`                 |
+| Central `enabled` switch           | `create = module.this.enabled`                                         |
+| VPC scoping                        | `vpc_id` is explicitly forwarded to the upstream module                |
+| Caller-defined traffic policy only | `ingress_rules` and `egress_rules` are passed through without mutation |
+
+## Usage
+
+### Minimal: create a security group in a VPC
+
+```hcl
+module "app_sg" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=main"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "app"
+
+  description = "Security group for the screening API"
+  vpc_id      = module.vpc.vpc_id
+}
+```
+
+### Ingress from a load balancer security group
+
+```hcl
+module "app_sg" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=main"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "app"
+
+  description = "Only allow HTTPS from the ALB"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_rules = {
+    alb_https = {
+      ip_protocol                  = "tcp"
+      from_port                    = 443
+      to_port                      = 443
+      referenced_security_group_id = module.alb_sg.security_group_id
+      description                  = "HTTPS from ALB"
+    }
+  }
+}
+```
+
+### Restrict egress to HTTPS only
+
+```hcl
+module "app_sg" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=main"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "app"
+
+  description = "Limit outbound traffic to HTTPS"
+  vpc_id      = module.vpc.vpc_id
+
+  egress_rules = {
+    https_out = {
+      ip_protocol = "tcp"
+      from_port   = 443
+      to_port     = 443
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "HTTPS egress only"
+    }
+  }
+}
+```
+
+## Conventions
+
+* Keep `ingress_rules` and `egress_rules` keys stable (for example `alb_https`,
+  `db_5432`) so Terraform can track rule resources predictably over time.
+* Prefer `referenced_security_group_id` over broad CIDR ranges when traffic is
+  between AWS-managed components.
+* Set `description` to explain intent, not just protocol/port, so operators can
+  understand why a rule exists from the AWS console.
+* Use `context.enabled = false` to disable creation in environments where the
+  security group is not required.
+
+## What this module does NOT do
+
+* Create or manage the VPC itself. Pass an existing VPC ID via `vpc_id`.
+* Infer or inject platform-standard ingress/egress rules. All traffic policy is
+  caller-defined.
+* Attach network ACLs, route tables, WAFs, or firewall policies.
+* Manage references from compute resources (ECS services, Lambdas, RDS, etc.)
+  to this security group. Consumers must wire those associations directly.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
