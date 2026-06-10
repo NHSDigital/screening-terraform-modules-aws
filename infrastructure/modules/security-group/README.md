@@ -6,7 +6,9 @@ module that consumes the shared `context.tf` for naming and tagging.
 
 [1]: https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/latest
 
-DAVEH: check docs for accuracy
+The name of the security group will have a random suffix. This enables
+replacements to happen without dropping traffic, as terraform can create
+the replacement before destroying the original.
 
 ## What this module enforces
 
