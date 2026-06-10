@@ -12,7 +12,7 @@ variable "description" {
 }
 
 variable "vpc_id" {
-  description = "ID of the VPC where the security group is created"
+  description = "ID of the VPC where the security group is created; defaults to the region's default VPC"
   type        = string
   default     = null
 }

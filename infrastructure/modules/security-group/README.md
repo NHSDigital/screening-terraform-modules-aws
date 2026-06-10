@@ -100,7 +100,8 @@ module "app_sg" {
 
 ## What this module does NOT do
 
-* Create or manage the VPC itself. Pass an existing VPC ID via `vpc_id`.
+* Create or manage the VPC itself. Pass an existing VPC ID via `vpc_id`, or
+  leave as the default `null` to use the region's default VPC.
 * Infer or inject platform-standard ingress/egress rules. All traffic policy is
   caller-defined.
 * Attach network ACLs, route tables, WAFs, or firewall policies.
