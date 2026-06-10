@@ -6,13 +6,13 @@ module "ec2_instance" {
   name   = module.this.id
   tags   = module.this.tags
 
-  ami                     = DAVEH
-  instance_type           = DAVEH
-  key_name                = DAVEH
-  disable_api_termination = DAVEH
-  ebs_optimized           = DAVEH
+  ami                     = var.ami
+  instance_type           = var.instance_type
+  key_name                = var.key_name
+  disable_api_termination = var.disable_api_termination
+  ebs_optimized           = var.ebs_optimized
   monitoring              = true
-  subnet_id               = DAVEH
+  subnet_id               = var.subnet_id
 
   vpc_security_group_ids = DAVEH
 
