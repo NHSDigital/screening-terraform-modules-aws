@@ -14,9 +14,9 @@ module "ec2_instance" {
   monitoring              = true
   subnet_id               = var.subnet_id
 
-  vpc_security_group_ids = DAVEH
+  vpc_security_group_ids = var.vpc_security_group_ids
 
-  iam_instance_profile = DAVEH
+  iam_instance_profile = var.iam_instance_profile
 
   # root_block_device {
   #   encrypted   = true
@@ -32,7 +32,7 @@ module "ec2_instance" {
   #   instance_metadata_tags      = "disabled"
   # }
 
-  user_data                   = DAVEH
+  user_data                   = var.user_data
   user_data_replace_on_change = false
 
   # lifecycle {
