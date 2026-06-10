@@ -34,6 +34,29 @@ module "app_sg" {
 }
 ```
 
+### Allow traffic between members of the security group
+
+```hcl
+module "app_sg" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=main"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "app"
+
+  description = "Security group for the screening API"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_rules = {
+    self-all = {
+      ip_protocol                  = "-1"
+      referenced_security_group_id = "self"  # rewritten to the security group's own id at apply time
+      description                  = "All traffic from members of this SG"
+    }
+  }
+```
+
 ### Ingress from a load balancer security group
 
 ```hcl
