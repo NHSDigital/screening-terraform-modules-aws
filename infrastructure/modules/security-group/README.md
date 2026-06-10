@@ -14,7 +14,6 @@ DAVEH: check docs for accuracy
 | ---------------------------------- | ---------------------------------------------------------------------- |
 | Consistent naming and tagging      | `name = module.this.id` and `tags = module.this.tags`                 |
 | Central `enabled` switch           | `create = module.this.enabled`                                         |
-| VPC scoping                        | `vpc_id` is explicitly forwarded to the upstream module                |
 | Caller-defined traffic policy only | `ingress_rules` and `egress_rules` are passed through without mutation |
 
 ## Usage

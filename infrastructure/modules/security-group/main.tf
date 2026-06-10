@@ -1,5 +1,6 @@
 module "security_group" {
   source = "terraform-aws-modules/security-group/aws"
+  version = "6.0.0"
 
   create = module.this.enabled
   name   = module.this.id
