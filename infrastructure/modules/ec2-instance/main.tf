@@ -20,12 +20,7 @@ module "ec2_instance" {
 
   root_block_device = var.root_block_device
 
-  # metadata_options {
-  #   http_tokens                 = "required"
-  #   http_endpoint               = "enabled"
-  #   http_put_response_hop_limit = 1
-  #   instance_metadata_tags      = "disabled"
-  # }
+  metadata_options = var.metadata_options
 
   user_data                   = var.user_data
   user_data_replace_on_change = false

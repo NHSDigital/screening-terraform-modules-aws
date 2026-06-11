@@ -73,3 +73,15 @@ variable "root_block_device" {
   })
   default = null
 }
+
+variable "metadata_options" {
+  description = "Customize the metadata options of the instance"
+  type = object({
+    http_endpoint               = optional(string, "enabled")
+    http_protocol_ipv6          = optional(string)
+    http_put_response_hop_limit = optional(number, 1)
+    http_tokens                 = optional(string, "required")
+    instance_metadata_tags      = optional(string)
+  })
+  default = {}
+}
