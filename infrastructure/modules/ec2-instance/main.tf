@@ -18,12 +18,7 @@ module "ec2_instance" {
 
   iam_instance_profile = var.iam_instance_profile
 
-  # root_block_device {
-  #   encrypted   = true
-  #   kms_key_id  = data.terraform_remote_state.shared_resources.outputs.oracle_ebs_snapshot_kms_key_arn
-  #   volume_size = var.oracle19_root_volume_size
-  #   volume_type = "gp3"
-  # }
+  root_block_device = var.root_block_device
 
   # metadata_options {
   #   http_tokens                 = "required"

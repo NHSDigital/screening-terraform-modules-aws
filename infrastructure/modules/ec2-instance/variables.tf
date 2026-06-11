@@ -58,3 +58,18 @@ variable "user_data" {
   type        = string
   default     = null
 }
+
+variable "root_block_device" {
+  description = "Customize details about the root block device of the instance"
+  type = object({
+    delete_on_termination = optional(bool)
+    encrypted             = optional(bool)
+    iops                  = optional(number)
+    kms_key_id            = optional(string)
+    tags                  = optional(map(string))
+    throughput            = optional(number)
+    size                  = optional(number)
+    type                  = optional(string)
+  })
+  default = null
+}
