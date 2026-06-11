@@ -1,0 +1,310 @@
+#
+# ONLY EDIT THIS FILE IN github.com/NHSDigital/screening-terraform-modules-aws/infrastructure/modules/tags
+# All other instances of this file should be a copy of that one
+#
+#
+# Copy this file from https://github.com/NHSDigital/screening-terraform-modules-aws/blob/master/infrastructure/modules/tags/exports/context.tf
+# and then place it in your Terraform module to automatically get
+# tag module standard configuration inputs suitable for passing
+# to other modules.
+#
+# curl -sL https://raw.githubusercontent.com/NHSDigital/screening-terraform-modules-aws/master/infrastructure/modules/tags/exports/context.tf -o context.tf
+#
+# Modules should access the whole context as `module.this.context`
+# to get the input variables with nulls for defaults,
+# for example `context = module.this.context`,
+# and access individual variables as `module.this.<var>`,
+# with final values filled in.
+#
+# For example, when using defaults, `module.this.context.delimiter`
+# will be null, and `module.this.delimiter` will be `-` (hyphen).
+#
+
+module "this" {
+  source = "../tags"
+
+  service             = var.service
+  project             = var.project
+  region              = var.region
+  environment         = var.environment
+  stack               = var.stack
+  workspace           = var.workspace
+  name                = var.name
+  delimiter           = var.delimiter
+  attributes          = var.attributes
+  tags                = var.tags
+  additional_tag_map  = var.additional_tag_map
+  label_order         = var.label_order
+  regex_replace_chars = var.regex_replace_chars
+  id_length_limit     = var.id_length_limit
+  label_key_case      = var.label_key_case
+  label_value_case    = var.label_value_case
+  descriptor_formats  = var.descriptor_formats
+  labels_as_tags      = var.labels_as_tags
+
+  context = var.context
+}
+
+# Copy contents of screening-terraform-modules-aws/tags/variables.tf here
+# tflint-ignore: terraform_unused_declarations
+variable "aws_region" {
+  type        = string
+  description = "The AWS region"
+  default     = "eu-west-2"
+  validation {
+    condition     = contains(["eu-west-1", "eu-west-2", "us-east-1"], var.aws_region)
+    error_message = "AWS Region must be one of eu-west-1, eu-west-2, us-east-1"
+  }
+}
+
+variable "context" {
+  type = any
+  default = {
+    enabled             = true
+    namespace           = null
+    service             = null
+    stage               = null
+    project             = null
+    tenant              = null
+    region              = null
+    environment         = null
+    stack               = null
+    workspace           = null
+    name                = null
+    delimiter           = null
+    attributes          = []
+    tags                = {}
+    additional_tag_map  = {}
+    regex_replace_chars = null
+    label_order         = []
+    id_length_limit     = null
+    label_key_case      = null
+    label_value_case    = null
+    terraform_source    = null
+    descriptor_formats  = {}
+    labels_as_tags      = ["unset"]
+  }
+  description = <<-EOT
+    Single object for setting entire context at once.
+    See description of individual variables for details.
+    Leave string and numeric variables as `null` to use default value.
+    Individual variable settings (non-null) override settings in context object,
+    except for attributes, tags, and additional_tag_map, which are merged.
+  EOT
+
+  validation {
+    condition     = lookup(var.context, "label_key_case", null) == null ? true : contains(["lower", "title", "upper"], var.context["label_key_case"])
+    error_message = "Allowed values: `lower`, `title`, `upper`."
+  }
+
+  validation {
+    condition     = lookup(var.context, "label_value_case", null) == null ? true : contains(["lower", "title", "upper", "none"], var.context["label_value_case"])
+    error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
+  }
+}
+
+variable "enabled" {
+  type        = bool
+  default     = null
+  description = "Set to false to prevent the module from creating any resources"
+}
+
+variable "service" {
+  type        = string
+  default     = null
+  description = "ID element. Usually an abbreviation of your service directorate name, e.g. 'bcss' or 'csms', to help ensure generated IDs are globally unique"
+}
+
+variable "region" {
+  type        = string
+  default     = null
+  description = "ID element _(Rarely used, not included by default)_. Usually an abbreviation of the selected AWS region e.g. 'uw2', 'ew2' or 'gbl' for resources like IAM roles that have no region"
+}
+
+variable "project" {
+  type        = string
+  default     = null
+  description = "ID element. A project identifier, indicating the name or role of the project the resource is for, such as `website` or `api`"
+}
+
+variable "stack" {
+  type        = string
+  default     = null
+  description = "ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks`"
+}
+
+variable "workspace" {
+  type        = string
+  default     = null
+  description = "ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces"
+}
+
+variable "environment" {
+  type        = string
+  default     = null
+  description = "ID element. Usually used to indicate role, e.g. 'prd', 'dev', 'test', 'preprod', 'prod', 'uat'"
+}
+
+variable "name" {
+  type        = string
+  default     = null
+  description = <<-EOT
+    ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.
+    This is the only ID element not also included as a `tag`.
+    The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input.
+  EOT
+}
+
+variable "delimiter" {
+  type        = string
+  default     = null
+  description = <<-EOT
+    Delimiter to be used between ID elements.
+    Defaults to `-` (hyphen). Set to `""` to use no delimiter at all.
+  EOT
+}
+
+variable "attributes" {
+  type        = list(string)
+  default     = []
+  description = <<-EOT
+    ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,
+    in the order they appear in the list. New attributes are appended to the
+    end of the list. The elements of the list are joined by the `delimiter`
+    and treated as a single ID element.
+  EOT
+}
+
+variable "labels_as_tags" {
+  type        = set(string)
+  default     = ["default"]
+  description = <<-EOT
+    Set of labels (ID elements) to include as tags in the `tags` output.
+    Default is to include all labels.
+    Tags with empty values will not be included in the `tags` output.
+    Set to `[]` to suppress all generated tags.
+    **Notes:**
+      The value of the `name` tag, if included, will be the `id`, not the `name`.
+      Unlike other `null-label` inputs, the initial setting of `labels_as_tags` cannot be
+      changed in later chained modules. Attempts to change it will be silently ignored.
+  EOT
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = <<-EOT
+    Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).
+    Neither the tag keys nor the tag values will be modified by this module.
+  EOT
+}
+
+variable "additional_tag_map" {
+  type        = map(string)
+  default     = {}
+  description = <<-EOT
+    Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.
+    This is for some rare cases where resources want additional configuration of tags
+    and therefore take a list of maps with tag key, value, and additional configuration.
+  EOT
+}
+
+variable "label_order" {
+  type        = list(string)
+  default     = null
+  description = <<-EOT
+    The order in which the labels (ID elements) appear in the `id`.
+    Defaults to ["namespace", "environment", "stage", "name", "attributes"].
+    You can omit any of the 6 labels ("tenant" is the 6th), but at least one must be present.
+  EOT
+}
+
+variable "regex_replace_chars" {
+  type        = string
+  default     = null
+  description = "Terraform regular expression (regex) string. Characters matching the regex will be removed from the ID elements."
+}
+
+variable "id_length_limit" {
+  type        = number
+  default     = null
+  description = "Limit `id` to this many characters (minimum 6). Set to `0` for unlimited length."
+}
+
+variable "label_key_case" {
+  type        = string
+  default     = null
+  description = "Controls the letter case of the generated tag keys. Possible values: `lower`, `title`, `upper`."
+}
+
+variable "label_value_case" {
+  type        = string
+  default     = null
+  description = "Controls the letter case of ID elements. Possible values: `lower`, `title`, `upper`, `none`."
+}
+
+variable "descriptor_formats" {
+  type        = any
+  default     = {}
+  description = "Describe additional descriptors to be output in the `descriptors` output map."
+}
+
+variable "terraform_source" {
+  type        = string
+  default     = null
+  description = "Source location to record in the Terraform_source tag. Defaults to the caller module path when not set."
+}
+
+variable "owner" {
+  type        = string
+  default     = "None"
+  description = "The name and or NHS.net email address of the service owner"
+}
+
+variable "tag_version" {
+  type        = string
+  default     = "1.0"
+  description = "Used to identify the tagging version in use"
+}
+
+variable "data_classification" {
+  type        = string
+  default     = "n/a"
+  description = "Used to identify the data classification of the resource, e.g 1-5"
+}
+
+variable "data_type" {
+  type        = string
+  default     = "None"
+  description = "The tag data_type"
+}
+
+variable "public_facing" {
+  type        = bool
+  default     = false
+  description = "Whether this resource is public facing"
+}
+
+variable "service_category" {
+  type        = string
+  default     = "n/a"
+  description = "The tag service_category"
+}
+
+variable "on_off_pattern" {
+  type        = string
+  default     = "n/a"
+  description = "Used to turn resources on and off based on a time pattern"
+}
+
+variable "application_role" {
+  type        = string
+  default     = "General"
+  description = "The role the application is performing"
+}
+
+variable "tool" {
+  type        = string
+  default     = "Terraform"
+  description = "The tool used to deploy the resource"
+}

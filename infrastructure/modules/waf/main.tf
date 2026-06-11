@@ -1,140 +1,299 @@
 
-data "aws_secretsmanager_secret_version" "waf_ips" {
-  secret_id = "${var.name_prefix}-waf-ip-set"
+locals {
+  context_id = trimspace(module.this.id) != "" ? module.this.id : null
+
+  derived_name_prefix = coalesce(var.name_prefix, local.context_id, "waf")
+  derived_waf_name    = coalesce(var.waf_name, local.derived_name_prefix)
+  derived_log_group_name = coalesce(
+    var.waf_log_group_name,
+    "aws-waf-logs-${local.derived_name_prefix}"
+  )
+
+  enable_legacy_bcss_mode = var.enable_legacy_bcss_mode != null ? var.enable_legacy_bcss_mode : anytrue([
+    var.name_prefix != null,
+    var.waf_name != null,
+    var.waf_log_group_name != null,
+    var.exclude_ip_set_name != null,
+    var.web_services_ip_set_name != null
+  ])
+
+  enable_legacy_geo_rule = var.enable_legacy_geo_rule != null ? var.enable_legacy_geo_rule : local.enable_legacy_bcss_mode
+  create_waf_log_group = var.create_waf_log_group != null ? var.create_waf_log_group : local.enable_legacy_bcss_mode
+  enable_central_logging_subscription = var.enable_central_logging_subscription != null ? var.enable_central_logging_subscription : local.enable_legacy_bcss_mode
+  enable_splunk_logging_subscription  = var.enable_splunk_logging_subscription != null ? var.enable_splunk_logging_subscription : local.enable_legacy_bcss_mode
+  enable_shield_ddos_alarming         = var.enable_shield_ddos_alarming != null ? var.enable_shield_ddos_alarming : local.enable_legacy_bcss_mode
+
+  waf_ips_secret_name = coalesce(
+    var.waf_ips_secret_name,
+    var.name_prefix != null ? "${var.name_prefix}-waf-ip-set" : null
+  )
+  waf_bsis_ip_range_secret_name = coalesce(
+    var.waf_bsis_ip_range_secret_name,
+    var.name_prefix != null ? "${var.name_prefix}-waf-bsis-ip" : null
+  )
+  cloudwatch_cross_account_secret_name = coalesce(
+    var.cloudwatch_cross_account_secret_name,
+    var.name_prefix != null ? "${var.name_prefix}-cloudwatch-cross-account-logging" : null
+  )
+  alert_sns_topic_name = coalesce(var.alert_sns_topic_name, var.name_prefix)
+
+  default_visibility_config = {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${local.derived_name_prefix}-waf-acl-metric"
+    sampled_requests_enabled   = true
+  }
+  visibility_config = var.visibility_config != null ? var.visibility_config : local.default_visibility_config
+
+  default_managed_rule_group_statement_rules = [
+    {
+      name            = "${local.derived_name_prefix}-aws-common-rule-set"
+      priority        = 10
+      override_action = "count"
+      statement = {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+      visibility_config = {
+        metric_name = "${local.derived_name_prefix}-waf-aws-common-rule-set-metric"
+      }
+    },
+    {
+      name            = "${local.derived_name_prefix}-aws-bad-inputs-rule-set"
+      priority        = 20
+      override_action = "count"
+      statement = {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+      visibility_config = {
+        metric_name = "${local.derived_name_prefix}-waf-aws-bad-inputs-rule-set-metric"
+      }
+    },
+    {
+      name            = "${local.derived_name_prefix}-aws-ip-reputation-list"
+      priority        = 30
+      override_action = "count"
+      statement = {
+        name        = "AWSManagedRulesAmazonIpReputationList"
+        vendor_name = "AWS"
+      }
+      visibility_config = {
+        metric_name = "${local.derived_name_prefix}-waf-aws-ip-reputation-list-metric"
+      }
+    },
+    {
+      name            = "${local.derived_name_prefix}-aws-sql-injection-rules"
+      priority        = 40
+      override_action = "count"
+      statement = {
+        name        = "AWSManagedRulesSQLiRuleSet"
+        vendor_name = "AWS"
+      }
+      visibility_config = {
+        metric_name = "${local.derived_name_prefix}-waf-aws-sql-injection-rules-metric"
+      }
+    },
+    {
+      name            = "${local.derived_name_prefix}-waf-aws-anonymous-ip-list-set"
+      priority        = 50
+      override_action = "none"
+      statement = {
+        name        = "AWSManagedRulesAnonymousIpList"
+        vendor_name = "AWS"
+      }
+      visibility_config = {
+        metric_name = "${local.derived_name_prefix}-waf-aws-anonymous-ip-list-set-metric"
+      }
+    },
+    {
+      name            = "${local.derived_name_prefix}-waf-aws-linux-rule-set"
+      priority        = 60
+      override_action = "none"
+      statement = {
+        name        = "AWSManagedRulesLinuxRuleSet"
+        vendor_name = "AWS"
+      }
+      visibility_config = {
+        metric_name = "${local.derived_name_prefix}-waf-aws-linux-rule-set-metric"
+      }
+    }
+  ]
+
+  legacy_geo_match_statement_rules = local.enable_legacy_geo_rule ? [
+    {
+      name     = "${local.derived_name_prefix}-waf-non-GB-geo-match"
+      priority = var.legacy_geo_rule_priority
+      action   = "count"
+      statement = {
+        country_codes = ["GB"]
+      }
+      visibility_config = {
+        metric_name = "${local.derived_name_prefix}-waf-non-GB-geo-match-metric"
+      }
+    }
+  ] : []
+
+  managed_rule_group_statement_rules = length(var.managed_rule_group_statement_rules) > 0 ? var.managed_rule_group_statement_rules : local.default_managed_rule_group_statement_rules
 }
+
+data "aws_secretsmanager_secret_version" "waf_ips" {
+  count     = local.enable_legacy_bcss_mode && var.exclude_ip_set_addresses == null && local.waf_ips_secret_name != null ? 1 : 0
+  secret_id = local.waf_ips_secret_name
+}
+
 data "aws_secretsmanager_secret_version" "waf_bsis_ip_range" {
-  secret_id = "${var.name_prefix}-waf-bsis-ip"
+  count     = local.enable_legacy_bcss_mode && var.webservices_ip_set_addresses == null && local.waf_bsis_ip_range_secret_name != null ? 1 : 0
+  secret_id = local.waf_bsis_ip_range_secret_name
+}
+
+data "aws_secretsmanager_secret" "cloudwatch_cross_accounts" {
+  count = local.create_waf_log_group && local.enable_central_logging_subscription && local.cloudwatch_cross_account_secret_name != null ? 1 : 0
+  name  = local.cloudwatch_cross_account_secret_name
+}
+
+data "aws_secretsmanager_secret_version" "cloudwatch_cross_accounts" {
+  count     = length(data.aws_secretsmanager_secret.cloudwatch_cross_accounts) > 0 ? 1 : 0
+  secret_id = data.aws_secretsmanager_secret.cloudwatch_cross_accounts[0].id
 }
 
 data "aws_sns_topic" "alert" {
-  name = var.name_prefix
+  count = local.enable_shield_ddos_alarming && lower(coalesce(module.this.environment, var.environment, "")) == "prod" && local.alert_sns_topic_name != null ? 1 : 0
+  name  = local.alert_sns_topic_name
 }
 
 locals {
-  ip_list  = jsondecode(data.aws_secretsmanager_secret_version.waf_ips.secret_string).ips
-  bsis_ips = jsondecode(data.aws_secretsmanager_secret_version.waf_bsis_ip_range.secret_string).bsis_ip
+  exclude_ip_addresses = var.exclude_ip_set_addresses != null ? var.exclude_ip_set_addresses : (
+    length(data.aws_secretsmanager_secret_version.waf_ips) > 0 ? try(
+      jsondecode(data.aws_secretsmanager_secret_version.waf_ips[0].secret_string)[var.waf_ips_secret_key],
+      []
+    ) : []
+  )
+
+  webservices_ip_addresses = var.webservices_ip_set_addresses != null ? var.webservices_ip_set_addresses : (
+    length(data.aws_secretsmanager_secret_version.waf_bsis_ip_range) > 0 ? try(
+      jsondecode(data.aws_secretsmanager_secret_version.waf_bsis_ip_range[0].secret_string)[var.waf_bsis_ip_range_secret_key],
+      []
+    ) : []
+  )
+
+  cross_account_id = length(data.aws_secretsmanager_secret_version.cloudwatch_cross_accounts) > 0 ? try(
+    jsondecode(data.aws_secretsmanager_secret_version.cloudwatch_cross_accounts[0].secret_string)[var.cloudwatch_cross_account_secret_key],
+    null
+  ) : null
+
+  create_legacy_exclude_ip_set = local.enable_legacy_bcss_mode && var.exclude_ip_set_name != null && length(local.exclude_ip_addresses) > 0
+  create_legacy_webservices_ip_set = local.enable_legacy_bcss_mode && var.web_services_ip_set_name != null && length(local.webservices_ip_addresses) > 0
+  create_legacy_webservices_rule_group = local.create_legacy_webservices_ip_set && length(var.webservices_protected_paths) > 0
+
+  combined_geo_match_statement_rules = concat(var.geo_match_statement_rules, local.legacy_geo_match_statement_rules)
+  combined_rule_group_reference_statement_rules = concat(
+    var.rule_group_reference_statement_rules,
+    local.create_legacy_webservices_rule_group ? [
+      {
+        name            = "${local.derived_name_prefix}-legacy-webservices-rule-group"
+        priority        = var.legacy_webservices_rule_priority
+        override_action = "none"
+        statement = {
+          arn = aws_wafv2_rule_group.legacy_webservices[0].arn
+        }
+        visibility_config = {
+          metric_name = "${local.derived_name_prefix}-legacy-webservices-rule-group"
+        }
+      }
+    ] : []
+  )
+
+  combined_log_destination_configs = distinct(concat(
+    var.log_destination_configs,
+    local.create_waf_log_group ? [aws_cloudwatch_log_group.waf_logs[0].arn] : []
+  ))
+
+  cloudposse_context = merge(module.this.context, {
+    name      = local.derived_waf_name
+    namespace = null
+    stage     = null
+    tenant    = null
+    tags      = module.this.tags
+  })
 }
 
-#######################
-#  IP Sets ToDo: Check if the is relevant to our environment
-#######################
-#### Please note this resource creation might fail on the first run with error stating resource already exists (eventhough Terraform logs shows it is destroyrd)
-# whenever there is change ticket raised to investigate this https://nhsd-jira.digital.nhs.uk/browse/SCM-726
-#####
-resource "aws_wafv2_ip_set" "bs-select-exclude-ip-set" {
+resource "aws_wafv2_ip_set" "legacy_exclude" {
+  count = local.create_legacy_exclude_ip_set ? 1 : 0
+
   name               = var.exclude_ip_set_name
-  description        = "This set of IPs are excluded from Anonymous and linux rule"
-  scope              = "REGIONAL"
+  description        = "Legacy BCSS excluded IP addresses"
+  scope              = var.scope
   ip_address_version = "IPV4"
-  addresses          = local.ip_list
+  addresses          = local.exclude_ip_addresses
+  tags               = module.this.tags
 }
 
-#########For web Services add/remove on tfvars#########
-resource "aws_wafv2_ip_set" "bs-select-webservices-ip-set" {
+resource "aws_wafv2_ip_set" "legacy_webservices" {
+  count = local.create_legacy_webservices_ip_set ? 1 : 0
+
   name               = var.web_services_ip_set_name
-  description        = "This set of IPs are excluded from Anonymous and linux rule"
-  scope              = "REGIONAL"
+  description        = "Legacy BCSS webservices allowlist IP addresses"
+  scope              = var.scope
   ip_address_version = "IPV4"
-  addresses          = local.bsis_ips
+  addresses          = local.webservices_ip_addresses
+  tags               = module.this.tags
 }
 
-######################
-#  WAF
-######################
+resource "aws_wafv2_rule_group" "legacy_webservices" {
+  count = local.create_legacy_webservices_rule_group ? 1 : 0
 
+  name        = "${local.derived_name_prefix}-legacy-webservices"
+  description = "Legacy BCSS rule that restricts selected paths to the webservices allowlist"
+  scope       = var.scope
+  capacity    = var.legacy_webservices_rule_capacity
+  tags        = module.this.tags
 
-resource "aws_wafv2_web_acl" "bss-waf-acl" {
-  name  = var.waf_name
-  scope = "REGIONAL"
-  #checkov:skip=CKV_AWS_192:Even after adding required code to manage log4j still checkov failing ,New ticket- https://nhsd-jira.digital.nhs.uk/browse/SCM-695 raised to check this
-
-  default_action {
-    allow {}
-  }
-
-  # Primary Web ACL metric
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                = "${var.name_prefix}-waf-acl-metric"
+    metric_name                = "${local.derived_name_prefix}-legacy-webservices"
     sampled_requests_enabled   = true
   }
 
-  # Custom rule for paths and IP set exclusion
   rule {
-    name     = "bss-webservices-rule"
-    priority = 80
+    name     = "webservices-allowlist"
+    priority = 1
 
     action {
       block {}
     }
-    # web service rules
+
     statement {
       and_statement {
-
         statement {
           or_statement {
-            statement {
-              byte_match_statement {
-                search_string = "/bss/dashboardExtracts"
-                field_to_match {
-                  uri_path {}
+            dynamic "statement" {
+              for_each = toset(var.webservices_protected_paths)
+
+              content {
+                byte_match_statement {
+                  search_string = statement.value
+
+                  field_to_match {
+                    uri_path {}
+                  }
+
+                  positional_constraint = "CONTAINS"
+
+                  text_transformation {
+                    priority = 0
+                    type     = "NONE"
+                  }
                 }
-                text_transformation {
-                  priority = 0
-                  type     = "NONE"
-                }
-                positional_constraint = "CONTAINS"
-              }
-            }
-            # Statements not currently in live, ticket SCM-1826 created to investigate
-            # statement {
-            #   byte_match_statement {
-            #     search_string = "/bss/screeningbatchresults"
-            #     field_to_match {
-            #       uri_path {}
-            #     }
-            #     text_transformation {
-            #       priority = 0
-            #       type     = "NONE"
-            #     }
-            #     positional_constraint = "CONTAINS"
-            #   }
-            # }
-            # statement {
-            #   byte_match_statement {
-            #     search_string = "/bss/nonbatchreferrals"
-            #     field_to_match {
-            #       uri_path {}
-            #     }
-            #     text_transformation {
-            #       priority = 0
-            #       type     = "NONE"
-            #     }
-            #     positional_constraint = "CONTAINS"
-            #   }
-            # }
-            statement {
-              byte_match_statement {
-                search_string = "/bss/rawdatamigration"
-                field_to_match {
-                  uri_path {}
-                }
-                text_transformation {
-                  priority = 0
-                  type     = "NONE"
-                }
-                positional_constraint = "CONTAINS"
               }
             }
           }
         }
 
-        # Not statement to block requests that are not from the allowed IP set
         statement {
           not_statement {
             statement {
               ip_set_reference_statement {
-                arn = aws_wafv2_ip_set.bs-select-webservices-ip-set.arn
+                arn = aws_wafv2_ip_set.legacy_webservices[0].arn
               }
             }
           }
@@ -144,236 +303,43 @@ resource "aws_wafv2_web_acl" "bss-waf-acl" {
 
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "bss-webservices-rule"
+      metric_name                = "${local.derived_name_prefix}-legacy-webservices-rule"
       sampled_requests_enabled   = true
     }
   }
-
-  # Base rules for all service teams
-  rule {
-    name     = "${var.name_prefix}-aws-common-rule-set"
-    priority = 10
-
-    override_action {
-      count {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesCommonRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${var.name_prefix}-waf-aws-common-rule-set-metric"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  rule {
-    name     = "${var.name_prefix}-aws-bad-inputs-rule-set"
-    priority = 20
-
-    override_action {
-      count {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesKnownBadInputsRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${var.name_prefix}-waf-aws-bad-inputs-rule-set-metric"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  rule {
-    name     = "${var.name_prefix}-aws-ip-reputation-list"
-    priority = 30
-
-    override_action {
-      count {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesAmazonIpReputationList"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${var.name_prefix}-waf-aws-ip-reputation-list-metric"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  rule {
-    name     = "${var.name_prefix}-aws-sql-injection-rules"
-    priority = 40
-
-    override_action {
-      count {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesSQLiRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${var.name_prefix}-waf-aws-sql-injection-rules-metric"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  # Service-team specfic rules
-  rule {
-    name     = "${var.name_prefix}-waf-non-GB-geo-match"
-    priority = 100
-    action {
-      count {}
-    }
-    statement {
-      not_statement {
-        statement {
-          geo_match_statement {
-            country_codes = ["GB"]
-          }
-        }
-      }
-    }
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${var.name_prefix}-waf-non-GB-geo-match-metric"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  rule {
-    name     = "${var.name_prefix}-waf-aws-anonymous-ip-list-set"
-    priority = 50
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesAnonymousIpList"
-        vendor_name = "AWS"
-        scope_down_statement {
-          not_statement {
-            statement {
-              ip_set_reference_statement {
-                arn = aws_wafv2_ip_set.bs-select-exclude-ip-set.arn
-              }
-            }
-
-          }
-        }
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${var.name_prefix}-waf-aws-anonymous-ip-list-set-metric"
-      sampled_requests_enabled   = true
-    }
-  }
-
-
-  rule {
-    name     = "${var.name_prefix}-waf-aws-linux-rule-set"
-    priority = 60
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesLinuxRuleSet"
-        vendor_name = "AWS"
-
-        scope_down_statement {
-          not_statement {
-            statement {
-              ip_set_reference_statement {
-                arn = aws_wafv2_ip_set.bs-select-exclude-ip-set.arn
-              }
-            }
-
-          }
-        }
-      }
-    }
-
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${var.name_prefix}-waf-aws-linux-rule-set-metric"
-      sampled_requests_enabled   = true
-    }
-  }
-  rule {
-    name     = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
-    priority = 70
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesKnownBadInputsRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${var.name_prefix}-waf-known-bad-inputs-rules"
-      sampled_requests_enabled   = true
-    }
-
-  }
-
 }
 
 resource "aws_cloudwatch_log_group" "waf_logs" {
-  // Note CW log group name should begin aws-waf-logs
-  name              = var.waf_log_group_name
-  retention_in_days = 365
+  count = local.create_waf_log_group ? 1 : 0
+
+  name              = local.derived_log_group_name
+  retention_in_days = var.waf_log_retention_in_days
+  tags              = module.this.tags
 }
 
-resource "aws_wafv2_web_acl_logging_configuration" "waf_acl_lc" {
-  log_destination_configs = [aws_cloudwatch_log_group.waf_logs.arn]
-  resource_arn            = aws_wafv2_web_acl.bss-waf-acl.arn
-}
-# Create a CloudWatch Log Group with KMS Encryption
+module "waf" {
+  source  = "cloudposse/waf/aws"
+  version = "1.17.0"
 
-##################################
-####### Forward logs to CSOC #####
-##################################
+  scope                       = var.scope
+  description                 = var.description
+  default_action              = var.default_action
+  visibility_config           = local.visibility_config
+  association_resource_arns   = var.association_resource_arns
+  log_destination_configs     = local.combined_log_destination_configs
+  token_domains               = var.token_domains
+  managed_rule_group_statement_rules = local.managed_rule_group_statement_rules
+  geo_match_statement_rules          = local.combined_geo_match_statement_rules
+  ip_set_reference_statement_rules   = var.ip_set_reference_statement_rules
+  rate_based_statement_rules         = var.rate_based_statement_rules
+  rule_group_reference_statement_rules = local.combined_rule_group_reference_statement_rules
 
-# Create IAM role necessary for cross-account log subscriptions
-resource "aws_iam_role" "cw_to_subscription_filter_role" {
-  name               = "${var.name_prefix}_CWLtoSubscriptionFilterRole"
-  assume_role_policy = data.aws_iam_policy_document.central_logs_assume_role.json
+  context = local.cloudposse_context
 }
 
 data "aws_iam_policy_document" "central_logs_assume_role" {
+  count = local.create_waf_log_group && local.enable_central_logging_subscription && local.cross_account_id != null && var.aws_account_id != null ? 1 : 0
+
   statement {
     sid     = "centralLogsAssumeRole"
     effect  = "Allow"
@@ -386,82 +352,81 @@ data "aws_iam_policy_document" "central_logs_assume_role" {
   }
 }
 
+resource "aws_iam_role" "cw_to_subscription_filter_role" {
+  count = length(data.aws_iam_policy_document.central_logs_assume_role) > 0 ? 1 : 0
 
-
-# Permissions policy to define actions cloudwatch logs can perform
-resource "aws_iam_policy" "central_cw_subscription_iam_policy" {
-  name   = "${var.name_prefix}_central_cw_subscription"
-  policy = data.aws_iam_policy_document.central_cw_subscription_doc_policy.json
+  name               = "${local.derived_name_prefix}_CWLtoSubscriptionFilterRole"
+  assume_role_policy = data.aws_iam_policy_document.central_logs_assume_role[0].json
+  tags               = module.this.tags
 }
 
 data "aws_iam_policy_document" "central_cw_subscription_doc_policy" {
+  count = length(aws_iam_role.cw_to_subscription_filter_role) > 0 ? 1 : 0
+
   statement {
-    actions = [
-      "logs:PutLogEvents"
-    ]
+    actions = ["logs:PutLogEvents"]
     resources = [
-      "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:aws-waf-logs-${var.name_prefix}:*"
+      "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:${local.derived_log_group_name}:*"
     ]
   }
 }
 
+resource "aws_iam_policy" "central_cw_subscription_iam_policy" {
+  count = length(data.aws_iam_policy_document.central_cw_subscription_doc_policy) > 0 ? 1 : 0
+
+  name   = "${local.derived_name_prefix}_central_cw_subscription"
+  policy = data.aws_iam_policy_document.central_cw_subscription_doc_policy[0].json
+  tags   = module.this.tags
+}
+
 resource "aws_iam_role_policy_attachment" "central_logging_att" {
-  policy_arn = aws_iam_policy.central_cw_subscription_iam_policy.arn
-  role       = aws_iam_role.cw_to_subscription_filter_role.id
-}
+  count = length(aws_iam_policy.central_cw_subscription_iam_policy) > 0 ? 1 : 0
 
-data "aws_secretsmanager_secret" "cloudwatch-cross-accounts" {
-  name = "${var.name_prefix}-cloudwatch-cross-account-logging"
-}
-
-data "aws_secretsmanager_secret_version" "cloudwatch-cross-accounts" {
-  secret_id = data.aws_secretsmanager_secret.cloudwatch-cross-accounts.id
-}
-
-locals {
-  cross_account_id = jsondecode(data.aws_secretsmanager_secret_version.cloudwatch-cross-accounts.secret_string)["central-logging"]
+  policy_arn = aws_iam_policy.central_cw_subscription_iam_policy[0].arn
+  role       = aws_iam_role.cw_to_subscription_filter_role[0].id
 }
 
 resource "time_sleep" "wait_30_seconds" {
+  count = length(aws_iam_role.cw_to_subscription_filter_role) > 0 ? 1 : 0
+
   depends_on      = [aws_iam_role.cw_to_subscription_filter_role]
   create_duration = "30s"
 }
-# The subscription filter to send to the central logging
+
 resource "aws_cloudwatch_log_subscription_filter" "central_logging" {
-  name            = "${var.name_prefix}_central_logging"
-  role_arn        = aws_iam_role.cw_to_subscription_filter_role.arn
-  log_group_name  = var.waf_log_group_name
+  count = local.create_waf_log_group && local.enable_central_logging_subscription && local.cross_account_id != null && length(aws_iam_role.cw_to_subscription_filter_role) > 0 ? 1 : 0
+
+  name            = "${local.derived_name_prefix}_central_logging"
+  role_arn        = aws_iam_role.cw_to_subscription_filter_role[0].arn
+  log_group_name  = aws_cloudwatch_log_group.waf_logs[0].name
   filter_pattern  = ""
   destination_arn = "arn:aws:logs:${var.aws_region}:${local.cross_account_id}:destination:waf_log_destination"
   distribution    = "ByLogStream"
 
   depends_on = [
-    aws_iam_role.cw_to_subscription_filter_role,
     aws_cloudwatch_log_group.waf_logs,
     time_sleep.wait_30_seconds
   ]
 }
 
-# Send to splunk as well for our own logging/troubleshooting
 resource "aws_cloudwatch_log_subscription_filter" "splunk_subscr_filter" {
-  name            = "${var.name_prefix}_splunk_subscr_filter"
-  role_arn        = "arn:aws:iam::${var.aws_account_id}:role/${var.name_prefix}-CloudWatchToFirehoseRole"
-  log_group_name  = var.waf_log_group_name
+  count = local.create_waf_log_group && local.enable_splunk_logging_subscription && var.aws_account_id != null ? 1 : 0
+
+  name            = "${local.derived_name_prefix}_splunk_subscr_filter"
+  role_arn        = "arn:aws:iam::${var.aws_account_id}:role/${local.derived_name_prefix}-CloudWatchToFirehoseRole"
+  log_group_name  = aws_cloudwatch_log_group.waf_logs[0].name
   filter_pattern  = ""
-  destination_arn = "arn:aws:firehose:${var.aws_region}:${var.aws_account_id}:deliverystream/${var.name_prefix}-cw-logs-firehose"
+  destination_arn = "arn:aws:firehose:${var.aws_region}:${var.aws_account_id}:deliverystream/${local.derived_name_prefix}-cw-logs-firehose"
   distribution    = "ByLogStream"
 
-  depends_on = [
-    aws_cloudwatch_log_group.waf_logs
-  ]
+  depends_on = [aws_cloudwatch_log_group.waf_logs]
 }
 
-##############################
-# DDoS Alarm logs forwarding to CSOC
-##############################
 resource "aws_iam_role" "eventbridge_role" {
-  count = contains(["prod"], var.environment) ? 1 : 0
-  name  = "${var.name_prefix}-eventbridge-trust-role"
+  count = local.enable_shield_ddos_alarming && lower(coalesce(module.this.environment, var.environment, "")) == "prod" && local.cross_account_id != null && var.aws_account_id != null ? 1 : 0
+
+  name = "${local.derived_name_prefix}-eventbridge-trust-role"
+  tags = module.this.tags
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -475,17 +440,18 @@ resource "aws_iam_role" "eventbridge_role" {
         Action = "sts:AssumeRole"
         Condition = {
           StringEquals = {
-            "aws:SourceAccount" = "${var.aws_account_id}"
+            "aws:SourceAccount" = var.aws_account_id
           }
         }
       }
     ]
   })
 }
-resource "aws_iam_role_policy" "eventbridge_put_events" {
-  count = contains(["prod"], var.environment) ? 1 : 0
 
-  name = "${var.name_prefix}-eventbridge-put-events"
+resource "aws_iam_role_policy" "eventbridge_put_events" {
+  count = length(aws_iam_role.eventbridge_role) > 0 ? 1 : 0
+
+  name = "${local.derived_name_prefix}-eventbridge-put-events"
   role = aws_iam_role.eventbridge_role[0].id
 
   policy = jsonencode({
@@ -494,11 +460,9 @@ resource "aws_iam_role_policy" "eventbridge_put_events" {
       {
         Sid    = "ActionsForResource"
         Effect = "Allow"
-        Action = [
-          "events:PutEvents"
-        ]
+        Action = ["events:PutEvents"]
         Resource = [
-          "arn:aws:events:eu-west-2:${local.cross_account_id}:event-bus/shield-eventbus"
+          "arn:aws:events:${var.shield_event_bus_region}:${local.cross_account_id}:event-bus/shield-eventbus"
         ]
       }
     ]
@@ -506,8 +470,9 @@ resource "aws_iam_role_policy" "eventbridge_put_events" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "shield_ddos_alarm" {
-  count               = contains(["prod"], var.environment) ? 1 : 0
-  alarm_name          = "${var.name_prefix}_shield_ddos_WAF"
+  count = length(data.aws_sns_topic.alert) > 0 ? 1 : 0
+
+  alarm_name          = "${local.derived_name_prefix}_shield_ddos_WAF"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 20
   datapoints_to_alarm = 1
@@ -519,33 +484,34 @@ resource "aws_cloudwatch_metric_alarm" "shield_ddos_alarm" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    ResourceArn = aws_wafv2_web_acl.bss-waf-acl.arn
+    ResourceArn = module.waf.arn
   }
 
-  alarm_actions             = [data.aws_sns_topic.alert.arn]
-  ok_actions                = [data.aws_sns_topic.alert.arn]
+  alarm_actions             = [data.aws_sns_topic.alert[0].arn]
+  ok_actions                = [data.aws_sns_topic.alert[0].arn]
   insufficient_data_actions = []
-
-  alarm_description = "Alarm triggers when Shield Advanced detects a DDoS attack on production WAF"
+  alarm_description         = "Alarm triggers when Shield Advanced detects a DDoS attack on production WAF"
+  tags                      = module.this.tags
 }
 
 resource "aws_cloudwatch_event_rule" "shield_ddos_rule" {
-  count       = contains(["prod"], var.environment) ? 1 : 0
-  name        = "${var.name_prefix}_shield_ddos_rules"
-  description = "Forward DDoS alarm state change events to cross-account EventBridge bus"
+  count = length(aws_cloudwatch_metric_alarm.shield_ddos_alarm) > 0 ? 1 : 0
 
+  name        = "${local.derived_name_prefix}_shield_ddos_rules"
+  description = "Forward DDoS alarm state change events to cross-account EventBridge bus"
   event_pattern = jsonencode({
     source        = ["aws.cloudwatch"]
     "detail-type" = ["CloudWatch Alarm State Change"]
     resources     = [aws_cloudwatch_metric_alarm.shield_ddos_alarm[0].arn]
   })
+  tags = module.this.tags
 }
 
 resource "aws_cloudwatch_event_target" "shield_ddos_target" {
-  count = contains(["prod"], var.environment) ? 1 : 0
+  count = length(aws_cloudwatch_event_rule.shield_ddos_rule) > 0 ? 1 : 0
 
-  rule      = aws_cloudwatch_event_rule.shield_ddos_rule[count.index].name
-  target_id = "${var.name_prefix}-shield-ddos-target"
-  arn       = "arn:aws:events:eu-west-2:${local.cross_account_id}:event-bus/shield-eventbus"
-  role_arn  = aws_iam_role.eventbridge_role[count.index].arn
+  rule      = aws_cloudwatch_event_rule.shield_ddos_rule[0].name
+  target_id = "${local.derived_name_prefix}-shield-ddos-target"
+  arn       = "arn:aws:events:${var.shield_event_bus_region}:${local.cross_account_id}:event-bus/shield-eventbus"
+  role_arn  = aws_iam_role.eventbridge_role[0].arn
 }

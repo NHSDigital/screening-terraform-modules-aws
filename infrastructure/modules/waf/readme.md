@@ -1,5 +1,36 @@
 # WAF
 
+Screening wrapper around
+[`cloudposse/waf/aws`](https://registry.terraform.io/modules/cloudposse/waf/aws/latest)
+for the Web ACL itself, with the original BCSS-only behaviour retained as
+optional legacy resources.
+
+## Implementation approach
+
+This module now splits responsibilities in a way that is safer for a shared
+module repository:
+
+* The core web ACL, logging configuration, and optional associations are managed
+  through the upstream Cloud Posse module.
+* The previous BCSS-specific pieces remain available behind legacy inputs:
+  secret-backed IP sets, the webservices allowlist rule group, cross-account log
+  forwarding, Splunk subscription wiring, and production Shield alarming.
+* Existing legacy variable names are still accepted so BCSS consumers have a
+  migration path without renaming everything immediately.
+
+## Important compatibility note
+
+The legacy module excluded a specific IP set from only two AWS managed rule
+groups: `AWSManagedRulesAnonymousIpList` and `AWSManagedRulesLinuxRuleSet`.
+The upstream Cloud Posse module does not currently expose that exact
+scope-down-with-IP-set shape for managed rule groups. This wrapper therefore
+preserves the IP-set resources and the BCSS path-based allowlist rule, but the
+managed rule group exclusions themselves are not reproduced exactly.
+
+If BCSS still depends on that exact behaviour, keep using the legacy rule
+inputs during migration and validate the resulting rule behaviour in a lower
+environment before promoting.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
