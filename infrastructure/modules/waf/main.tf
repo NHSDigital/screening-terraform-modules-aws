@@ -17,8 +17,8 @@ locals {
     var.web_services_ip_set_name != null
   ])
 
-  enable_legacy_geo_rule = var.enable_legacy_geo_rule != null ? var.enable_legacy_geo_rule : local.enable_legacy_bcss_mode
-  create_waf_log_group = var.create_waf_log_group != null ? var.create_waf_log_group : local.enable_legacy_bcss_mode
+  enable_legacy_geo_rule              = var.enable_legacy_geo_rule != null ? var.enable_legacy_geo_rule : local.enable_legacy_bcss_mode
+  create_waf_log_group                = var.create_waf_log_group != null ? var.create_waf_log_group : local.enable_legacy_bcss_mode
   enable_central_logging_subscription = var.enable_central_logging_subscription != null ? var.enable_central_logging_subscription : local.enable_legacy_bcss_mode
   enable_splunk_logging_subscription  = var.enable_splunk_logging_subscription != null ? var.enable_splunk_logging_subscription : local.enable_legacy_bcss_mode
   enable_shield_ddos_alarming         = var.enable_shield_ddos_alarming != null ? var.enable_shield_ddos_alarming : local.enable_legacy_bcss_mode
@@ -181,8 +181,8 @@ locals {
     null
   ) : null
 
-  create_legacy_exclude_ip_set = local.enable_legacy_bcss_mode && var.exclude_ip_set_name != null && length(local.exclude_ip_addresses) > 0
-  create_legacy_webservices_ip_set = local.enable_legacy_bcss_mode && var.web_services_ip_set_name != null && length(local.webservices_ip_addresses) > 0
+  create_legacy_exclude_ip_set         = local.enable_legacy_bcss_mode && var.exclude_ip_set_name != null && length(local.exclude_ip_addresses) > 0
+  create_legacy_webservices_ip_set     = local.enable_legacy_bcss_mode && var.web_services_ip_set_name != null && length(local.webservices_ip_addresses) > 0
   create_legacy_webservices_rule_group = local.create_legacy_webservices_ip_set && length(var.webservices_protected_paths) > 0
 
   combined_geo_match_statement_rules = concat(var.geo_match_statement_rules, local.legacy_geo_match_statement_rules)
@@ -321,17 +321,17 @@ module "waf" {
   source  = "cloudposse/waf/aws"
   version = "1.17.0"
 
-  scope                       = var.scope
-  description                 = var.description
-  default_action              = var.default_action
-  visibility_config           = local.visibility_config
-  association_resource_arns   = var.association_resource_arns
-  log_destination_configs     = local.combined_log_destination_configs
-  token_domains               = var.token_domains
-  managed_rule_group_statement_rules = local.managed_rule_group_statement_rules
-  geo_match_statement_rules          = local.combined_geo_match_statement_rules
-  ip_set_reference_statement_rules   = var.ip_set_reference_statement_rules
-  rate_based_statement_rules         = var.rate_based_statement_rules
+  scope                                = var.scope
+  description                          = var.description
+  default_action                       = var.default_action
+  visibility_config                    = local.visibility_config
+  association_resource_arns            = var.association_resource_arns
+  log_destination_configs              = local.combined_log_destination_configs
+  token_domains                        = var.token_domains
+  managed_rule_group_statement_rules   = local.managed_rule_group_statement_rules
+  geo_match_statement_rules            = local.combined_geo_match_statement_rules
+  ip_set_reference_statement_rules     = var.ip_set_reference_statement_rules
+  rate_based_statement_rules           = var.rate_based_statement_rules
   rule_group_reference_statement_rules = local.combined_rule_group_reference_statement_rules
 
   context = local.cloudposse_context

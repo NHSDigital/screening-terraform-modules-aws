@@ -14,7 +14,7 @@ module repository:
   through the upstream Cloud Posse module.
 * The previous BCSS-specific pieces remain available behind legacy inputs:
   secret-backed IP sets, the webservices allowlist rule group, cross-account log
-  forwarding, Splunk subscription wiring, and production Shield alarming.
+  forwarding, downstream log shipping, and production Shield alarming.
 * Existing legacy variable names are still accepted so BCSS consumers have a
   migration path without renaming everything immediately.
 
