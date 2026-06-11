@@ -1,8 +1,3 @@
-variable "name_prefix" {
-  description = "the prefix standard"
-  type        = string
-}
-
 variable "function_name" {
   description = "The name of the Lambda function"
   type        = string
@@ -24,7 +19,7 @@ variable "function_description" {
   type        = string
 }
 
-variable "environment" {
+variable "environment_variables" {
   description = "Values to set in the Lambda function environment"
   type        = map(string)
   default     = {}
@@ -52,4 +47,20 @@ variable "timeout" {
   description = "Timeout for the Lambda function in seconds"
   type        = number
   default     = 120
+}
+
+variable "source_path" {
+  description = <<-EOT
+    Optional override for the directory containing the Lambda's source code.
+    Resolved relative to the root module (the stack) at plan/apply time.
+
+    When null (default), the module falls back to the historical layout
+    `../../lambdas/<handler_prefix>/`, which expects sources under a top-level
+    `infrastructure_v2/lambdas/` directory.
+
+    Set this to keep a stack's Lambda source co-located with the stack,
+    e.g. source_path = "lambdas/slack-notifier".
+  EOT
+  type        = string
+  default     = null
 }

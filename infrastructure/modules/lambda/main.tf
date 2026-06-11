@@ -7,16 +7,19 @@ module "lambda_function" {
   # downgrade version as workaround for bug https://github.com/terraform-aws-modules/terraform-aws-lambda/issues/733
   version = "8.7.0"
 
-  function_name          = "${var.name_prefix}-${var.function_name}"
+  function_name          = local.secret_name
   description            = var.function_description
   handler                = "${var.handler_prefix}.lambda_handler"
   runtime                = var.python_version
-  source_path            = "../../lambdas/${var.handler_prefix}/"
+  source_path            = var.source_path != null ? var.source_path : "../../lambdas/${var.handler_prefix}/"
   timeout                = var.timeout
   layers                 = var.layers
-  environment_variables  = var.environment
+  environment_variables  = var.environment_variables
   vpc_subnet_ids         = var.vpc_subnet_ids
   vpc_security_group_ids = var.vpc_security_group_ids
+
+  # Tags — automatically populated from context
+  tags = module.this.tags
 }
 
 ###############
