@@ -25,9 +25,10 @@ module "ec2_instance" {
   user_data                   = var.user_data
   user_data_replace_on_change = false
 
+  # DAVEH: can't set lifecycle hooks on module calls, want it set on the
+  # underlying resource anyway. vague plan is to fork the module, but
+  # not there yet
   # lifecycle {
   #   ignore_changes = [user_data]
   # }
-
-  # DAVEH
 }
