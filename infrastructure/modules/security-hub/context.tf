@@ -23,6 +23,7 @@
 module "this" {
   source = "../tags"
 
+  enabled             = var.enabled
   service             = var.service
   project             = var.project
   region              = var.region
@@ -39,6 +40,7 @@ module "this" {
   id_length_limit     = var.id_length_limit
   label_key_case      = var.label_key_case
   label_value_case    = var.label_value_case
+  terraform_source    = coalesce(var.terraform_source, path.module)
   descriptor_formats  = var.descriptor_formats
   labels_as_tags      = var.labels_as_tags
 
@@ -61,11 +63,8 @@ variable "context" {
   type = any
   default = {
     enabled             = true
-    namespace           = null
     service             = null
-    stage               = null
     project             = null
-    tenant              = null
     region              = null
     environment         = null
     stack               = null
@@ -108,6 +107,12 @@ variable "context" {
     condition     = lookup(var.context, "label_value_case", null) == null ? true : contains(["lower", "title", "upper", "none"], var.context["label_value_case"])
     error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
   }
+}
+
+variable "terraform_source" {
+  type        = string
+  default     = null
+  description = "Source location to record in the Terraform_source tag. Defaults to this module path."
 }
 
 variable "enabled" {
@@ -289,8 +294,8 @@ variable "descriptor_formats" {
     Describe additional descriptors to be output in the `descriptors` output map.
     Map of maps. Keys are names of descriptors. Values are maps of the form
     `{
-      format = string
-      labels = list(string)
+        format = string
+        labels = list(string)
     }`
     (Type is `any` so the map values can later be enhanced to provide additional options.)
     `format` is a Terraform format string to be passed to the `format()` function.
