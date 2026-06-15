@@ -24,7 +24,7 @@ repos:
       - id: generate-terraform-providers
         name: generate-terraform-providers
         require_serial: true
-        entry: .generate-providers.sh
+        entry: ./scripts/githooks/generate-terraform-providers.sh
         language: script
         files: \.tf(vars)?$
         pass_filenames: false
@@ -35,11 +35,6 @@ repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: d61ded22bf9aa0f757303ebcbb0d6d71c4b54015 # v1.106.0
     hooks:
-      - id: terraform_fmt
-        args:
-          - --args=-no-color
-          - --args=-diff
-          - --args=-recursive
       - id: terraform_tflint
         args:
           - '--args=--only=terraform_deprecated_interpolation'
@@ -72,6 +67,8 @@ repos:
           - --hook-config=--path-to-file=README.md
           - --hook-config=--add-to-existing-file=true
           - --hook-config=--create-file-if-not-exist=false
+          - '--hook-config=--custom-marker-begin=<!-- vale off -->\n<!-- markdownlint-disable -->\n<!-- BEGIN_TF_DOCS -->'
+          - '--hook-config=--custom-marker-end=<!-- END_TF_DOCS -->\n<!-- markdownlint-restore -->\n<!-- vale on -->'
 
   # --------------------------------------------------------------------------
   # General file hygiene
@@ -105,14 +102,6 @@ repos:
       - id: detect-private-key
 
   # --------------------------------------------------------------------------
-  # Secret scanning (mirrors: scan-secrets workflow job)
-  # --------------------------------------------------------------------------
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e # v8.30.1
-    hooks:
-      - id: gitleaks
-
-  # --------------------------------------------------------------------------
   # Shell script linting
   # --------------------------------------------------------------------------
   - repo: https://github.com/shellcheck-py/shellcheck-py
@@ -122,34 +111,42 @@ repos:
         args: [--severity=warning]
 
   # --------------------------------------------------------------------------
-  # EditorConfig compliance (mirrors: check-file-format workflow job)
-  # --------------------------------------------------------------------------
-  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 3.2.1
-    hooks:
-      - id: editorconfig-checker
-        alias: ec
-
-  # --------------------------------------------------------------------------
-  # Markdown linting (mirrors: check-markdown-format workflow job)
-  # --------------------------------------------------------------------------
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.44.0
-    hooks:
-      - id: markdownlint
-        args: [--fix]
-
-  # --------------------------------------------------------------------------
-  # English prose style (mirrors: check-english-usage workflow job)
+  # Repository githook wrappers (native tool if available, Docker fallback)
   # --------------------------------------------------------------------------
   - repo: local
     hooks:
-      - id: vale
-        name: vale
-        entry: vale --config scripts/config/vale/vale.ini
+      - id: check-file-format
+        name: check-file-format
+        entry: bash -c 'check=all ./scripts/githooks/check-file-format.sh'
         language: system
-        types: [markdown]
-        pass_filenames: true
+        pass_filenames: false
+
+      - id: check-markdown-format
+        name: check-markdown-format
+        entry: bash -c 'check=all ./scripts/githooks/check-markdown-format.sh'
+        language: system
+        files: \.md$
+        pass_filenames: false
+
+      - id: check-english-usage
+        name: check-english-usage
+        entry: bash -c 'check=all ./scripts/githooks/check-english-usage.sh'
+        language: system
+        files: \.md$
+        pass_filenames: false
+
+      - id: check-terraform-format
+        name: check-terraform-format
+        entry: bash -c 'check_only=true ./scripts/githooks/check-terraform-format.sh'
+        language: system
+        files: \.tf(vars)?$
+        pass_filenames: false
+
+      - id: scan-secrets
+        name: scan-secrets
+        entry: bash -c 'check=whole-history ./scripts/githooks/scan-secrets.sh'
+        language: system
+        pass_filenames: false
 
   # --------------------------------------------------------------------------
   # Conventional Commits (commit message format)

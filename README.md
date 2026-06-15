@@ -8,6 +8,7 @@ Canonical source of reusable, opinionated Terraform modules for the NHS Screenin
   - [Table of Contents](#table-of-contents)
   - [Setup](#setup)
     - [Prerequisites](#prerequisites)
+    - [Tool Version Source of Truth](#tool-version-source-of-truth)
     - [Configuration](#configuration)
   - [Usage](#usage)
     - [Consuming a module](#consuming-a-module)
@@ -61,6 +62,14 @@ mise install
 
 > [!NOTE]
 > On macOS the default GNU make is too old. Install a newer version with `brew install make` and ensure it is on your `$PATH`.
+
+### Tool Version Source of Truth
+
+- Primary source: `.tool-versions`
+- Fallback source: `.tool-versions.yml` (used when `.tool-versions` is absent)
+
+Local development and CI both resolve pinned versions from these files through mise or asdf.
+The `stage-1-pre-commit.yml` workflow installs tools from `.tool-versions` and generates it from `.tool-versions.yml` when required.
 
 ### Configuration
 
@@ -242,7 +251,9 @@ Rules:
 
 ## Pre-commit hooks
 
-This repository uses [pre-commit](https://pre-commit.com/) to run quality checks before code is committed locally, and in CI via the `pre-commit.yml` GitHub Actions workflow.
+This repository uses [pre-commit](https://pre-commit.com/) to run quality checks before code is committed locally, and in CI via the `stage-1-pre-commit.yml` GitHub Actions workflow.
+
+CI tooling versions are resolved from `.tool-versions` (mise or asdf). If `.tool-versions` is not present, the workflow generates it from `.tool-versions.yml` as a fallback.
 
 ### Local setup
 
