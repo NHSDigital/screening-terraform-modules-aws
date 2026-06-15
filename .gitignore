@@ -39,6 +39,9 @@ terraform.rc
 # Ignore Terraform lock files
 **/.terraform.lock.hcl
 
+# Ignore aliased provider files, which are required for Terraform to function but do not need to be checked in
+**/aliased-providers.tf.json
+
 # Lambda build artifacts
 builds/
 __pycache__/
