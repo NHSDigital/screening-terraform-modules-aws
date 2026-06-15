@@ -13,7 +13,7 @@ infrastructure/
     │   └── exports/
     │       └── context.tf  # File to copy into other modules/stacks
     ├── s3-bucket/          # COMPLIANT exemplar: S3 wrapper
-    ├── iam/                # COMPLIANT exemplar: IAM policies & roles wrapper
+    ├── iam/                # COMPLIANT exemplar: iam policies & roles wrapper
     ├── secrets-manager/    # COMPLIANT exemplar: Secrets Manager wrapper
     ├── kms/                # COMPLIANT exemplar: KMS key wrapper
     ├── sns/                # COMPLIANT exemplar: SNS topic wrapper
@@ -77,7 +77,7 @@ module "s3_bucket" {
   create_bucket = module.this.enabled
   bucket        = local.bucket_name
 
-  # ... security baseline settings (hardcoded, not overridable) ...
+  # ... security baseline settings (fixed and enforced) ...
 
   tags = module.this.tags
 }
@@ -87,7 +87,7 @@ module "s3_bucket" {
 
 | Principle | Implementation |
 | --- | --- |
-| Security controls are **hardcoded** | e.g., `block_public_policy = true` in secrets-manager; public access block always on in S3 |
+| Security controls are **enforced** | e.g., `block_public_policy = true` in secrets-manager; public access block always on in S3 |
 | Naming is **derived** from context | `module.this.id` or a local that composes from context labels |
 | Optional features use **sensible defaults** | e.g., versioning defaults to `true`; encryption defaults to SSE-S3 |
 | Variables include **validation** | `validation {}` blocks with regex, `contains()`, range checks |
@@ -133,7 +133,7 @@ Every new or updated module **must** enforce:
 | Encryption at rest | KMS or service-managed encryption enabled; no unencrypted storage |
 | Encryption in transit | TLS required; deny non-TLS connections where applicable |
 | No public access | Block public access by default; require explicit opt-in if ever needed |
-| IAM least privilege | Minimal permissions; no `*` actions in managed policies |
+| iam least privilege | Minimal permissions; no `*` actions in managed policies |
 | Logging | Enable access/audit logging where the service supports it |
 | Tagging | All resources tagged via `module.this.tags` |
 | Creation gate | Resources gated by `module.this.enabled` or `create = module.this.enabled` |
@@ -165,7 +165,7 @@ variable "meaningful_name" {
 - Use `sensitive = true` for secrets/credentials.
 - Use `optional()` in object types where applicable.
 - Default values should be sensible for a typical NHS screening use case.
-- Variables that callers **should not override** are hardcoded in `main.tf`, not exposed as variables.
+- Variables that callers **should not override** are set in `main.tf`, not exposed as variables.
 
 ## Version Constraints
 
@@ -214,7 +214,7 @@ See `infrastructure/modules/s3-bucket/README.md` as the canonical example.
 2. New modules must include ALL required files and meet the security baseline.
 3. Use the wrapper pattern — wrap community modules, don't reinvent resources.
 4. Keep module interfaces minimal — only expose what consumers genuinely need.
-5. Hardcode security controls that should never be weakened.
+5. Enforce security controls that should never be weakened.
 6. Add `validation {}` blocks for constrained inputs.
 7. Run `terraform fmt -recursive` and `terraform validate`.
 8. Update `README.md` when adding or changing module interfaces.
@@ -222,11 +222,11 @@ See `infrastructure/modules/s3-bucket/README.md` as the canonical example.
 
 ## What Agents Must NOT Do
 
-1. Hardcode AWS account IDs, ARNs, or secrets.
-2. Expose security-critical settings as overridable variables (e.g., `block_public_policy` must stay `true`).
+1. Keep AWS account IDs, ARNs, or secrets out of module code.
+2. Do not expose security-critical settings as variables (e.g., `block_public_policy` must stay `true`).
 3. Edit `context.tf` directly — it's a copy from the tags module.
 4. Create modules without ALL required files.
-5. Use `*` in IAM policy actions.
+5. Use `*` in iam policy actions.
 6. Break existing module interfaces without a clear migration path.
 7. Skip validation blocks on constrained inputs.
 

@@ -30,12 +30,12 @@ source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git
 All modules follow the **wrapper module pattern**:
 
 1. Wrap a community module (e.g., `terraform-aws-modules/*`) or native resources.
-2. Enforce NHS security baseline (encryption, TLS, no public access, least-privilege IAM).
+2. Enforce NHS security baseline (encryption, TLS, no public access, least-privilege iam).
 3. Derive naming from `module.this.id` and tagging from `module.this.tags`.
 4. Gate creation via `module.this.enabled`.
 5. Pin upstream versions explicitly.
 6. Expose only the variables consumers genuinely need to change.
-7. Hardcode security controls that should never be overridden.
+7. Enforce security controls that should never be overridden.
 
 ## Required Files
 
@@ -58,7 +58,7 @@ Every module must enforce:
 | Encryption at rest | KMS or service-managed; no unencrypted storage |
 | Encryption in transit | TLS required where applicable |
 | No public access | Blocked by default at all available toggles |
-| IAM least-privilege | No `*` actions in policies |
+| iam least-privilege | No `*` actions in policies |
 | Logging | Enabled where the service supports it |
 | Tagging | All resources via `module.this.tags` |
 
@@ -66,15 +66,15 @@ Every module must enforce:
 
 1. Always check existing compliant modules (`s3-bucket`, `iam`, `secrets-manager`, `kms`) for patterns before writing new code.
 2. New modules must include ALL required files.
-3. Hardcode security controls — do not expose them as overridable variables.
+3. Enforce security controls — do not expose them as changeable variables.
 4. Add `validation {}` blocks for constrained inputs.
 5. Use `################################################################` banner comments for section headers.
 6. Keep module interfaces minimal and stable.
 7. Run `terraform fmt -recursive` and `terraform validate`.
 8. Update README when changing module interfaces.
 9. Use British English in comments and documentation.
-10. Never hardcode secrets, account IDs, or ARNs.
-11. Never use `*` in IAM policy actions.
+10. Never hard-code secrets, account IDs, or ARNs.
+11. Never use `*` in iam policy actions.
 12. Never edit `context.tf` directly.
 
 ## Exemplar Modules
@@ -82,5 +82,5 @@ Every module must enforce:
 When in doubt, reference:
 
 - `infrastructure/modules/s3-bucket` – full wrapper with security table, locals-based naming
-- `infrastructure/modules/iam` – multi-resource wrapper with for_each and label modules
-- `infrastructure/modules/secrets-manager` – simple wrapper with hardcoded security
+- `infrastructure/modules/iam` – multi-resource wrapper with per-resource iteration and label modules
+- `infrastructure/modules/secrets-manager` – simple wrapper with hard-coded security

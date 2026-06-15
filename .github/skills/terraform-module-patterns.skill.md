@@ -56,7 +56,7 @@ module "<resource_name>" {
 
 | Decision | Rationale |
 | --- | --- |
-| Hardcode security controls | Prevents consumers from accidentally weakening the security posture |
+| Enforce security controls | Prevents consumers from accidentally weakening the security posture |
 | Use `module.this.id` for naming | Consistent naming across all resources, derived from context labels |
 | Pin community module versions | Prevents unexpected breaking changes from upstream |
 | Use `create = module.this.enabled` | Allows consumers to conditionally disable entire modules |
@@ -155,7 +155,7 @@ variable "meaningful_name" {
 ### Variable Design Rules
 
 - Only expose what consumers genuinely need to vary.
-- Security controls that should never change → hardcode in `main.tf`.
+- Security controls that should never change → set in `main.tf`.
 - Optional features → use `null` default with conditional logic.
 - Complex types → use `object({})` with `optional()` fields.
 - Sensitive values → mark with `sensitive = true`.
@@ -184,7 +184,7 @@ locals {
 }
 ```
 
-## Multi-Resource Module Pattern (IAM Example)
+## Multi-Resource Module Pattern (iam example)
 
 For modules creating multiple resources of the same type:
 
@@ -198,7 +198,7 @@ module "policy_label" {
   attributes = concat(module.this.attributes, ["policy", each.key])
 }
 
-# Resources using for_each
+# Resources using iteration
 module "policies" {
   source   = "terraform-aws-modules/iam/aws//modules/iam-policy"
   version  = "6.6.0"
@@ -291,7 +291,7 @@ module "example" {
 
 ## Security Patterns
 
-### Hardcoded Controls (Not Overridable)
+### Enforced Controls
 
 ```hcl
 # S3: Public access always blocked

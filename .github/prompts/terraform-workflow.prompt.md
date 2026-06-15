@@ -13,7 +13,7 @@ Workflows in this repository ensure module quality through automated checks:
 1. **Format check** — `terraform fmt -check -recursive`
 2. **Validate** — `terraform validate` on changed modules
 3. **Static analysis** — `tflint` for additional rule enforcement
-4. **Security scanning** — detect hardcoded secrets or insecure patterns
+4. **Security scanning** — detect hard-coded secrets or insecure patterns
 
 ## Workflow Template
 

@@ -41,7 +41,7 @@ module "{{ resource_name }}" {
   create = module.this.enabled
   name   = module.this.id  # or local.derived_name
 
-  # Platform baseline settings (hardcoded, not overridable)
+  # Platform baseline settings (fixed and enforced)
   # ...
 
   tags = module.this.tags
@@ -153,7 +153,7 @@ Before finalising, verify the module enforces:
 - [ ] Encryption at rest (KMS or service-managed)
 - [ ] Encryption in transit (TLS required) where applicable
 - [ ] No public access by default
-- [ ] IAM least-privilege (no `*` actions)
+- [ ] iam least-privilege (no `*` actions)
 - [ ] Logging enabled where the service supports it
 - [ ] All resources tagged via `module.this.tags`
 - [ ] Creation gated by `module.this.enabled`
@@ -178,5 +178,5 @@ terraform -chdir=infrastructure/modules/{{ module_name }} validate
 Reference these for patterns:
 
 - `infrastructure/modules/s3-bucket` — full wrapper with comprehensive security
-- `infrastructure/modules/iam` — multi-resource wrapper with for_each
-- `infrastructure/modules/secrets-manager` — simple wrapper with hardcoded security
+- `infrastructure/modules/iam` — multi-resource wrapper with per-resource iteration
+- `infrastructure/modules/secrets-manager` — simple wrapper with hard-coded security

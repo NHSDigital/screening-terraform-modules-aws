@@ -41,7 +41,7 @@ module "<resource>" {
   create = module.this.enabled
   name   = module.this.id   # or local.derived_name
 
-  # Platform baseline settings (hardcoded, not overridable)
+  # Platform baseline settings (fixed and enforced)
   # ...
 
   tags = module.this.tags
@@ -50,8 +50,8 @@ module "<resource>" {
 
 ### Key Principles
 
-- **Hardcode security controls** that should never be weakened (e.g., `block_public_policy = true`).
-- **Expose only necessary variables** — if a setting should always be a certain value for NHS compliance, hardcode it rather than exposing it as a variable.
+- **Enforce security controls** that should never be weakened (e.g., `block_public_policy = true`).
+- **Expose only necessary variables** — if a setting should always be a certain value for NHS compliance, fix it rather than exposing it as a variable.
 - **Pin community module versions** explicitly (e.g., `version = "5.13.0"`).
 
 ## Naming Conventions
@@ -114,7 +114,7 @@ variable "recovery_window_in_days" {
 
 - Include `description` on all outputs.
 - Use stable, predictable names (e.g., `bucket_arn`, `role_arns`, `secret_name`).
-- For modules that create multiple resources (e.g., IAM), use maps keyed by the logical identifier.
+- For modules that create multiple resources (e.g., iam), use maps keyed by the logical identifier.
 
 ## Version Constraints
 
@@ -138,7 +138,7 @@ Every module must enforce:
 - Encryption at rest (KMS or service-managed) where applicable.
 - Encryption in transit (TLS required, deny insecure transport) where applicable.
 - No public access by default (block at all available toggles).
-- IAM least-privilege (no `*` actions in managed policies).
+- iam least-privilege (no `*` actions in managed policies).
 - Logging/audit enabled where the service supports it.
 - All resources tagged via `module.this.tags`.
 
@@ -165,6 +165,6 @@ Module READMEs should include:
 When in doubt, look at these compliant modules for reference:
 
 - `infrastructure/modules/s3-bucket` — Full wrapper with security table, locals-based naming, validation.
-- `infrastructure/modules/iam` — Multi-resource wrapper (policies + roles) with for_each and label modules.
-- `infrastructure/modules/secrets-manager` — Simple wrapper with hardcoded security and optional features.
+- `infrastructure/modules/iam` — Multi-resource wrapper (policies + roles) with per-resource iteration and label modules.
+- `infrastructure/modules/secrets-manager` — Simple wrapper with hard-coded security and optional features.
 - `infrastructure/modules/kms` — KMS key wrapper with policy enforcement.

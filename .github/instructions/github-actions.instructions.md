@@ -14,7 +14,7 @@ applyTo: ".github/workflows/*.{yml,yaml},.github/actions/**/*.{yml,yaml}"
 ## Authentication & Secrets
 
 - Never store long-lived AWS credentials as GitHub secrets; rely on OIDC federation where applicable.
-- Reference secrets with `${{ secrets.SECRET_NAME }}` — never hardcode values.
+- Reference secrets with `${{ secrets.SECRET_NAME }}` — never hard-code values.
 - Use environment protection rules for sensitive deployments.
 
 ## Terraform in CI
