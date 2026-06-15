@@ -1,136 +1,68 @@
 #################
-#  SNS          #
+#  SNS wrapper  #
 #################
 
-resource "aws_sns_topic" "sns_topic" {
-  name                        = var.name_prefix
+data "aws_partition" "current" {}
+
+module "sns" {
+  source  = "terraform-aws-modules/sns/aws"
+  version = "7.1.0"
+
+  name                        = local.topic_name
   fifo_topic                  = false
   content_based_deduplication = false
-}
 
-resource "aws_sns_topic_policy" "sns_topic_policy" {
-  arn    = aws_sns_topic.sns_topic.arn
-  policy = data.aws_iam_policy_document.sns_topic_policy.json
-}
+  create_topic_policy         = true
+  enable_default_topic_policy = true
 
-data "aws_iam_policy_document" "sns_topic_policy" {
-  policy_id = "__default_policy_ID"
-  statement {
-    sid = "default_statement_actions"
-    actions = [
-      "SNS:GetTopicAttributes",
-      "SNS:SetTopicAttributes",
-      "SNS:AddPermission",
-      "SNS:RemovePermission",
-      "SNS:DeleteTopic",
-      "SNS:Subscribe",
-      "SNS:ListSubscriptionsByTopic",
-      "SNS:Publish"
-    ]
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceOwner"
-
-      values = [var.aws_account_id]
-    }
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    effect = "Allow"
-
-    resources = ["arn:aws:sns:eu-west-2:${var.aws_account_id}:${aws_sns_topic.sns_topic.name}"]
-  }
-
-
-  # Allows our eventbridge rules to publish to our topic
-  statement {
-    sid = "allow event bridge actions"
-    actions = [
-      "sns:Publish",
-    ]
-    principals {
-      type        = "Service"
-      identifiers = ["events.amazonaws.com"]
-    }
-    effect = "Allow"
-
-    resources = ["arn:aws:sns:eu-west-2:${var.aws_account_id}:${aws_sns_topic.sns_topic.name}"]
-  }
-
-  # Allows our Elasticache to publish to our topic
-  statement {
-    sid = "allow event from elasticache"
-    actions = [
-      "sns:Publish",
-    ]
-    principals {
-      type        = "Service"
-      identifiers = ["elasticache.amazonaws.com"]
-    }
-    effect = "Allow"
-
-    resources = ["arn:aws:sns:eu-west-2:${var.aws_account_id}:${aws_sns_topic.sns_topic.name}"]
-  }
-
-  # Allows AWS Backup to publish to our topic
-  statement {
-    sid = "allow event from backup"
-    actions = [
-      "sns:Publish",
-    ]
-    principals {
-      type        = "Service"
-      identifiers = ["backup.amazonaws.com"]
-    }
-    effect = "Allow"
-
-    resources = ["arn:aws:sns:eu-west-2:${var.aws_account_id}:${aws_sns_topic.sns_topic.name}"]
-  }
-
-  # Allows our S3 to publish to our topic
-  # statement {
-  #     sid = "allow event from alb-logs s3 bucket"
-  #     actions = [
-  #       "sns:Publish",
-  #     ]
-  #     principals {
-  #       type        = "Service"
-  #       identifiers = ["s3.amazonaws.com"]
-  #     }
-  #     effect = "Allow"
-
-  #     resources = ["arn:aws:sns:eu-west-2:${var.aws_account_id}:${var.sns_topic}"]
-  #     condition {
-  #      test     = "ArnEquals"
-  #      values   = ["arn:aws:s3:::${var.alb_log_bucket_name}"]
-  #      variable = "aws:SourceArn"
-  #    }
-  # }
-
-  # Allows our ECS to publish to our topic
-  statement {
-    sid    = "AllowAllECSTasksToPublish"
-    effect = "Allow"
-    actions = [
-      "sns:Publish"
-    ]
-
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
+  # Preserve legacy publish rules that existing stacks depend on.
+  # TODO: Refine these to be more restrictive, e.g. removing defaults and requiring user input, once all stacks have migrated to the new module version.
+  topic_policy_statements = {
+    eventbridge_publish = {
+      sid     = "AllowEventBridgePublish"
+      actions = ["sns:Publish"]
+      principals = [{
+        type        = "Service"
+        identifiers = ["events.amazonaws.com"]
+      }]
     }
 
-    resources = [
-      "arn:aws:sns:eu-west-2:${var.aws_account_id}:${aws_sns_topic.sns_topic.name}"
-    ]
+    elasticache_publish = {
+      sid     = "AllowElastiCachePublish"
+      actions = ["sns:Publish"]
+      principals = [{
+        type        = "Service"
+        identifiers = ["elasticache.amazonaws.com"]
+      }]
+    }
 
-    condition {
-      test     = "StringLike"
-      variable = "aws:PrincipalArn"
-      values = [
-        "arn:aws:iam::${var.aws_account_id}:role/${var.name_prefix}-ecs*"
-      ]
+    backup_publish = {
+      sid     = "AllowBackupPublish"
+      actions = ["sns:Publish"]
+      principals = [{
+        type        = "Service"
+        identifiers = ["backup.amazonaws.com"]
+      }]
+    }
+
+    ecs_publish = {
+      sid     = "AllowAllECSTasksToPublish"
+      actions = ["sns:Publish"]
+      principals = [{
+        type        = "AWS"
+        identifiers = ["*"]
+      }]
+      condition = [{
+        test     = "StringLike"
+        variable = "aws:PrincipalArn"
+        values = [
+          "arn:${data.aws_partition.current.partition}:iam::${var.aws_account_id}:role/${local.topic_name}-ecs*"
+        ]
+      }]
     }
   }
+
+  subscriptions = var.subscriptions
+
+  tags = module.this.tags
 }

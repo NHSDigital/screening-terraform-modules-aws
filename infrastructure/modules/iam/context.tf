@@ -23,6 +23,7 @@
 module "this" {
   source = "../tags"
 
+  enabled             = var.enabled
   service             = var.service
   project             = var.project
   region              = var.region
@@ -111,7 +112,7 @@ variable "context" {
 variable "terraform_source" {
   type        = string
   default     = null
-  description = "Source location to record in the Terraform_source tag. Defaults to the caller module path when not set."
+  description = "Source location to record in the Terraform_source tag. Defaults to this module path."
 }
 
 variable "enabled" {
