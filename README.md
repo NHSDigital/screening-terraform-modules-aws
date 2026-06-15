@@ -292,6 +292,44 @@ type(scope): description
 
 Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
 
+### Commit message tooling (recommended)
+
+To make writing conventional commit messages easier, install one of the following interactive helpers. These provide a guided prompt when you run `git commit` so you don't have to remember the format manually.
+
+#### Option A — Commitizen (Python)
+
+[Commitizen](https://github.com/commitizen-tools/commitizen) provides an interactive CLI and can also bump versions and generate changelogs.
+
+```shell
+# Install via pip (or pipx for isolation)
+pipx install commitizen
+
+# Use instead of `git commit`
+cz commit
+```
+
+Pair with [commitlint](https://github.com/conventional-changelog/commitlint) for CI-level validation:
+
+```shell
+npm install -g @commitlint/cli @commitlint/config-conventional
+echo "module.exports = { extends: ['@commitlint/config-conventional'] };" > commitlint.config.js
+```
+
+#### Option B — git-cz (Node.js)
+
+[git-cz](https://github.com/streamich/git-cz) is a lightweight, zero-config interactive commit prompt:
+
+```shell
+# Install globally
+npm install -g git-cz
+
+# Use instead of `git commit`
+git cz
+```
+
+> [!TIP]
+> Whichever tool you choose, the `conventional-pre-commit` hook in `.pre-commit-config.yaml` will still validate the final message at commit time, so these tools complement rather than replace the hook.
+
 ## Contributing
 
 1. Create a feature branch from `main`.
