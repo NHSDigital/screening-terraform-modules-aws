@@ -19,6 +19,14 @@ repos:
   # --------------------------------------------------------------------------
   # Local: generate aliased providers for terraform_validate compatibility
   # --------------------------------------------------------------------------
+  # Generates provider block definitions for modules using provider configuration_aliases.
+  # This solves the Terraform 0.15+ known issue where terraform validate fails on modules
+  # with provider aliases. See: https://github.com/hashicorp/terraform/issues/28490
+  #
+  # Generates:
+  #   - aliased-providers.tf (root)
+  #   - infrastructure/modules/*/aliased-providers.tf (per-module for validate)
+  # Files are auto-gitignored and should never be committed.
   - repo: local
     hooks:
       - id: generate-terraform-providers
@@ -35,6 +43,11 @@ repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: d61ded22bf9aa0f757303ebcbb0d6d71c4b54015 # v1.106.0
     hooks:
+      - id: terraform_fmt
+        args:
+        - --args=-no-color
+        - --args=-diff
+        - --args=-recursive
       - id: terraform_tflint
         args:
           - '--args=--only=terraform_deprecated_interpolation'
@@ -60,7 +73,8 @@ repos:
       - id: terraform_providers_lock
         args:
           - --hook-config=--mode=check-lockfile-is-cross-platform
-          - --hook-config=--mode=always-regenerate-lockfile
+          # - --hook-config=--mode=always-regenerate-lockfile
+          - --hook-config=--mode=regenerate-lockfile-if-some-platform-missed
       - id: terraform_docs
         args:
           - '--args=--lockfile=true'
