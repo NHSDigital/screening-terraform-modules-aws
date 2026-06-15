@@ -1,87 +1,162 @@
+# Pre-commit configuration for screening-terraform-modules-aws
+#
+# Prerequisites (install via mise/asdf or brew):
+#   terraform, tflint, terraform-docs, vale, jq, shellcheck, markdownlint-cli,
+#   editorconfig-checker, terraform-config-inspect
+#
+# Usage:
+#   pre-commit install --install-hooks
+#   pre-commit install --hook-type commit-msg
+#   pre-commit run --all-files
+#
+# See: https://github.com/antonbabenko/pre-commit-terraform
+
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
 repos:
-- repo: local
-  hooks:
-    - id: generate-terraform-providers
-      name: generate-terraform-providers
-      require_serial: true
-      entry: .generate-providers.sh
-      language: script
-      files: \.tf(vars)?$
-      pass_filenames: false
-- repo: https://github.com/antonbabenko/pre-commit-terraform
-  rev: d0e12caebb2ab0ee8bf98181c8bfe9702bca103d # v1.105.0
-  hooks:
-    - id: terraform_fmt
-      args:
-      - --args=-no-color
-      - --args=-diff
-      - --args=-recursive
-    - id: terraform_tflint
-      args:
-        - '--args=--only=terraform_deprecated_interpolation'
-        - '--args=--only=terraform_deprecated_index'
-        - '--args=--only=terraform_unused_declarations'
-        - '--args=--only=terraform_comment_syntax'
-        - '--args=--only=terraform_documented_outputs'
-        - '--args=--only=terraform_documented_variables'
-        - '--args=--only=terraform_typed_variables'
-        - '--args=--only=terraform_module_pinned_source'
-        - '--args=--only=terraform_naming_convention'
-        - '--args=--only=terraform_required_version'
-        - '--args=--only=terraform_required_providers'
-        - '--args=--only=terraform_standard_module_structure'
-        - '--args=--only=terraform_workspace_remote'
-    - id: terraform_validate
-      args:
-        - --args=-json
-        - --args=-no-color
-        - --env-vars=AWS_DEFAULT_REGION="eu-west-2"
-       # - --tf-init-args=-upgrade
-        - --tf-init-args=-reconfigure
-        - --hook-config=--retry-once-with-cleanup=true
-    - id: terraform_providers_lock
-      args:
-        - --hook-config=--mode=check-lockfile-is-cross-platform
-        - --hook-config=--mode=always-regenerate-lockfile
-    - id: terraform_docs
-      args:
-        - '--args=--lockfile=true'
-        - --hook-config=--path-to-file=README.md
-        - --hook-config=--add-to-existing-file=true
-        - --hook-config=--create-file-if-not-exist=false
+  # --------------------------------------------------------------------------
+  # Local: generate aliased providers for terraform_validate compatibility
+  # --------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: generate-terraform-providers
+        name: generate-terraform-providers
+        require_serial: true
+        entry: .generate-providers.sh
+        language: script
+        files: \.tf(vars)?$
+        pass_filenames: false
 
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
-  hooks:
-  # Git style
-  - id: check-added-large-files
-  - id: check-merge-conflict
-  - id: check-vcs-permalinks
-  - id: forbid-new-submodules
-  - id: no-commit-to-branch
+  # --------------------------------------------------------------------------
+  # Terraform hooks (format, lint, validate, docs, lock)
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: d61ded22bf9aa0f757303ebcbb0d6d71c4b54015 # v1.106.0
+    hooks:
+      - id: terraform_fmt
+        args:
+          - --args=-no-color
+          - --args=-diff
+          - --args=-recursive
+      - id: terraform_tflint
+        args:
+          - '--args=--only=terraform_deprecated_interpolation'
+          - '--args=--only=terraform_deprecated_index'
+          - '--args=--only=terraform_unused_declarations'
+          - '--args=--only=terraform_comment_syntax'
+          - '--args=--only=terraform_documented_outputs'
+          - '--args=--only=terraform_documented_variables'
+          - '--args=--only=terraform_typed_variables'
+          - '--args=--only=terraform_module_pinned_source'
+          - '--args=--only=terraform_naming_convention'
+          - '--args=--only=terraform_required_version'
+          - '--args=--only=terraform_required_providers'
+          - '--args=--only=terraform_standard_module_structure'
+          - '--args=--only=terraform_workspace_remote'
+      - id: terraform_validate
+        args:
+          - --args=-json
+          - --args=-no-color
+          - --env-vars=AWS_DEFAULT_REGION="eu-west-2"
+          - --tf-init-args=-reconfigure
+          - --hook-config=--retry-once-with-cleanup=true
+      - id: terraform_providers_lock
+        args:
+          - --hook-config=--mode=check-lockfile-is-cross-platform
+          - --hook-config=--mode=always-regenerate-lockfile
+      - id: terraform_docs
+        args:
+          - '--args=--lockfile=true'
+          - --hook-config=--path-to-file=README.md
+          - --hook-config=--add-to-existing-file=true
+          - --hook-config=--create-file-if-not-exist=false
 
-  # Common errors
-  - id: end-of-file-fixer
-  - id: trailing-whitespace
-    args: [--markdown-linebreak-ext=md]
-    exclude: CHANGELOG.md
-  - id: check-yaml
-  - id: check-merge-conflict
-  - id: check-executables-have-shebangs
+  # --------------------------------------------------------------------------
+  # General file hygiene
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
+    hooks:
+      # Git style
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-vcs-permalinks
+      - id: forbid-new-submodules
+      - id: no-commit-to-branch
 
-  # Cross platform
-  - id: check-case-conflict
-  - id: mixed-line-ending
-    args: [--fix=lf]
+      # Common errors
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+        exclude: CHANGELOG.md
+      - id: check-yaml
+      - id: check-executables-have-shebangs
 
-  # Security
-  - id: detect-aws-credentials
-    args:
-    - --allow-missing-credentials
-  - id: detect-private-key
+      # Cross platform
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: [--fix=lf]
 
-    # Detect hardcoded secrets
-- repo: https://github.com/gitleaks/gitleaks
-  rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e  # v8.30.1
-  hooks:
-  - id: gitleaks
+      # Security
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: detect-private-key
+
+  # --------------------------------------------------------------------------
+  # Secret scanning (mirrors: scan-secrets workflow job)
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e # v8.30.1
+    hooks:
+      - id: gitleaks
+
+  # --------------------------------------------------------------------------
+  # Shell script linting
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]
+
+  # --------------------------------------------------------------------------
+  # EditorConfig compliance (mirrors: check-file-format workflow job)
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.2.1
+    hooks:
+      - id: editorconfig-checker
+        alias: ec
+
+  # --------------------------------------------------------------------------
+  # Markdown linting (mirrors: check-markdown-format workflow job)
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.44.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+
+  # --------------------------------------------------------------------------
+  # English prose style (mirrors: check-english-usage workflow job)
+  # --------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: vale
+        name: vale
+        entry: vale --config scripts/config/vale/vale.ini
+        language: system
+        types: [markdown]
+        pass_filenames: true
+
+  # --------------------------------------------------------------------------
+  # Conventional Commits (commit message format)
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [--strict, feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
