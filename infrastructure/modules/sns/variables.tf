@@ -10,6 +10,12 @@ variable "aws_account_id" {
   type        = string
 }
 
+variable "ecs_role_prefix" {
+  description = "IAM role name prefix used in the ECS publish policy condition. Defaults to the topic name (matching legacy `name_prefix` behaviour). Set this explicitly if your ECS task roles use a different prefix than the topic name."
+  type        = string
+  default     = null
+}
+
 variable "subscriptions" {
   description = "Map of SNS subscriptions to create (passed through to terraform-aws-modules/sns/aws)."
   type = map(object({

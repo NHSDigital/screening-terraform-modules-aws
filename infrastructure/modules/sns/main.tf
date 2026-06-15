@@ -56,7 +56,7 @@ module "sns" {
         test     = "StringLike"
         variable = "aws:PrincipalArn"
         values = [
-          "arn:${data.aws_partition.current.partition}:iam::${var.aws_account_id}:role/${local.topic_name}-ecs*"
+          "arn:${data.aws_partition.current.partition}:iam::${var.aws_account_id}:role/${local.ecs_role_prefix}-ecs*"
         ]
       }]
     }
