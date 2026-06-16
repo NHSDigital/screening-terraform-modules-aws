@@ -1,4 +1,12 @@
-# DAVEH
+# EC2-Instance
+
+NHS Screening wrapper around the community
+[`terraform-aws-modules/ec2-instance/aws`](https://registry.terraform.io/modules/terraform-aws-modules/ec2-instance/aws/latest)
+module that consumes the shared `context.tf` for naming and tagging.
+
+## Usage
+
+TODO
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
