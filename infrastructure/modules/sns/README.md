@@ -1,88 +1,4 @@
-# Security Hub
-
-NHS Screening wrapper around the
-[`cloudposse/security-hub/aws`](https://registry.terraform.io/modules/cloudposse/security-hub/aws/latest)
-module (pinned to `0.12.2`) so screening services can enable AWS
-Security Hub with consistent naming and tagging via the shared
-`context.tf`.
-
-This wraps the upstream module in the same way as
-[`inspector`](../inspector) wraps `cloudposse/inspector/aws`.
-
-## What this module enforces
-
-| Control                         | How it is enforced                                                       |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| Consistent naming & tagging     | `context = module.this.context` forwarded to the upstream module         |
-| `enabled` switch                | Honoured via `module.this.context.enabled`                               |
-| Default standards on by default | `var.enable_default_standards = true` (AWS FSBP + CIS AWS Foundations)   |
-| Single source of SNS truth      | `create_sns_topic = false`; findings forwarded to an existing topic arn  |
-
-## Pairing with GuardDuty
-
-GuardDuty findings are automatically ingested by Security Hub once both
-services are enabled in the same account/region. Both the
-[`guardduty`](../guardduty) and `security-hub` modules forward findings to a
-shared SNS topic created by the separate alerting module via the
-`findings_notification_arn` input.
-
-## Usage
-
-### Minimal: enable Security Hub with the default standards
-
-```hcl
-module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
-
-  service     = "bcss"
-  project     = "platform"
-  environment = "prod"
-  name        = "security-hub"
-}
-```
-
-### Subscribe to extra standards and aggregate findings across regions
-
-```hcl
-module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
-
-  service     = "bcss"
-  project     = "platform"
-  environment = "prod"
-  name        = "security-hub"
-
-  enabled_standards = [
-    "standards/pci-dss/v/3.2.1",
-  ]
-
-  finding_aggregator_enabled = true
-}
-```
-
-### Forward imported findings to the shared alerting SNS topic
-
-```hcl
-module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
-
-  service     = "bcss"
-  project     = "platform"
-  environment = "prod"
-  name        = "security-hub"
-
-  findings_notification_arn = module.alerting.sns_topic_arn
-}
-```
-
-## What this module does NOT do
-
-* Create the SNS topic that receives findings. That is owned by the alerting
-  module — pass its arn via `findings_notification_arn`.
-* Create a KMS key. If the alerting SNS topic is KMS-encrypted, configure that
-  inside the alerting module.
-* Manage Organization-wide Security Hub administration / member accounts. Those
-  belong in a separate account-scope module.
+# SNS
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
@@ -93,18 +9,22 @@ No requirements.
 
 ## Providers
 
-No providers.
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.49.0 |
 
 ## Modules
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_security_hub"></a> [security\_hub](#module\_security\_hub) | cloudposse/security-hub/aws | 0.12.2 |
+| <a name="module_sns"></a> [sns](#module\_sns) | terraform-aws-modules/sns/aws | 7.1.0 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
 
-No resources.
+| Name | Type |
+| ---- | ---- |
+| [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 
 ## Inputs
 
@@ -113,21 +33,16 @@ No resources.
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
+| <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | The AWS account ID. Retained for compatibility with legacy callers and policy conditions. | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
-| <a name="input_cloudwatch_event_rule_pattern_detail_type"></a> [cloudwatch\_event\_rule\_pattern\_detail\_type](#input\_cloudwatch\_event\_rule\_pattern\_detail\_type) | The detail-type pattern used to match Security Hub events for the CloudWatch rule. | `string` | `"Security Hub Findings - Imported"` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_data_classification"></a> [data\_classification](#input\_data\_classification) | Used to identify the data classification of the resource, e.g 1-5 | `string` | `"n/a"` | no |
 | <a name="input_data_type"></a> [data\_type](#input\_data\_type) | The tag data\_type | `string` | `"None"` | no |
 | <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to be used between ID elements.<br/>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
 | <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br/>Map of maps. Keys are names of descriptors. Values are maps of the form<br/>`{<br/>    format = string<br/>    labels = list(string)<br/>}`<br/>(Type is `any` so the map values can later be enhanced to provide additional options.)<br/>`format` is a Terraform format string to be passed to the `format()` function.<br/>`labels` is a list of labels, in order, to pass to `format()` function.<br/>Label values will be normalized before being passed to `format()` so they will be<br/>identical to how they appear in `id`.<br/>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
-| <a name="input_enable_default_standards"></a> [enable\_default\_standards](#input\_enable\_default\_standards) | Whether to enable the AWS-recommended default standards (AWS Foundational Security Best Practices and CIS AWS Foundations Benchmark) when Security Hub is first enabled in this account/region. | `bool` | `true` | no |
+| <a name="input_ecs_role_prefix"></a> [ecs\_role\_prefix](#input\_ecs\_role\_prefix) | IAM role name prefix used in the ECS publish policy condition. Defaults to the topic name (matching legacy `name_prefix` behaviour). Set this explicitly if your ECS task roles use a different prefix than the topic name. | `string` | `null` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
-| <a name="input_enabled_standards"></a> [enabled\_standards](#input\_enabled\_standards) | A list of Security Hub standards/rulesets to subscribe to (in addition to or<br/>instead of the defaults). Pass either short identifiers<br/>(e.g. `standards/aws-foundational-security-best-practices/v/1.0.0`) or full<br/>ARNs. The upstream module resolves identifiers per partition/region. See:<br/>https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/securityhub_standards_subscription | `list(any)` | `[]` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used to indicate role, e.g. 'prd', 'dev', 'test', 'preprod', 'prod', 'uat' | `string` | `null` | no |
-| <a name="input_finding_aggregator_enabled"></a> [finding\_aggregator\_enabled](#input\_finding\_aggregator\_enabled) | Whether to create a Security Hub finding aggregator to consolidate findings across regions. | `bool` | `false` | no |
-| <a name="input_finding_aggregator_linking_mode"></a> [finding\_aggregator\_linking\_mode](#input\_finding\_aggregator\_linking\_mode) | Linking mode for the finding aggregator. One of: ALL\_REGIONS, ALL\_REGIONS\_EXCEPT\_SPECIFIED, SPECIFIED\_REGIONS. | `string` | `"ALL_REGIONS"` | no |
-| <a name="input_finding_aggregator_regions"></a> [finding\_aggregator\_regions](#input\_finding\_aggregator\_regions) | List of regions used by the finding aggregator. Required when `finding_aggregator_linking_mode` is `SPECIFIED_REGIONS` or `ALL_REGIONS_EXCEPT_SPECIFIED`. | `list(string)` | `[]` | no |
-| <a name="input_findings_notification_arn"></a> [findings\_notification\_arn](#input\_findings\_notification\_arn) | ARN of an existing SNS topic that Security Hub imported findings should be forwarded to. Leave null to skip target wiring. | `string` | `null` | no |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br/>Set to `0` for unlimited length.<br/>Set to `null` for keep the existing setting, which defaults to `0`.<br/>Does not affect `id_full`. | `number` | `null` | no |
 | <a name="input_label_key_case"></a> [label\_key\_case](#input\_label\_key\_case) | Controls the letter case of the `tags` keys (label names) for tags generated by this module.<br/>Does not affect keys of tags passed in via the `tags` input.<br/>Possible values: `lower`, `title`, `upper`.<br/>Default value: `title`. | `string` | `null` | no |
 | <a name="input_label_order"></a> [label\_order](#input\_label\_order) | The order in which the labels (ID elements) appear in the `id`.<br/>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br/>You can omit any of the 6 labels ("tenant" is the 6th), but at least one must be present. | `list(string)` | `null` | no |
@@ -143,19 +58,21 @@ No resources.
 | <a name="input_service"></a> [service](#input\_service) | ID element. Usually an abbreviation of your service directorate name, e.g. 'bcss' or 'csms', to help ensure generated IDs are globally unique | `string` | `null` | no |
 | <a name="input_service_category"></a> [service\_category](#input\_service\_category) | The tag service\_category | `string` | `"n/a"` | no |
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
+| <a name="input_subscriptions"></a> [subscriptions](#input\_subscriptions) | Map of SNS subscriptions to create (passed through to terraform-aws-modules/sns/aws). | <pre>map(object({<br/>    confirmation_timeout_in_minutes = optional(number)<br/>    delivery_policy                 = optional(string)<br/>    endpoint                        = string<br/>    endpoint_auto_confirms          = optional(bool)<br/>    filter_policy                   = optional(string)<br/>    filter_policy_scope             = optional(string)<br/>    protocol                        = string<br/>    raw_message_delivery            = optional(bool)<br/>    redrive_policy                  = optional(string)<br/>    replay_policy                   = optional(string)<br/>    subscription_role_arn           = optional(string)<br/>  }))</pre> | `{}` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
+| <a name="input_topic_name"></a> [topic\_name](#input\_topic\_name) | SNS topic name override. If null, the module derives a name from context (`module.this.id`). | `string` | `null` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 
 ## Outputs
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_enabled_subscriptions"></a> [enabled\_subscriptions](#output\_enabled\_subscriptions) | List of Security Hub standards subscriptions enabled by the upstream module. |
-| <a name="output_sns_topic"></a> [sns\_topic](#output\_sns\_topic) | The SNS topic that the upstream module created (null when `create_sns_topic` is false, which is the default for this wrapper). |
-| <a name="output_sns_topic_subscriptions"></a> [sns\_topic\_subscriptions](#output\_sns\_topic\_subscriptions) | Any SNS topic subscriptions that the upstream module created. |
+| <a name="output_sns_topic_arn"></a> [sns\_topic\_arn](#output\_sns\_topic\_arn) | ARN of the SNS topic. |
+| <a name="output_sns_topic_name"></a> [sns\_topic\_name](#output\_sns\_topic\_name) | Name of the SNS topic. |
+| <a name="output_subscriptions"></a> [subscriptions](#output\_subscriptions) | Map of SNS subscriptions created and their attributes. |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->
