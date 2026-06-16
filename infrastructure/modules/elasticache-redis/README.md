@@ -11,11 +11,12 @@ defaults that are useful for the platform.
 ## What this module does
 
 * Provisions a Valkey or Redis OSS replication group using the upstream ElastiCache module.
-* Creates a subnet group, parameter group, and security group by default.
+* Creates a subnet group and parameter group by default.
+* Security groups must be created externally (e.g. using the `security-group` module) and passed via `security_group_ids`.
 * Derives `replication_group_id` from the shared context when you do not set it.
 * Defaults new deployments to `engine = "valkey"`.
 * Derives `parameter_group_family` from `engine` and `engine_version` when possible.
-* Enables encryption at rest and in transit by default.
+* Enforces encryption at rest and in transit (cannot be overridden).
 * Rejects Redis OSS major versions 4 and 5 so new callers do not encode an EOL engine choice.
 * Sends slow logs to CloudWatch Logs by default unless you override
   `log_delivery_configuration`.
