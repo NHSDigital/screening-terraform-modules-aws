@@ -33,11 +33,17 @@ on:
         type: string
 
 jobs:
-  # DEPRECATED: These individual lint/format/scan jobs are superseded by the
-  # pre-commit.yml workflow which runs all hooks in a single pass. Kept here
-  # temporarily for parity until fully migrated.
+  pre-commit-checks:
+    name: "Run pre-commit coding checks"
+    uses: ./.github/workflows/stage-1-pre-commit.yml
+    secrets: inherit
+
+  # LEGACY ROLLBACK: These individual lint/format/scan jobs have been replaced
+  # by stage-1-pre-commit.yml. They are disabled for now and can be re-enabled
+  # quickly by removing `if: false`.
 
   scan-secrets:
+    if: false # LEGACY: replaced by pre-commit hooks
     name: "Scan secrets"
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -50,6 +56,7 @@ jobs:
         uses: ./.github/actions/scan-secrets
 
   check-file-format: # DEPRECATED: replaced by editorconfig-checker hook in pre-commit.yml
+    if: false # LEGACY: replaced by pre-commit hooks
     name: "Check file format"
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -62,6 +69,7 @@ jobs:
         uses: ./.github/actions/check-file-format
 
   check-markdown-format: # DEPRECATED: replaced by markdownlint hook in pre-commit.yml
+    if: false # LEGACY: replaced by pre-commit hooks
     name: "Check Markdown format"
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -74,6 +82,7 @@ jobs:
         uses: ./.github/actions/check-markdown-format
 
   check-english-usage: # DEPRECATED: replaced by vale hook in pre-commit.yml
+    if: false # LEGACY: replaced by pre-commit hooks
     name: "Check English usage"
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -86,6 +95,7 @@ jobs:
         uses: ./.github/actions/check-english-usage
 
   lint-terraform: # DEPRECATED: replaced by terraform_fmt/terraform_tflint/terraform_validate hooks in pre-commit.yml
+    if: false # LEGACY: replaced by pre-commit hooks
     name: "Lint Terraform"
     runs-on: ubuntu-latest
     timeout-minutes: 2

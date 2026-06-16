@@ -14,6 +14,7 @@ concurrency:
 permissions:
   id-token: write
   contents: read
+  pull-requests: read
 
 jobs:
   metadata:
@@ -65,8 +66,67 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
     secrets: inherit
 
+  conventional-commit-advisory:
+    name: "Conventional Commit Advisory"
+    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Review PR commit messages (non-blocking)"
+        uses: actions/github-script@v6
+        continue-on-error: true
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.warning('No pull_request payload found. Skipping Conventional Commit advisory check.');
+              return;
+            }
+
+            // Conventional Commits: type(scope optional)!: description
+            const pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?(!)?: .+/;
+
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+
+            const invalid = commits
+              .map(c => ({
+                sha: c.sha,
+                headline: (c.commit?.message || '').split('\n')[0] || '',
+              }))
+              .filter(c => !pattern.test(c.headline));
+
+            if (invalid.length === 0) {
+              core.info('All PR commit messages are Conventional Commit compliant.');
+              await core.summary
+                .addHeading('Conventional Commit advisory')
+                .addRaw('All commit messages in this PR are compliant.\n')
+                .write();
+              return;
+            }
+
+            const details = invalid
+              .map(c => `- ${c.headline} (${c.sha.slice(0, 7)})`)
+              .join('\n');
+
+            core.warning(
+              `Found ${invalid.length} non-compliant commit message(s). This is advisory only and does not fail the workflow.\n${details}`
+            );
+
+            await core.summary
+              .addHeading('Conventional Commit advisory')
+              .addRaw(`Found ${invalid.length} non-compliant commit message(s).\n\n`)
+              .addCodeBlock(details)
+              .addRaw('\nExamples: feat(ci): add PR checks, fix(terraform): correct provider version\n')
+              .write();
+
   # enforce-pr-title-format: #
-  #   name: "Enforce PR title format"
+  #   name: "Enforce Conventional Commit format"
   #   runs-on: ubuntu-latest
   #   if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
   #   permissions:
@@ -83,7 +143,32 @@ jobs:
   #         app-id: ${{ vars.GH_APP_ID }}
   #         private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
-  #     - name: Check PR title format
+  #     - name: Check Conventional Commit format
   #       uses: ./.github/actions/enforce-pr-title-format
   #       with:
   #         github-token: ${{ steps.generate-token.outputs.token }}
+  #         validate-pr-title: "true"
+  #         validate-commit-messages: "true"
+
+  # Final job to ensure all required jobs completed successfully.
+  # This allows branch protection to target a single status check.
+  all-checks-complete:
+    name: "All Checks Complete"
+    if: always()
+    needs:
+      - metadata
+      - coding-standards
+      - conventional-commit-advisory
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check all jobs succeeded"
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more jobs failed"
+            exit 1
+          elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more jobs were cancelled"
+            exit 1
+          else
+            echo "All jobs completed successfully"
+          fi

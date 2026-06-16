@@ -28,7 +28,13 @@ The following command-line tools are expected to be installed:
 Here is an example on how to run a GitHub workflow job:
 
 ```shell
-$ make runner-act workflow="stage-1-commit" job="create-lines-of-code-report"
+make runner-act workflow="stage-1-pre-commit"
+```
+
+To run a specific stage-1 report job from the legacy reusable workflow:
+
+```shell
+make runner-act workflow="stage-1-commit" job="count-lines-of-code"
 
 [Commit stage/Count lines of code] 🚀  Start image=ghcr.io/nhs-england-tools/github-runner-image:20230101-abcdef0-rt
 [Commit stage/Count lines of code]   🐳  docker pull image=ghcr.io/nhs-england-tools/github-runner-image:20230101-abcdef0-rt platform=linux/amd64 username= forcePull=false

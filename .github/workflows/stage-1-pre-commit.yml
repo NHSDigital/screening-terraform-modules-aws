@@ -5,10 +5,7 @@ name: "Pre-commit checks"
 # jobs in stage-1-coding-standards.yaml are deprecated in favour of this.
 
 on:
-  pull_request:
-    branches:
-      - main
-      - master
+  workflow_call:
 
 permissions:
   contents: read

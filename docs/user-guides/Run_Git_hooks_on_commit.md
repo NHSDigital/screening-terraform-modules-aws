@@ -11,6 +11,8 @@ Git hooks are scripts that are located in the [`./scripts/githooks`](../../scrip
 
 The [pre-commit](https://pre-commit.com/) framework is a powerful tool for managing Git hooks, providing automated hook installation and management capabilities.
 
+In CI, coding checks are executed through the `stage-1-pre-commit.yml` workflow. The reusable workflows `stage-1-coding-standards.yaml` and `stage-1-commit.yaml` call this workflow.
+
 ## Key files
 
 - Scripts
@@ -19,7 +21,7 @@ The [pre-commit](https://pre-commit.com/) framework is a powerful tool for manag
   - [`check-terraform-format.sh`](../../scripts/githooks/check-terraform-format.sh)
   - [`scan-secrets.sh`](../../scripts/githooks/scan-secrets.sh)
 - Configuration
-  - [`pre-commit.yaml`](../../scripts/config/pre-commit.yaml)
+  - [`.pre-commit-config.yaml`](../../.pre-commit-config.yaml)
   - [`init.mk`](../../scripts/init.mk): make targets
 
 ## Testing

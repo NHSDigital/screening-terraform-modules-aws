@@ -146,7 +146,7 @@ infrastructure/modules/<module-name>/
 ├── main.tf          # Resource definitions with header comment block
 ├── variables.tf     # Inputs: types, descriptions, defaults, validation blocks
 ├── outputs.tf       # Outputs with descriptions and stable names
-├── versions.tf      # required_version >= 1.13, AWS provider >= 6.42
+├── versions.tf      # required_version and provider constraints for the module
 ├── context.tf       # Copied from tags/exports/context.tf (never edited directly)
 ├── locals.tf        # Derived/computed values, naming logic
 └── README.md        # Usage docs with enforcement table and examples
@@ -252,6 +252,8 @@ Rules:
 ## Pre-commit hooks
 
 This repository uses [pre-commit](https://pre-commit.com/) to run quality checks before code is committed locally, and in CI via the `stage-1-pre-commit.yml` GitHub Actions workflow.
+
+The reusable workflows `stage-1-coding-standards.yaml` and `stage-1-commit.yaml` now call `stage-1-pre-commit.yml` for coding checks. Their legacy per-check jobs are kept disabled for fast rollback.
 
 CI tooling versions are resolved from `.tool-versions` (mise or asdf). If `.tool-versions` is not present, the workflow generates it from `.tool-versions.yml` as a fallback.
 
