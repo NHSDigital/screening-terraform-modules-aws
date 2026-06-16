@@ -51,6 +51,15 @@ fi
 # Start with current directory, then look in infrastructure/modules.
 provider_blocks=""
 
+# Remove previously generated per-module files so stale aliases do not persist
+# when a module no longer declares configuration_aliases.
+shopt -s nullglob
+module_provider_files=(infrastructure/modules/*/aliased-providers.tf)
+if ((${#module_provider_files[@]})); then
+  rm -f "${module_provider_files[@]}"
+fi
+shopt -u nullglob
+
 for dir in . infrastructure/modules/*/; do
   [[ -d "$dir" ]] || continue
 
