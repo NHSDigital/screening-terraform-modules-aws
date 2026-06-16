@@ -107,6 +107,11 @@ repos:
   # Shell script linting (uses scripts/shellscript-linter.sh; runs natively if
   # shellcheck is on PATH, otherwise falls back to koalaman/shellcheck Docker
   # image. Local and CI follow the same logic so behaviour is consistent.)
+  #
+  # NOTE: require_serial=true prevents pre-commit from running this hook in
+  # parallel with other hooks. This is critical because when the Docker fallback
+  # is used, concurrent container spawning can exhaust available memory (exit 137).
+  # Sequential execution ensures Docker containers are cleaned up between files.
   # --------------------------------------------------------------------------
   - repo: local
     hooks:
@@ -115,6 +120,7 @@ repos:
         entry: bash -c 'for f in "$@"; do SHELLCHECK_OPTS="--severity=warning" file="$f" bash scripts/shellscript-linter.sh || exit 1; done' --
         language: system
         types: [shell]
+        require_serial: true
 
   # --------------------------------------------------------------------------
   # Repository githook wrappers (native tool if available, Docker fallback)
