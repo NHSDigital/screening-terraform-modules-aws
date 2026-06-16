@@ -74,7 +74,6 @@ test_action_pinned ".github/workflows/stage-1-pre-commit.yml" "jdx/mise-action"
 test_action_pinned ".github/workflows/stage-1-pre-commit.yml" "actions/cache"
 test_pattern_exists ".github/workflows/stage-1-pre-commit.yml" "AWS_DEFAULT_REGION" "AWS region configuration"
 test_pattern_exists ".github/workflows/stage-1-pre-commit.yml" "TF_PLUGIN_CACHE_DIR" "Terraform plugin cache"
-test_pattern_exists ".github/workflows/stage-1-pre-commit.yml" "FORCE_USE_DOCKER" "Docker fallback for shellcheck"
 echo ""
 
 # Check pre-commit configuration
@@ -85,6 +84,8 @@ test_pattern_exists ".pre-commit-config.yaml" "rev:.*[0-9a-f]\\{40\\}" "Repos pi
 test_pattern_exists ".pre-commit-config.yaml" "#.*v[0-9]" "Version comments for readability"
 test_pattern_exists ".pre-commit-config.yaml" "scripts/githooks/validate-conventional-commit.sh" "Local conventional commit validator"
 test_pattern_exists ".pre-commit-config.yaml" "scripts/githooks/generate-terraform-providers.sh" "Local provider generator"
+test_pattern_exists ".pre-commit-config.yaml" "scripts/shellscript-linter.sh" "Shellcheck hook uses wrapper script"
+test_pattern_exists "scripts/shellscript-linter.sh" "FORCE_USE_DOCKER" "Shellcheck wrapper supports Docker fallback override"
 echo ""
 
 # Check custom hooks exist

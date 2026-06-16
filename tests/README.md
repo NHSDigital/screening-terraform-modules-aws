@@ -48,7 +48,8 @@ bash tests/test-workflow-security.sh verbose  # Show detailed output
 **Test Coverage:**
 
 - ✓ GitHub Actions pinned to commit SHAs (actions/checkout, jdx/mise-action, actions/cache)
-- ✓ Environment variables configured (AWS_DEFAULT_REGION, TF_PLUGIN_CACHE_DIR, FORCE_USE_DOCKER)
+- ✓ Environment variables configured (AWS_DEFAULT_REGION, TF_PLUGIN_CACHE_DIR)
+- ✓ shellcheck Docker fallback capability retained (FORCE_USE_DOCKER support in wrapper)
 - ✓ Pre-commit repos pinned to commit SHAs
 - ✓ Version comments present for human readability
 - ✓ Local custom hooks exist and are executable

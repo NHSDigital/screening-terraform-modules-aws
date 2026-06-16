@@ -96,4 +96,3 @@ jobs:
         env:
           AWS_DEFAULT_REGION: eu-west-2
           TF_PLUGIN_CACHE_DIR: ${{ env.HOME }}/.terraform.d/plugin-cache
-          FORCE_USE_DOCKER: "true"

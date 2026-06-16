@@ -106,8 +106,7 @@ repos:
   # --------------------------------------------------------------------------
   # Shell script linting (uses scripts/shellscript-linter.sh; runs natively if
   # shellcheck is on PATH, otherwise falls back to koalaman/shellcheck Docker
-  # image. FORCE_USE_DOCKER=true is set by the CI workflow to ensure Docker is
-  # always used in CI regardless of what is on the runner PATH.)
+  # image. Local and CI follow the same logic so behaviour is consistent.)
   # --------------------------------------------------------------------------
   - repo: local
     hooks:

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # ShellCheck command wrapper. It will run ShellCheck natively if it is
-# installed, otherwise it will run it in a Docker container.
+# installed, otherwise it will try mise-managed ShellCheck, then Docker.
 #
 # Usage:
 #   $ [options] ./shellscript-linter.sh
@@ -23,8 +23,12 @@ function main() {
 
   [ -z "${file:-}" ] && echo "WARNING: 'file' variable not set, defaulting to itself"
   local file=${file:-scripts/shellscript-linter.sh}
+  local mise_bin=""
+  mise_bin="$(find-mise-binary || true)"
   if command -v shellcheck > /dev/null 2>&1 && ! is-arg-true "${FORCE_USE_DOCKER:-false}"; then
     file="$file" run-shellcheck-natively
+  elif [ -n "$mise_bin" ] && ! is-arg-true "${FORCE_USE_DOCKER:-false}"; then
+    MISE_BIN="$mise_bin" file="$file" run-shellcheck-with-mise
   else
     file="$file" run-shellcheck-in-docker
   fi
@@ -37,6 +41,41 @@ function run-shellcheck-natively() {
 
   # shellcheck disable=SC2001
   shellcheck "$(echo "$file" | sed "s#$PWD#.#")"
+}
+
+# Run ShellCheck via mise when shellcheck is not on PATH.
+# Arguments (provided as environment variables):
+#   file=[path to the shell script to lint, relative to the project's top-level directory]
+function run-shellcheck-with-mise() {
+
+  # shellcheck disable=SC2001
+  "$MISE_BIN" x -- shellcheck "$(echo "$file" | sed "s#$PWD#.#")"
+}
+
+# Resolve a real mise binary path suitable for non-interactive hook execution.
+function find-mise-binary() {
+
+  if command -v mise > /dev/null 2>&1; then
+    # `command -v` can return a shell function in interactive shells.
+    local resolved
+    resolved="$(command -v mise)"
+    if [ -x "$resolved" ]; then
+      echo "$resolved"
+      return 0
+    fi
+  fi
+
+  for candidate in \
+    /opt/homebrew/bin/mise \
+    /usr/local/bin/mise \
+    "$HOME/.local/bin/mise"; do
+    if [ -x "$candidate" ]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 # Run ShellCheck in a Docker container.
