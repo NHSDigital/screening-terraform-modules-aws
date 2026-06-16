@@ -5,7 +5,7 @@ Thin NHS wrapper around [terraform-aws-modules/secrets-manager/aws](https://regi
 ## Fixed controls
 
 | Setting | Value | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `block_public_policy` | `true` | Public access to secrets is never permitted |
 
 ## Usage

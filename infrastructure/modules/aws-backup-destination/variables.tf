@@ -65,6 +65,7 @@ variable "changeable_for_days" {
   default     = 14
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "source_vault_arn" {
   type        = string
   description = "Source account vault arn, if set copies back are restricted to only this vault"

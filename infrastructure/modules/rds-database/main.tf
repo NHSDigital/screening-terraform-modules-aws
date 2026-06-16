@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    postgresql = {
-      source  = "cyrilgdn/postgresql"
-      version = ">= 1.25.0"
-    }
-  }
-}
-
 data "aws_secretsmanager_secret" "release_manager_password" {
   name = "${var.name_prefix}-release_manager"
 }

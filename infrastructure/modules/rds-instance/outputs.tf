@@ -14,7 +14,8 @@ output "rds_instance_address" {
 }
 
 output "rds_name" {
-  value = aws_db_instance.rds.identifier
+  description = "Identifier name of the RDS instance."
+  value       = aws_db_instance.rds.identifier
 }
 
 output "rds_instance_id" {

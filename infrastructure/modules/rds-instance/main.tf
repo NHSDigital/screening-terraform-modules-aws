@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    postgresql = {
-      source  = "cyrilgdn/postgresql"
-      version = ">= 1.25.0"
-    }
-  }
-}
-
 resource "random_password" "password" {
   length           = 20
   special          = true
@@ -217,7 +208,7 @@ resource "aws_security_group_rule" "ecs_ingress" {
   description              = "Allow ecs access to rds postgres"
 }
 
-resource "random_string" "final-name" {
+resource "random_string" "final_name" {
   length           = 16
   special          = true
   override_special = "/@£$"

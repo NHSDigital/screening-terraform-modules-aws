@@ -52,6 +52,7 @@ variable "terraform_role_arns" {
   default     = []
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "deletion_allowed_principal_arns" {
   description = "List of ARNs of principals allowed to delete backups."
   type        = list(string)
@@ -196,6 +197,7 @@ variable "iam_role_permissions_boundary" {
   default     = "" # Empty by default
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "api_endpoint" {
   description = "API endpoint to send post build version notifications to"
   type        = string
@@ -226,6 +228,7 @@ variable "lambda_copy_recovery_point_destination_vault_arn" {
   default     = ""
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "api_token" {
   description = "API token to authenticate with the API endpoint"
   type        = string

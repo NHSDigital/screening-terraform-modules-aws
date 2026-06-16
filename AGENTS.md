@@ -15,8 +15,9 @@ At a glance, the main areas are:
 - **`infrastructure/modules/tags/`** – The context/naming/tagging module. All other modules depend on this. Its `exports/context.tf` is copied into consumer stacks and modules.
 - **`.github/workflows/`** – CI/CD pipelines for linting, validation, testing, and releasing modules.
 - **`.github/actions/`** – Composite actions for reusable CI logic.
+- **`scripts/terraform/`** – Terraform tooling helpers: `upgrade-module.sh` refreshes provider locks and documentation across one or all modules.
 - **`scripts/`** – Helper scripts for automation, Docker, Terraform tooling, git hooks, and releases.
-- **`tests/`** – Repository-level test harnesses.
+- **`tests/`** – Repository-level test harnesses including test runners for conventional commits, workflow security, and module upgrades.
 - **`docs/`** – ADRs, developer guides, user guides, and diagrams.
 
 ### Nested AGENTS.md Files
@@ -79,6 +80,7 @@ When proposing a change, agents should:
 
 - Keep code formatted and idiomatic (Terraform HCL, Bash, YAML).
 - Stick to existing patterns — look at compliant modules (`s3-bucket`, `iam`, `secrets-manager`, `kms`) as exemplars.
+- **Run all pre-commit hooks before committing**: `pre-commit run --all-files` (see `.github/skills/pre-commit-hooks.skill.md` for details on each hook).
 - Run `terraform fmt -recursive` before committing.
 - Run `terraform validate` in affected module directories.
 - Lint shell scripts using `shellcheck`.
