@@ -125,6 +125,26 @@ jobs:
               .addRaw('\nExamples: feat(ci): add PR checks, fix(terraform): correct provider version\n')
               .write();
 
+  validation-tests:
+    name: "Validation Tests"
+    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: "Set up mise"
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3.6.3
+
+      - name: "Install pinned tools"
+        shell: bash
+        run: mise install
+
+      - name: "Run validation test suite"
+        shell: bash
+        run: make test-validations
+
   # enforce-pr-title-format: #
   #   name: "Enforce Conventional Commit format"
   #   runs-on: ubuntu-latest
@@ -159,6 +179,7 @@ jobs:
       - metadata
       - coding-standards
       - conventional-commit-advisory
+      - validation-tests
     runs-on: ubuntu-latest
     steps:
       - name: "Check all jobs succeeded"

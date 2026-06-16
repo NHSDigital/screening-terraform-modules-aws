@@ -65,6 +65,7 @@ mise install
 ### Tool Version Source of Truth
 
 Tool versions are maintained in two complementary formats for compatibility:
+
 - **`.tool-versions`** (asdf format) — Legacy format, used by CI/CD workflows and some tooling
 - **`mise.toml`** (TOML format) — Modern mise configuration, with `mise.lock` for reproducible cross-platform builds
 
@@ -79,6 +80,25 @@ make config
 ```
 
 This installs Git hooks, configures the local development environment, and prepares the toolchain.
+
+### Validation Tests
+
+This branch includes comprehensive test coverage for new features:
+
+- **Conventional commit checks** — native bash-based validation script replacing an external dependency
+- **Workflow security** — GitHub Actions and pre-commit hooks pinned to immutable commit SHAs
+- **Tool version sync** — `.tool-versions` and `mise.toml` consistency checks
+
+Run validation tests:
+
+```shell
+make test-validations                   # Run all validations
+make test-commit-validator              # Test conventional commit checks
+make test-workflow-pinning              # Test action/hook pinning
+bash tests/run-all-tests.sh             # Run all tests directly
+```
+
+For more details, see [tests/README.md](tests/README.md).
 
 ## Usage
 
@@ -131,11 +151,22 @@ screening-terraform-modules-aws/
 │       └── ...            # Additional modules
 ├── scripts/               # Helper scripts (linting, hooks, Docker)
 ├── docs/                  # ADRs, developer guides, diagrams
-├── .pre-commit-config.yaml
-├── .generate-providers.sh # Aliased provider generation for validate
+├── .pre-commit-config.yaml # Pre-commit hook definitions
+├── scripts/githooks/generate-terraform-providers.sh # Aliased provider generation for validate
 ├── .tool-versions         # Tool versions (asdf format, legacy)
 ├── mise.toml              # Tool configuration (TOML format)
 ├── mise.lock              # Locked versions for reproducible builds
+├── .github/
+│   └── workflows/
+│       ├── stage-1-pre-commit.yml        # Main CI quality gate
+│       ├── cicd-1-pull-request.yaml      # PR checks
+│       ├── stage-1-coding-standards.yaml # Legacy (kept for rollback)
+│       └── stage-1-commit.yaml           # Legacy (kept for rollback)
+├── tests/                 # Validation tests
+│   ├── test-conventional-commit.sh       # Validator unit tests
+│   ├── test-workflow-security.sh         # Action pinning verification
+│   ├── run-all-tests.sh                  # Test runner
+│   └── README.md                         # Testing documentation
 ├── Makefile
 └── VERSION
 ```
@@ -301,7 +332,7 @@ pre-commit run --all-files
 | `editorconfig-checker` | Enforce `.editorconfig` rules |
 | `markdownlint` | Lint Markdown files |
 | `vale` | Check English prose style |
-| `conventional-pre-commit` | Enforce conventional commit messages |
+| `conventional-commit` | Native bash validation script for conventional commit messages |
 
 ### Conventional commits
 
@@ -314,6 +345,15 @@ type(scope): description
 ```
 
 Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+
+#### Implementation Notes
+
+The `conventional-commit` hook is implemented as a native bash script ([`scripts/githooks/validate-conventional-commit.sh`](scripts/githooks/validate-conventional-commit.sh)) rather than using an external dependency. This provides:
+
+- **Supply chain security** — Eliminates dependency on external pre-commit packages
+- **No Docker overhead** — Pure bash, no container orchestration
+- **Fast validation** — Minimal overhead compared to external tools
+- **Can be audited** — Full source visible, easy to customise
 
 ### Commit message tooling (recommended)
 
@@ -351,7 +391,48 @@ git cz
 ```
 
 > [!TIP]
-> Whichever tool you choose, the `conventional-pre-commit` hook in `.pre-commit-config.yaml` will still validate the final message at commit time, so these tools complement rather than replace the hook.
+> Whichever tool you choose, the `conventional-commit` hook in `.pre-commit-config.yaml` will still validate the final message at commit time, so these tools complement rather than replace the hook.
+
+## Security and Supply Chain
+
+### GitHub Actions Pinning
+
+All GitHub Actions in CI/CD workflows are pinned to immutable commit SHAs rather than version tags, with version comments for human readability:
+
+```yaml
+- uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+- uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3.6.3
+```
+
+This prevents tag relinking attacks and supply chain compromises. Version comments are maintained for readability when reviewing workflows.
+
+### Pre-commit Hook Pinning
+
+All external pre-commit repositories are pinned to commit SHAs:
+
+```yaml
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: d61ded22bf9aa0f757303ebcbb0d6d71c4b54015 # v1.106.0
+```
+
+### Local Hook Implementation
+
+Custom hooks are implemented as local scripts where practical:
+
+- `scripts/githooks/validate-conventional-commit.sh` — Native bash conventional commit validation script
+- `scripts/githooks/generate-terraform-providers.sh` — Local provider alias generator
+
+This reduces external dependencies and improves supply chain security.
+
+### Verification
+
+To verify pinning compliance:
+
+```shell
+make test-workflow-pinning
+bash tests/test-workflow-security.sh verbose
+```
 
 ## Contributing
 
