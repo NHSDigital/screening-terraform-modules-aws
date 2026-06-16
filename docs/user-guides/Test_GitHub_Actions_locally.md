@@ -28,8 +28,10 @@ The following command-line tools are expected to be installed:
 Here is an example on how to run a GitHub workflow job:
 
 ```shell
-make runner-act workflow="stage-1-pre-commit"
+make runner-act workflow="stage-1-coding-standards" job="pre-commit-checks"
 ```
+
+`stage-1-pre-commit.yml` is reusable-only (`workflow_call`) and is normally executed through stage-1 reusable workflows and `cicd-1-pull-request.yaml`.
 
 To run a specific stage-1 report job from the legacy reusable workflow:
 

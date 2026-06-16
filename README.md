@@ -255,6 +255,11 @@ This repository uses [pre-commit](https://pre-commit.com/) to run quality checks
 
 The reusable workflows `stage-1-coding-standards.yaml` and `stage-1-commit.yaml` now call `stage-1-pre-commit.yml` for coding checks. Their legacy per-check jobs are kept disabled for fast rollback.
 
+The PR workflow `cicd-1-pull-request.yaml` also includes:
+
+- a non-blocking Conventional Commit advisory check for all commit messages in the PR
+- a final `all-checks-complete` aggregation job suitable for branch protection
+
 CI tooling versions are resolved from `.tool-versions` (mise or asdf). If `.tool-versions` is not present, the workflow generates it from `.tool-versions.yml` as a fallback.
 
 ### Local setup
