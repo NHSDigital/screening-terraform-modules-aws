@@ -23,8 +23,10 @@ clean:: # Clean-up project resources (main) @Operations
 	# TODO: Implement project resources clean-up step
 
 config:: # Configure development environment (main) @Configuration
-	# TODO: Use only 'make' targets that are specific to this project, e.g. you may not need to install Node.js
-	make _install-dependencies
+	# Install tools from .tool-versions and mise.toml
+	mise install
+	# Install git hooks
+	pre-commit install --install-hooks --hook-type commit-msg
 
 # ==============================================================================
 

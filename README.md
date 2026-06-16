@@ -38,7 +38,7 @@ cd screening-terraform-modules-aws
 
 ### Prerequisites
 
-Tool versions are managed via [mise](https://mise.jdx.dev/). See `.tool-versions` for the pinned versions. The key dependencies are:
+Tool versions are managed via [mise](https://mise.jdx.dev/). See `.tool-versions` for the pinned versions (and `mise.toml` for the TOML configuration). The key dependencies are:
 
 | Tool | Version | Purpose |
 | --- | --- | --- |
@@ -64,11 +64,13 @@ mise install
 
 ### Tool Version Source of Truth
 
-- Primary source: `.tool-versions`
-- Fallback source: `.tool-versions.yml` (used when `.tool-versions` is absent)
+Tool versions are maintained in two complementary formats for compatibility:
+- **`.tool-versions`** (asdf format) — Legacy format, used by CI/CD workflows and some tooling
+- **`mise.toml`** (TOML format) — Modern mise configuration, with `mise.lock` for reproducible cross-platform builds
+
+Both files must be kept in sync. Update `.tool-versions` first, then ensure `mise.toml` is updated accordingly. Run `mise lock` to regenerate the lock file.
 
 Local development and CI both resolve pinned versions from these files through mise.
-The `stage-1-pre-commit.yml` workflow installs tools from `.tool-versions` and generates it from `.tool-versions.yml` when required.
 
 ### Configuration
 
@@ -131,7 +133,9 @@ screening-terraform-modules-aws/
 ├── docs/                  # ADRs, developer guides, diagrams
 ├── .pre-commit-config.yaml
 ├── .generate-providers.sh # Aliased provider generation for validate
-├── .tool-versions         # mise/asdf tool versions
+├── .tool-versions         # Tool versions (asdf format, legacy)
+├── mise.toml              # Tool configuration (TOML format)
+├── mise.lock              # Locked versions for reproducible builds
 ├── Makefile
 └── VERSION
 ```
@@ -259,7 +263,7 @@ The PR workflow `cicd-1-pull-request.yaml` also includes:
 - a non-blocking Conventional Commit advisory check for all commit messages in the PR
 - a final `all-checks-complete` aggregation job suitable for branch protection
 
-CI tooling versions are resolved from `.tool-versions` via mise. If `.tool-versions` is not present, the workflow generates it from `.tool-versions.yml` as a fallback.
+CI tooling versions are resolved from `.tool-versions` via mise. Both `.tool-versions` and `mise.toml` are maintained in sync.
 
 For Terraform-related matrix shards, CI enables `TF_PLUGIN_CACHE_DIR` and caches `~/.terraform.d/plugin-cache` to reduce repeated provider downloads for hooks that initialise Terraform (for example `terraform_validate` and `terraform_tflint`).
 
