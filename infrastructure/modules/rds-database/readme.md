@@ -15,7 +15,7 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.47.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
 | <a name="provider_postgresql"></a> [postgresql](#provider\_postgresql) | 1.26.0 |
 
 ## Modules
