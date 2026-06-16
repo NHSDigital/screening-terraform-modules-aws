@@ -71,7 +71,13 @@ jobs:
       # Run sharded hooks
       # ------------------------------------------------------------------
       - name: "Run pre-commit shard"
-        run: mise x -- pre-commit run --all-files --show-diff-on-failure ${{ matrix.shard.hooks }}
+        shell: bash
+        run: |
+          hooks='${{ matrix.shard.hooks }}'
+          for hook in ${hooks}; do
+            echo "Running hook: ${hook}"
+            mise x -- pre-commit run --all-files --show-diff-on-failure "$hook"
+          done
         env:
           AWS_DEFAULT_REGION: eu-west-2
           FORCE_USE_DOCKER: "true"
