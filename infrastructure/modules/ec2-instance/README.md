@@ -6,7 +6,73 @@ module that consumes the shared `context.tf` for naming and tagging.
 
 ## Usage
 
-TODO
+### Minimal instance
+
+```hcl
+module "app_instance" {
+	source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ec2-instance?ref=main"
+
+	service     = "bcss"
+	project     = "platform"
+	environment = "development"
+	name        = "app"
+
+	ami                    = "ami-0123456789abcdef0"
+	subnet_id              = "subnet-0123456789abcdef0"
+	vpc_security_group_ids = ["sg-0123456789abcdef0"]
+}
+```
+
+### Instance with IAM profile and SSH key
+
+```hcl
+module "ops_instance" {
+	source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ec2-instance?ref=main"
+
+	service     = "bcss"
+	project     = "operations"
+	environment = "test"
+	name        = "ops"
+
+	ami                    = "ami-0123456789abcdef0"
+	instance_type          = "t3.small"
+	subnet_id              = "subnet-0123456789abcdef0"
+	vpc_security_group_ids = ["sg-0123456789abcdef0"]
+
+	iam_instance_profile = "ec2-ops-profile"
+	key_name             = "screening-ops"
+}
+```
+
+### Instance with custom root volume and user data
+
+```hcl
+module "worker_instance" {
+	source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ec2-instance?ref=main"
+
+	service     = "bcss"
+	project     = "batch"
+	environment = "prod"
+	name        = "worker"
+
+	ami                    = "ami-0123456789abcdef0"
+	instance_type          = "t3.medium"
+	subnet_id              = "subnet-0123456789abcdef0"
+	vpc_security_group_ids = ["sg-0123456789abcdef0"]
+
+	root_block_device = {
+		encrypted = true
+		size      = 50
+		type      = "gp3"
+	}
+
+	user_data = <<-EOT
+		#!/bin/bash
+		set -euo pipefail
+		yum update -y
+	EOT
+}
+```
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
