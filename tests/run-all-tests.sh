@@ -35,7 +35,7 @@ echo ""
 # Test 1: Conventional Commit Validator
 echo -e "${BLUE}Running: Conventional Commit Validator Tests${NC}"
 echo "----------------------------------------------------------------------"
-if bash tests/test-conventional-commit.sh ${VERBOSE:-} > /tmp/test-conventional.log 2>&1; then
+if bash tests/test-conventional-commit.sh "${VERBOSE:-}" > /tmp/test-conventional.log 2>&1; then
   cat /tmp/test-conventional.log
   echo -e "${GREEN}✓ Conventional commit tests passed${NC}"
 else
@@ -48,7 +48,7 @@ echo ""
 # Test 2: Workflow Security
 echo -e "${BLUE}Running: Workflow Security Pinning Tests${NC}"
 echo "----------------------------------------------------------------------"
-if bash tests/test-workflow-security.sh ${VERBOSE:-} > /tmp/test-workflow.log 2>&1; then
+if bash tests/test-workflow-security.sh "${VERBOSE:-}" > /tmp/test-workflow.log 2>&1; then
   cat /tmp/test-workflow.log
   echo -e "${GREEN}✓ Workflow security tests passed${NC}"
 else

@@ -38,8 +38,9 @@ if ! [[ "$COMMIT_MSG" =~ ^([a-z]+)(\([a-z0-9_-]+\))?:\ .+ ]]; then
   exit 1
 fi
 
-# Extract type from commit message
-COMMIT_TYPE=$(echo "$COMMIT_MSG" | sed 's/^\([a-z]*\).*/\1/')
+# Extract type from commit message without external tools
+COMMIT_TYPE="${COMMIT_MSG%%:*}"
+COMMIT_TYPE="${COMMIT_TYPE%%(*}"
 
 # Validate that type is in the allowed list
 if ! printf '%s\n' "${ALLOWED_TYPES[@]}" | grep -q "^$COMMIT_TYPE$"; then

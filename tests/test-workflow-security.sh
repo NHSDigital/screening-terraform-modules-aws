@@ -21,7 +21,7 @@ NC='\033[0m'
 check_file_exists() {
   local file="$1"
   if [ ! -f "$file" ]; then
-    printf "${RED}✗${NC} File not found: %s\n" "$file"
+    printf "%b File not found: %s\n" "${RED}✗${NC}" "$file"
     exit 1
   fi
 }
@@ -36,10 +36,10 @@ test_action_pinned() {
   # Find the uses line and check it has a commit SHA (40 hex) and version comment
   if grep -q "uses:.*@[0-9a-f]\{40\}.*#" "$file"; then
     PASSED=$((PASSED + 1))
-    printf "${GREEN}✓${NC}\n"
+    printf "%b\n" "${GREEN}✓${NC}"
   else
     FAILED=$((FAILED + 1))
-    printf "${RED}✗${NC}\n"
+    printf "%b\n" "${RED}✗${NC}"
   fi
 }
 
@@ -53,10 +53,10 @@ test_pattern_exists() {
 
   if grep -q "$pattern" "$file"; then
     PASSED=$((PASSED + 1))
-    printf "${GREEN}✓${NC}\n"
+    printf "%b\n" "${GREEN}✓${NC}"
   else
     FAILED=$((FAILED + 1))
-    printf "${RED}✗${NC}\n"
+    printf "%b\n" "${RED}✗${NC}"
   fi
 }
 
@@ -66,7 +66,7 @@ echo "======================================================================"
 echo ""
 
 # Check stage-1-pre-commit.yml
-printf "${YELLOW}Workflow: .github/workflows/stage-1-pre-commit.yml${NC}\n"
+printf "%b\n" "${YELLOW}Workflow: .github/workflows/stage-1-pre-commit.yml${NC}"
 check_file_exists ".github/workflows/stage-1-pre-commit.yml"
 
 test_action_pinned ".github/workflows/stage-1-pre-commit.yml" "actions/checkout"
@@ -78,7 +78,7 @@ test_pattern_exists ".github/workflows/stage-1-pre-commit.yml" "FORCE_USE_DOCKER
 echo ""
 
 # Check pre-commit configuration
-printf "${YELLOW}Pre-commit Configuration: .pre-commit-config.yaml${NC}\n"
+printf "%b\n" "${YELLOW}Pre-commit Configuration: .pre-commit-config.yaml${NC}"
 check_file_exists ".pre-commit-config.yaml"
 
 test_pattern_exists ".pre-commit-config.yaml" "rev:.*[0-9a-f]\\{40\\}" "Repos pinned to commit SHAs"
@@ -88,28 +88,32 @@ test_pattern_exists ".pre-commit-config.yaml" "scripts/githooks/generate-terrafo
 echo ""
 
 # Check custom hooks exist
-printf "${YELLOW}Custom Hooks: Implementation${NC}\n"
+printf "%b\n" "${YELLOW}Custom Hooks: Implementation${NC}"
 check_file_exists "scripts/githooks/validate-conventional-commit.sh"
 
 if [ -x "scripts/githooks/validate-conventional-commit.sh" ]; then
   PASSED=$((PASSED + 1))
-  printf "%-60s ... ${GREEN}✓${NC}\n" "Validator script is executable"
+  printf "%-60s ... " "Validator script is executable"
+  printf "%b\n" "${GREEN}✓${NC}"
 else
   FAILED=$((FAILED + 1))
-  printf "%-60s ... ${RED}✗${NC}\n" "Validator script is executable"
+  printf "%-60s ... " "Validator script is executable"
+  printf "%b\n" "${RED}✗${NC}"
 fi
 
 if [ -x "scripts/githooks/generate-terraform-providers.sh" ]; then
   PASSED=$((PASSED + 1))
-  printf "%-60s ... ${GREEN}✓${NC}\n" "Provider generator script is executable"
+  printf "%-60s ... " "Provider generator script is executable"
+  printf "%b\n" "${GREEN}✓${NC}"
 else
   FAILED=$((FAILED + 1))
-  printf "%-60s ... ${RED}✗${NC}\n" "Provider generator script is executable"
+  printf "%-60s ... " "Provider generator script is executable"
+  printf "%b\n" "${RED}✗${NC}"
 fi
 echo ""
 
 # Check tool version files
-printf "${YELLOW}Tool Version Files: Consistency${NC}\n"
+printf "%b\n" "${YELLOW}Tool Version Files: Consistency${NC}"
 check_file_exists ".tool-versions"
 check_file_exists "mise.toml"
 check_file_exists "mise.lock"
@@ -122,10 +126,12 @@ if [ -f ".tool-versions" ] && [ -f "mise.toml" ]; then
 
   if [ "$TV_VERSION" = "$MT_VERSION" ]; then
     PASSED=$((PASSED + 1))
-    printf "%-60s ... ${GREEN}✓${NC}\n" "Terraform versions in sync"
+    printf "%-60s ... " "Terraform versions in sync"
+    printf "%b\n" "${GREEN}✓${NC}"
   else
     FAILED=$((FAILED + 1))
-    printf "%-60s ... ${RED}✗${NC}\n" "Terraform versions in sync"
+    printf "%-60s ... " "Terraform versions in sync"
+    printf "%b\n" "${RED}✗${NC}"
     printf "  .tool-versions: %s, mise.toml: %s\n" "$TV_VERSION" "$MT_VERSION"
   fi
 fi
@@ -138,15 +144,15 @@ echo ""
 echo "======================================================================"
 echo "Test Summary"
 echo "======================================================================"
-printf "Passed: ${GREEN}%d${NC}\n" "$PASSED"
-printf "Failed: ${RED}%d${NC}\n" "$FAILED"
+printf "Passed: %b\n" "${GREEN}${PASSED}${NC}"
+printf "Failed: %b\n" "${RED}${FAILED}${NC}"
 printf "Total:  %d\n" $((PASSED + FAILED))
 echo ""
 
 if [ $FAILED -eq 0 ]; then
-  printf "${GREEN}✓ All security checks passed!${NC}\n"
+  printf "%b\n" "${GREEN}✓ All security checks passed!${NC}"
   exit 0
 else
-  printf "${RED}✗ Some checks failed!${NC}\n"
+  printf "%b\n" "${RED}✗ Some checks failed!${NC}"
   exit 1
 fi
