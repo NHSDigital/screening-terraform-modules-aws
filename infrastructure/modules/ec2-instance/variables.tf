@@ -11,6 +11,83 @@ variable "ami" {
   default     = null
 }
 
+variable "ami_ssm_parameter" {
+  description = "SSM parameter name for the AMI ID. For Amazon Linux AMI SSM parameters see https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-public-parameters-ami.html"
+  type        = string
+  default     = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+}
+
+variable "associate_public_ip_address" {
+  description = "Whether to associate a public IP address with an instance in a VPC"
+  type        = bool
+  default     = null
+}
+
+variable "availability_zone" {
+  description = "The AZ to start the instance in"
+  type        = string
+  default     = null
+}
+
+variable "capacity_reservation_specification" {
+  description = "Describes an instance's Capacity Reservation targeting option"
+  type = object({
+    capacity_reservation_preference = optional(string)
+    capacity_reservation_target = optional(object({
+      capacity_reservation_id                 = optional(string)
+      capacity_reservation_resource_group_arn = optional(string)
+    }))
+  })
+  default = null
+}
+
+variable "cpu_credits" {
+  description = "The credit option for CPU usage (unlimited or standard)"
+  type        = string
+  default     = null
+}
+
+variable "cpu_options" {
+  description = "Defines CPU options to apply to the instance at launch time."
+  type = object({
+    amd_sev_snp           = optional(string)
+    core_count            = optional(number)
+    nested_virtualization = optional(string)
+    threads_per_core      = optional(number)
+  })
+  default = null
+}
+
+variable "create_eip" {
+  description = "Determines whether a public EIP will be created and associated with the instance."
+  type        = bool
+  default     = false
+}
+
+variable "create_iam_instance_profile" {
+  description = "Determines whether an IAM instance profile is created or to use an existing IAM instance profile"
+  type        = bool
+  default     = false
+}
+
+variable "create_security_group" {
+  description = "Determines whether a security group will be created"
+  type        = bool
+  default     = true
+}
+
+variable "create_spot_instance" {
+  description = "Depicts if the instance is a spot instance"
+  type        = bool
+  default     = false
+}
+
+variable "disable_api_stop" {
+  description = "If true, enables EC2 Instance Stop Protection"
+  type        = bool
+  default     = null
+}
+
 variable "disable_api_termination" {
   description = "If true, enables EC2 Instance Termination Protection"
   type        = bool
