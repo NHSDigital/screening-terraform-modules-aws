@@ -51,7 +51,7 @@ rule "terraform_standard_module_structure" {
   enabled = true
   }
 
-# Below rules are disbaled in favour of the rules in the recommended preset, which are more comprehensive and cover more cases.
+# Below rules are disabled in favour of the rules in the recommended preset, which are more comprehensive and cover more cases.
 # rule "terraform_deprecated_interpolation" {
 #   enabled = true
 #   }
