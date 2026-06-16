@@ -78,7 +78,11 @@ module "ec2_instance" {
   spot_wait_for_fulfillment            = var.spot_wait_for_fulfillment
   subnet_id                            = var.subnet_id
   spot_launch_group                    = var.spot_launch_group
+  tenancy                              = var.tenancy
+  timeouts                             = var.timeouts
   user_data                            = var.user_data
-  user_data_replace_on_change          = false
+  user_data_base64                     = var.user_data_base64
+  user_data_replace_on_change          = var.user_data_replace_on_change
+  volume_tags                          = var.volume_tags
   vpc_security_group_ids               = var.vpc_security_group_ids
 }
