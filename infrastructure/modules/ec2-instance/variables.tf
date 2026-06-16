@@ -345,6 +345,46 @@ variable "network_interface" {
   default = null
 }
 
+variable "placement_group" {
+  description = "The Placement Group to start the instance in"
+  type        = string
+  default     = null
+}
+
+variable "placement_group_id" {
+  description = "Placement Group ID to start the instance in"
+  type        = string
+  default     = null
+}
+
+variable "placement_partition_number" {
+  description = "Number of the partition the instance is in. Valid only if the `aws_placement_group` resource's `strategy` argument is set to `partition`"
+  type        = number
+  default     = null
+}
+
+variable "private_dns_name_options" {
+  description = "Customize the private DNS name options of the instance"
+  type = object({
+    enable_resource_name_dns_aaaa_record = optional(bool)
+    enable_resource_name_dns_a_record    = optional(bool)
+    hostname_type                        = optional(string)
+  })
+  default = null
+}
+
+variable "private_ip" {
+  description = "The private IP address to associate with the instance in a VPC"
+  type        = string
+  default     = null
+}
+
+variable "region" {
+  description = "Region where the resource(s) will be managed. Defaults to the Region set in the provider configuration"
+  type        = string
+  default     = null
+}
+
 variable "root_block_device" {
   description = "Customize details about the root block device of the instance"
   type = object({

@@ -53,6 +53,12 @@ module "ec2_instance" {
   metadata_options                     = var.metadata_options
   monitoring                           = var.monitoring
   network_interface                    = var.network_interface
+  placement_group                      = var.placement_group
+  placement_group_id                   = var.placement_group_id
+  placement_partition_number           = var.placement_partition_number
+  private_dns_name_options             = var.private_dns_name_options
+  private_ip                           = var.private_ip
+  region                               = var.region
   root_block_device                    = var.root_block_device
   subnet_id                            = var.subnet_id
   user_data                            = var.user_data
