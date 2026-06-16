@@ -4,6 +4,7 @@
 # Tests include:
 #   - Conventional commit validator functionality
 #   - GitHub Actions workflow security (action pinning, env vars)
+#   - Terraform module upgrade helper behaviour
 #   - Pre-commit configuration consistency
 #   - Tool version file synchronization
 #
@@ -58,6 +59,19 @@ else
 fi
 echo ""
 
+# Test 3: Terraform Module Upgrade Helper
+echo -e "${BLUE}Running: Terraform Module Upgrade Helper Tests${NC}"
+echo "----------------------------------------------------------------------"
+if bash tests/test-module-upgrade.sh "${VERBOSE:-}" > /tmp/test-module-upgrade.log 2>&1; then
+  cat /tmp/test-module-upgrade.log
+  echo -e "${GREEN}✓ Terraform module upgrade helper tests passed${NC}"
+else
+  cat /tmp/test-module-upgrade.log
+  echo -e "${RED}✗ Terraform module upgrade helper tests failed${NC}"
+  TOTAL_FAILED=$((TOTAL_FAILED + 1))
+fi
+echo ""
+
 # Final summary
 echo "======================================================================"
 echo "Test Suite Summary"
@@ -69,6 +83,7 @@ if [ $TOTAL_FAILED -eq 0 ]; then
   echo "Ready for commit and PR:"
   echo "  - Conventional commits validated with native bash hook"
   echo "  - GitHub Actions pinned to immutable commit SHAs"
+  echo "  - Terraform module upgrade helper verified"
   echo "  - Pre-commit configuration verified for consistency"
   echo "  - Tool versions synchronized across .tool-versions and mise.toml"
   exit 0

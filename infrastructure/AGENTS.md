@@ -102,7 +102,7 @@ Every module includes a `context.tf` file copied from `infrastructure/modules/ta
 - `module.this.id` – Generated resource name (e.g., `bcss-test-account-default-my-resource`)
 - `module.this.tags` – Standard tag map with all NHS-required labels
 - `module.this.context` – Full context object passable to child modules
-- `module.this.enabled` – Boolean creation gate
+- `module.this.enabled` – boolean creation gate
 - `module.this.environment`, `module.this.service`, etc. – Individual label accessors
 
 ### Rules for context.tf

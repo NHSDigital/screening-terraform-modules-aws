@@ -133,6 +133,22 @@ terraform -chdir=infrastructure/modules/s3-bucket validate
 pre-commit run --all-files
 ```
 
+### Refreshing provider locks and documentation
+
+Use the upgrade helper to refresh a single module after dependency changes:
+
+```shell
+./scripts/terraform/upgrade-module.sh infrastructure/modules/vpc
+```
+
+To refresh every module in the repository, use:
+
+```shell
+./scripts/terraform/upgrade-module.sh update-all
+```
+
+repo-wide mode warns before it starts because it iterates every module under `infrastructure/modules`.
+
 ## Design
 
 ### Repository structure
