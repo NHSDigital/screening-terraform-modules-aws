@@ -11,18 +11,6 @@ variable "ami" {
   default     = null
 }
 
-variable "instance_type" {
-  description = "The type of instance to start"
-  type        = string
-  default     = "t3.micro"
-}
-
-variable "key_name" {
-  description = "Name of the Key Pair to use for the instance; which can be managed using the `aws_key_pair` resource"
-  type        = string
-  default     = null
-}
-
 variable "disable_api_termination" {
   description = "If true, enables EC2 Instance Termination Protection"
   type        = bool
@@ -35,28 +23,34 @@ variable "ebs_optimized" {
   default     = null
 }
 
-variable "subnet_id" {
-  description = "The VPC Subnet ID to launch in"
-  type        = string
-  default     = null
-}
-
-variable "vpc_security_group_ids" {
-  description = "List of VPC Security Group IDs to associate with"
-  type        = list(string)
-  default     = []
-}
-
 variable "iam_instance_profile" {
   description = "IAM Instance Profile to launch the instance with. Specified as the name of the Instance Profile"
   type        = string
   default     = null
 }
 
-variable "user_data" {
-  description = "The user data to provide when launching the instance. Do not pass gzip-compressed data via this argument"
+variable "instance_type" {
+  description = "The type of instance to start"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "key_name" {
+  description = "Name of the Key Pair to use for the instance; which can be managed using the `aws_key_pair` resource"
   type        = string
   default     = null
+}
+
+variable "metadata_options" {
+  description = "Customize the metadata options of the instance"
+  type = object({
+    http_endpoint               = optional(string, "enabled")
+    http_protocol_ipv6          = optional(string)
+    http_put_response_hop_limit = optional(number, 1)
+    http_tokens                 = optional(string, "required")
+    instance_metadata_tags      = optional(string)
+  })
+  default = {}
 }
 
 variable "root_block_device" {
@@ -74,14 +68,20 @@ variable "root_block_device" {
   default = null
 }
 
-variable "metadata_options" {
-  description = "Customize the metadata options of the instance"
-  type = object({
-    http_endpoint               = optional(string, "enabled")
-    http_protocol_ipv6          = optional(string)
-    http_put_response_hop_limit = optional(number, 1)
-    http_tokens                 = optional(string, "required")
-    instance_metadata_tags      = optional(string)
-  })
-  default = {}
+variable "subnet_id" {
+  description = "The VPC Subnet ID to launch in"
+  type        = string
+  default     = null
+}
+
+variable "user_data" {
+  description = "The user data to provide when launching the instance. Do not pass gzip-compressed data via this argument"
+  type        = string
+  default     = null
+}
+
+variable "vpc_security_group_ids" {
+  description = "List of VPC Security Group IDs to associate with"
+  type        = list(string)
+  default     = []
 }
