@@ -162,9 +162,21 @@ repos:
   # --------------------------------------------------------------------------
   # Conventional Commits (commit message format)
   # --------------------------------------------------------------------------
-  - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: 91ab4bf57e58b32adf1a122681f6ebe164d081c8 # v4.4.0
+  # Replaced external compilerla/conventional-pre-commit with native bash validator
+  # to avoid external dependencies. Uses scripts/githooks/validate-conventional-commit.sh
+  # instead.
+  #
+  # Original:
+  #   - repo: https://github.com/compilerla/conventional-pre-commit
+  #     rev: 91ab4bf57e58b32adf1a122681f6ebe164d081c8 # v4.4.0
+  #     hooks:
+  #       - id: conventional-pre-commit
+  #         stages: [commit-msg]
+  #         args: [--strict, feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+  - repo: local
     hooks:
-      - id: conventional-pre-commit
+      - id: conventional-commit
+        name: Conventional Commit format check
+        entry: scripts/githooks/validate-conventional-commit.sh
+        language: script
         stages: [commit-msg]
-        args: [--strict, feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
