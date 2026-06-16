@@ -400,6 +400,147 @@ variable "root_block_device" {
   default = null
 }
 
+variable "secondary_network_interface" {
+  description = "Customize secondary network interfaces to be attached to the EC2 instance"
+  type = map(object({
+    delete_on_termination    = optional(bool)
+    device_index             = optional(number) # Will fall back to use map key as device index
+    interface_type           = optional(string)
+    network_card_index       = number
+    private_ip_address_count = optional(number)
+    private_ip_addresses     = optional(list(string))
+    secondary_subnet_id      = string
+  }))
+  default = null
+}
+
+variable "secondary_private_ips" {
+  description = "A list of secondary private IPv4 addresses to assign to the instance's primary network interface (eth0) in a VPC. Can only be assigned to the primary network interface (eth0) attached at instance creation, not a pre-existing network interface i.e. referenced in a `network_interface block`"
+  type        = list(string)
+  default     = null
+}
+
+variable "security_group_description" {
+  description = "Description of the security group"
+  type        = string
+  default     = null
+}
+
+variable "security_group_egress_rules" {
+  description = "Egress rules to add to the security group"
+  type = map(object({
+    cidr_ipv4                    = optional(string)
+    cidr_ipv6                    = optional(string)
+    description                  = optional(string)
+    from_port                    = optional(number)
+    ip_protocol                  = optional(string, "tcp")
+    prefix_list_id               = optional(string)
+    referenced_security_group_id = optional(string)
+    tags                         = optional(map(string), {})
+    to_port                      = optional(number)
+  }))
+  default = {
+    "ipv4_default" : {
+      "cidr_ipv4" : "0.0.0.0/0",
+      "description" : "Allow all IPv4 traffic",
+      "ip_protocol" : "-1"
+    },
+    "ipv6_default" : {
+      "cidr_ipv6" : "::/0",
+      "description" : "Allow all IPv6 traffic",
+      "ip_protocol" : "-1"
+    }
+  }
+}
+
+variable "security_group_ingress_rules" {
+  description = "Ingress rules to add to the security group"
+  type = map(object({
+    cidr_ipv4                    = optional(string)
+    cidr_ipv6                    = optional(string)
+    description                  = optional(string)
+    from_port                    = optional(number)
+    ip_protocol                  = optional(string, "tcp")
+    prefix_list_id               = optional(string)
+    referenced_security_group_id = optional(string)
+    tags                         = optional(map(string), {})
+    to_port                      = optional(number)
+  }))
+  default = null
+}
+
+variable "security_group_name" {
+  description = "Name to use on security group created"
+  type        = string
+  default     = null
+}
+
+variable "security_group_tags" {
+  description = "A map of additional tags to add to the security group created"
+  type        = map(string)
+  default     = {}
+}
+
+variable "security_group_use_name_prefix" {
+  description = "Determines whether the security group name (`security_group_name` or `name`) is used as a prefix"
+  type        = bool
+  default     = true
+}
+
+variable "security_group_vpc_id" {
+  description = "VPC ID to create the security group in. If not set, the security group will be created in the default VPC"
+  type        = string
+  default     = null
+}
+
+variable "source_dest_check" {
+  description = "Controls if traffic is routed to the instance when the destination address does not match the instance. Used for NAT or VPNs"
+  type        = bool
+  default     = null
+}
+
+variable "spot_instance_interruption_behavior" {
+  description = "Indicates Spot instance behavior when it is interrupted. Valid values are `terminate`, `stop`, or `hibernate`"
+  type        = string
+  default     = null
+}
+
+variable "spot_launch_group" {
+  description = "A launch group is a group of spot instances that launch together and terminate together. If left empty instances are launched and terminated individually"
+  type        = string
+  default     = null
+}
+
+variable "spot_price" {
+  description = "The maximum price to request on the spot market. Defaults to on-demand price"
+  type        = string
+  default     = null
+}
+
+variable "spot_type" {
+  description = "If set to one-time, after the instance is terminated, the spot request will be closed. Default `persistent`"
+  type        = string
+  default     = null
+}
+
+variable "spot_valid_from" {
+  description = "The start date and time of the request, in UTC RFC3339 format(for example, YYYY-MM-DDTHH:MM:SSZ)"
+  type        = string
+  default     = null
+}
+
+variable "spot_valid_until" {
+  description = "The end date and time of the request, in UTC RFC3339 format(for example, YYYY-MM-DDTHH:MM:SSZ)"
+  type        = string
+  default     = null
+}
+
+variable "spot_wait_for_fulfillment" {
+  description = "If set, Terraform will wait for the Spot Request to be fulfilled, and will throw an error if the timeout of 10m is reached"
+  type        = bool
+  default     = null
+}
+
 variable "subnet_id" {
   description = "The VPC Subnet ID to launch in"
   type        = string
