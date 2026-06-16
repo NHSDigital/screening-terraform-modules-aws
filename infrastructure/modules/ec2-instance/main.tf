@@ -48,8 +48,11 @@ module "ec2_instance" {
   ipv6_address_count                   = var.ipv6_address_count
   ipv6_addresses                       = var.ipv6_addresses
   key_name                             = var.key_name
+  launch_template                      = var.launch_template
+  maintenance_options                  = var.maintenance_options
   metadata_options                     = var.metadata_options
-  monitoring                           = true
+  monitoring                           = var.monitoring
+  network_interface                    = var.network_interface
   root_block_device                    = var.root_block_device
   subnet_id                            = var.subnet_id
   user_data                            = var.user_data

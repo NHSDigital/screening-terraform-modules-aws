@@ -298,6 +298,24 @@ variable "key_name" {
   default     = null
 }
 
+variable "launch_template" {
+  description = "Specifies a Launch Template to configure the instance. Parameters configured on this resource will override the corresponding parameters in the Launch Template"
+  type = object({
+    id      = optional(string)
+    name    = optional(string)
+    version = optional(string)
+  })
+  default = null
+}
+
+variable "maintenance_options" {
+  description = "The maintenance options for the instance"
+  type = object({
+    auto_recovery = optional(string)
+  })
+  default = null
+}
+
 variable "metadata_options" {
   description = "Customize the metadata options of the instance"
   type = object({
@@ -308,6 +326,23 @@ variable "metadata_options" {
     instance_metadata_tags      = optional(string)
   })
   default = {}
+}
+
+variable "monitoring" {
+  description = "If true, the launched EC2 instance will have detailed monitoring enabled"
+  type        = bool
+  default     = null
+}
+
+variable "network_interface" {
+  description = "Customize network interfaces to be attached at instance boot time"
+  type = map(object({
+    delete_on_termination = optional(bool)
+    device_index          = optional(number) # Will fall back to use map key as device index
+    network_card_index    = optional(number)
+    network_interface_id  = string
+  }))
+  default = null
 }
 
 variable "root_block_device" {
