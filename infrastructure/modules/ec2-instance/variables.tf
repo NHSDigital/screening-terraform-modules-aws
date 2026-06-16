@@ -200,10 +200,96 @@ variable "iam_instance_profile" {
   default     = null
 }
 
+variable "iam_role_description" {
+  description = "Description of the role"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_name" {
+  description = "Name to use on IAM role created"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_path" {
+  description = "IAM role path"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_permissions_boundary" {
+  description = "ARN of the policy that is used to set the permissions boundary for the IAM role"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_policies" {
+  description = "Policies attached to the IAM role"
+  type        = map(string)
+  default     = {}
+}
+
+variable "iam_role_tags" {
+  description = "A map of additional tags to add to the IAM role/profile created"
+  type        = map(string)
+  default     = {}
+}
+
+variable "iam_role_use_name_prefix" {
+  description = "Determines whether the IAM role name (`iam_role_name` or `name`) is used as a prefix"
+  type        = bool
+  default     = true
+}
+
+variable "ignore_ami_changes" {
+  description = "Whether changes to the AMI ID changes should be ignored by Terraform. Note - changing this value will result in the replacement of the instance"
+  type        = bool
+  default     = false
+}
+
+variable "instance_initiated_shutdown_behavior" {
+  description = "Shutdown behavior for the instance. Amazon defaults this to stop for EBS-backed instances and terminate for instance-store instances. Cannot be set on instance-store instance"
+  type        = string
+  default     = null
+}
+
+variable "instance_market_options" {
+  description = "The market (purchasing) option for the instance. If set, overrides the `create_spot_instance` variable"
+  type = object({
+    market_type = optional(string)
+    spot_options = optional(object({
+      instance_interruption_behavior = optional(string)
+      max_price                      = optional(string)
+      spot_instance_type             = optional(string)
+      valid_until                    = optional(string)
+    }))
+  })
+  default = null
+}
+
+variable "instance_tags" {
+  description = "Additional tags for the instance"
+  type        = map(string)
+  default     = {}
+}
+
 variable "instance_type" {
   description = "The type of instance to start"
   type        = string
   default     = "t3.micro"
+}
+
+variable "ipv6_address_count" {
+  description = "A number of IPv6 addresses to associate with the primary network interface. Amazon EC2 chooses the IPv6 addresses from the range of your subnet"
+  type        = number
+  default     = null
+}
+
+variable "ipv6_addresses" {
+  description = "Specify one or more IPv6 addresses from the range of the subnet to associate with the primary network interface"
+  type        = list(string)
+  default     = null
 }
 
 variable "key_name" {
