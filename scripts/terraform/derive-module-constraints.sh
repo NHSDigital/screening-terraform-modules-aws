@@ -87,7 +87,7 @@ for module_dir in "$modules_root"/*; do
 
   modules_json="$module_dir/.terraform/modules/modules.json"
   if [[ -f "$modules_json" ]]; then
-    while IFS='|' read -r dep_key dep_source dep_dir; do
+    while IFS='|' read -r dep_key _dep_source dep_dir; do
       [[ -n "$dep_key" ]] || continue
       [[ "$dep_key" == "" || "$dep_key" == "this" ]] && continue
       [[ "$dep_dir" == "." ]] && continue
