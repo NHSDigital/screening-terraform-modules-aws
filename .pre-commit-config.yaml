@@ -107,7 +107,7 @@ repos:
   # Shell script linting
   # --------------------------------------------------------------------------
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
+    rev: a23f6b85d0fdd5bb9d564e2579e678033debbdff # v0.10.0.1
     hooks:
       - id: shellcheck
         args: [--severity=warning]
@@ -158,7 +158,7 @@ repos:
   # Conventional Commits (commit message format)
   # --------------------------------------------------------------------------
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.4.0
+    rev: 91ab4bf57e58b32adf1a122681f6ebe164d081c8 # v4.4.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
