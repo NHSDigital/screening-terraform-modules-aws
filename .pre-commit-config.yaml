@@ -116,9 +116,10 @@ repos:
   # --------------------------------------------------------------------------
   # Repository githook wrappers (native tool if available, Docker fallback)
   # --------------------------------------------------------------------------
-  # TODO: Consider replacing these with the pre-commit hooks in .github/workflows/stage-1-commit.yaml and .github/workflows/stage-1-coding-standards.yaml, which are more efficient and run in parallel.
-  # The pre-commit hooks here are slower because they run in a single job and cannot be parallelized.
-  # Could we plug in scripts/config/pre-commit.yaml to the pre-commit hooks in .github/workflows/stage-1-commit.yaml and .github/workflows/stage-1-coding-standards.yaml?
+  # TODO: Keep this file as the single source of truth for checks and tune CI by
+  # sharding pre-commit hook execution in a matrix (instead of duplicating checks
+  # across standalone workflows). Keep terraform_validate and terraform_docs in the
+  # same shard because docs generation relies on init/validation context.
   - repo: local
     hooks:
       - id: check-file-format
