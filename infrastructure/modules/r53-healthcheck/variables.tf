@@ -1,8 +1,10 @@
 variable "environment" {
+  type        = string
   description = "the environment the healthcheck is deployed into"
 }
 
 variable "name_prefix" {
+  type        = string
   description = "the name prefix for the healthcheck"
 }
 
