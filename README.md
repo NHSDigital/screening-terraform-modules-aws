@@ -38,7 +38,7 @@ cd screening-terraform-modules-aws
 
 ### Prerequisites
 
-Tool versions are managed via [mise](https://mise.jdx.dev/) (or [asdf](https://asdf-vm.com/) as a fallback). See `.tool-versions` for the pinned versions. The key dependencies are:
+Tool versions are managed via [mise](https://mise.jdx.dev/). See `.tool-versions` for the pinned versions. The key dependencies are:
 
 | Tool | Version | Purpose |
 | --- | --- | --- |
@@ -57,7 +57,6 @@ Install all tool versions:
 
 ```shell
 mise install
-# or: asdf install
 ```
 
 > [!NOTE]
@@ -68,7 +67,7 @@ mise install
 - Primary source: `.tool-versions`
 - Fallback source: `.tool-versions.yml` (used when `.tool-versions` is absent)
 
-Local development and CI both resolve pinned versions from these files through mise or asdf.
+Local development and CI both resolve pinned versions from these files through mise.
 The `stage-1-pre-commit.yml` workflow installs tools from `.tool-versions` and generates it from `.tool-versions.yml` when required.
 
 ### Configuration

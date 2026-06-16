@@ -1,0 +1,6 @@
+[tools]
+node = "24.16.0"
+
+[settings]
+lockfile = true
+disable_backends = ["asdf"]

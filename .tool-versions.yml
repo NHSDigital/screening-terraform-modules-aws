@@ -1,6 +1,7 @@
 infrastructure:
   terraform: 1.13.2
   terraform-docs: 0.24.0
+  go:github.com/hashicorp/terraform-config-inspect: latest
   pre-commit: 4.6.0
   python: 3.12
   vale: 3.6.0
