@@ -1,16 +1,16 @@
-# ADR-XXX: Agree CI/CD pipeline structure
+# ADR-004: Agree CI/CD pipeline structure
 
 | | |
 | --- | --- |
 | Date | `dd/mm/YYYY` _when the decision was last updated_ |
-| Status | `RFC by dd/mm/YYYY, Proposed, In Discussion, Pending Approval, Withdrawn, Rejected, Accepted, Deprecated, ..., Superseded by ADR-XXX or Supersedes ADR-XXX` |
+| Status | `Superseded by ADR-005` |
 | Deciders | `Tech Radar, Engineering, Architecture, Solution Assurance, Clinical Assurance, Technical Review and Governance, Information Governance, Cyber Security, Live Services Board,` ... |
 | Significance | `Structure, Nonfunctional characteristics, Dependencies, Interfaces, Construction techniques,` ... |
 | Owners | |
 
 ---
 
-- [ADR-XXX: Agree CI/CD pipeline structure](#adr-xxx-agree-cicd-pipeline-structure)
+- [ADR-004: Agree CI/CD pipeline structure](#adr-004-agree-cicd-pipeline-structure)
   - [Context](#context)
   - [Decision](#decision)
     - [Assumptions](#assumptions)
@@ -25,6 +25,8 @@
   - [Tags](#tags)
 
 ## Context
+
+This ADR has been superseded by [ADR-005](./ADR-005_Centralise_CI_coding_checks_with_pre_commit_and_aggregated_PR_status.md), which captures the currently implemented CI/CD quality-gate structure and workflow orchestration decisions.
 
 Describe the context and the problem statement. Is there a relationship to other decisions previously made? Are there any dependencies and/or constraints within which the decision will be made? Do these need to be reviewed or validated? Please note that environmental limitations or restrictions such as accepted technology standards, commonly recognised and used patterns, engineering and architecture principles, organisation policies, governance and so on, may as an effect narrow down the choices. This should also be explicitly documented, as this is a point-in-time decision with the intention of being able to articulate it clearly and justify it later.
 
