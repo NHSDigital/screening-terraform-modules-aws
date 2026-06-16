@@ -22,6 +22,7 @@
 #
 
 module "this" {
+  # tflint-ignore: terraform_module_pinned_source
   source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags"
 
   enabled             = var.enabled
