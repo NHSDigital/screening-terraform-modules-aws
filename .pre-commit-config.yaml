@@ -48,17 +48,17 @@ repos:
         - --args=-no-color
         - --args=-diff
         - --args=-recursive
-      - id: terraform_tflint
-        # exclude: ^infrastructure/modules/(aws-backup-destination|aws-backup-source)/
-        args:
-        - '--args=--config=__GIT_WORKING_DIR__/scripts/config/.tflint.hcl'
       - id: terraform_validate
         args:
           - --args=-json
           - --args=-no-color
-          - --env-vars=AWS_DEFAULT_REGION="eu-west-2"
+          - --env-vars=AWS_DEFAULT_REGION=eu-west-2
           - --tf-init-args=-reconfigure
           - --hook-config=--retry-once-with-cleanup=true
+      - id: terraform_tflint
+        # exclude: ^infrastructure/modules/(aws-backup-destination|aws-backup-source)/
+        args:
+        - '--args=--config=__GIT_WORKING_DIR__/scripts/config/.tflint.hcl'
       - id: terraform_docs
         args:
           - '--args=--lockfile=true'
