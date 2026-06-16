@@ -19,9 +19,32 @@ concurrency:
 
 jobs:
   pre-commit:
-    name: "Run pre-commit hooks"
+    name: "Run pre-commit hooks (${{ matrix.shard.name }})"
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - name: "general-hygiene"
+            hooks: >-
+              check-added-large-files check-merge-conflict check-vcs-permalinks
+              forbid-new-submodules no-commit-to-branch end-of-file-fixer
+              trailing-whitespace check-yaml check-executables-have-shebangs
+              check-case-conflict mixed-line-ending detect-aws-credentials
+              detect-private-key
+          - name: "shell-and-content"
+            hooks: >-
+              shellcheck check-file-format check-markdown-format
+              check-english-usage scan-secrets
+          - name: "terraform-format-lint"
+            hooks: >-
+              generate-terraform-providers terraform_fmt terraform_tflint
+              check-terraform-format
+          - name: "terraform-validate-docs-lock"
+            hooks: >-
+              generate-terraform-providers terraform_validate terraform_docs
+              terraform_providers_lock
     steps:
       - name: "Checkout code"
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -48,10 +71,10 @@ jobs:
           mise ls
 
       # ------------------------------------------------------------------
-      # Run all hooks
+      # Run sharded hooks
       # ------------------------------------------------------------------
-      - name: "Run pre-commit (all files)"
-        run: mise x -- pre-commit run --all-files --show-diff-on-failure
+      - name: "Run pre-commit shard"
+        run: mise x -- pre-commit run --all-files --show-diff-on-failure ${{ matrix.shard.hooks }}
         env:
           AWS_DEFAULT_REGION: eu-west-2
           FORCE_USE_DOCKER: "true"

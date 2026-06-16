@@ -59,11 +59,6 @@ repos:
           - --env-vars=AWS_DEFAULT_REGION="eu-west-2"
           - --tf-init-args=-reconfigure
           - --hook-config=--retry-once-with-cleanup=true
-      - id: terraform_providers_lock
-        args:
-          - --hook-config=--mode=check-lockfile-is-cross-platform
-          # - --hook-config=--mode=always-regenerate-lockfile
-          - --hook-config=--mode=regenerate-lockfile-if-some-platform-missed
       - id: terraform_docs
         args:
           - '--args=--lockfile=true'
@@ -72,6 +67,11 @@ repos:
           - --hook-config=--create-file-if-not-exist=false
           - '--hook-config=--custom-marker-begin=<!-- vale off -->\n<!-- markdownlint-disable -->\n<!-- BEGIN_TF_DOCS -->'
           - '--hook-config=--custom-marker-end=<!-- END_TF_DOCS -->\n<!-- markdownlint-restore -->\n<!-- vale on -->'
+      - id: terraform_providers_lock
+        args:
+          - --hook-config=--mode=check-lockfile-is-cross-platform
+          # - --hook-config=--mode=always-regenerate-lockfile
+          - --hook-config=--mode=regenerate-lockfile-if-some-platform-missed
 
   # --------------------------------------------------------------------------
   # General file hygiene
