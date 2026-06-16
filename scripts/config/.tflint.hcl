@@ -91,4 +91,3 @@ rule "terraform_standard_module_structure" {
 # rule "terraform_workspace_remote" {
 #   enabled = true
 #   }
-
