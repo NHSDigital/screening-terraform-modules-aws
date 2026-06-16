@@ -11,6 +11,7 @@ backup_copy_vault_account_id
 backup_vault_name
 batch_id
 Bitwarden
+boolean
 bot
 branchType
 buildDir
@@ -21,6 +22,7 @@ callrecall
 [Cc]ron
 checkdigit
 Concat
+commitlint
 config
 Cyber
 [Dd]ebounced
@@ -29,6 +31,7 @@ Dockerfile
 domain_name_prefix
 en
 full[Bb]uild
+Fargate
 function_name
 [Gg][Pp]
 GitHub
@@ -41,6 +44,7 @@ idempotence
 iam
 itterate
 Jira
+jq
 jQuery
 lambda_function
 lambda_layer
@@ -72,7 +76,9 @@ role_name
 [Ss]martcard
 [Ss]onarcloud
 [Ss]ql
+Splunk
 sed
+shellcheck
 shortcode
 source_account_name
 stage_name
@@ -81,7 +87,9 @@ subnet
 Syft
 [Tt]eardown
 [Tt]erraform
+terraform-docs
 [Tt]utum
+tflint
 terraform-aws-modules
 toolchain
 tracing_mode

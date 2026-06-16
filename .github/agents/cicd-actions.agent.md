@@ -25,6 +25,7 @@ This repository contains reusable Terraform modules. CI/CD is responsible for:
 3. Static analysis with `tflint`.
 4. Secret scanning and security checks.
 5. Automated releases and versioning.
+6. Running repository-level tests (conventional commits, workflow security, module upgrades).
 
 ## Conventions
 
@@ -49,6 +50,17 @@ This repository contains reusable Terraform modules. CI/CD is responsible for:
 - Release tags (e.g., `v3.0.0`) are used by consumers to pin module versions.
 - Breaking changes require major version bumps.
 
+## Testing
+
+Repository tests are found in `tests/`:
+
+- `test-conventional-commit.sh` – validates conventional commit message format
+- `test-workflow-security.sh` – ensures GitHub Actions workflows use pinned versions (no `@main`)
+- `test-module-upgrade.sh` – tests the Terraform upgrade helper script
+- `run-all-tests.sh` – orchestrates all test suites
+
+When adding new workflows or shell-based tooling, ensure corresponding tests cover the new functionality.
+
 ## Rules
 
 1. Always lint with `actionlint` before proposing workflow changes.
@@ -60,3 +72,4 @@ This repository contains reusable Terraform modules. CI/CD is responsible for:
 7. Keep workflows focused — one concern per workflow.
 8. Use path filters to avoid unnecessary workflow execution.
 9. Shell scripts called by actions must pass `shellcheck`.
+10. Add tests to `tests/` when introducing new shell-based helpers or workflow patterns.

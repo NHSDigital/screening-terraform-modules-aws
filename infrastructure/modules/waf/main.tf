@@ -1,7 +1,9 @@
 
+# tflint-ignore: terraform_naming_convention
 data "aws_secretsmanager_secret_version" "waf_ips" {
   secret_id = "${var.name_prefix}-waf-ip-set"
 }
+# tflint-ignore: terraform_naming_convention
 data "aws_secretsmanager_secret_version" "waf_bsis_ip_range" {
   secret_id = "${var.name_prefix}-waf-bsis-ip"
 }
@@ -21,6 +23,7 @@ locals {
 #### Please note this resource creation might fail on the first run with error stating resource already exists (eventhough Terraform logs shows it is destroyrd)
 # whenever there is change ticket raised to investigate this https://nhsd-jira.digital.nhs.uk/browse/SCM-726
 #####
+# tflint-ignore: terraform_naming_convention
 resource "aws_wafv2_ip_set" "bs-select-exclude-ip-set" {
   name               = var.exclude_ip_set_name
   description        = "This set of IPs are excluded from Anonymous and linux rule"
@@ -30,6 +33,7 @@ resource "aws_wafv2_ip_set" "bs-select-exclude-ip-set" {
 }
 
 #########For web Services add/remove on tfvars#########
+# tflint-ignore: terraform_naming_convention
 resource "aws_wafv2_ip_set" "bs-select-webservices-ip-set" {
   name               = var.web_services_ip_set_name
   description        = "This set of IPs are excluded from Anonymous and linux rule"
@@ -43,6 +47,7 @@ resource "aws_wafv2_ip_set" "bs-select-webservices-ip-set" {
 ######################
 
 
+# tflint-ignore: terraform_naming_convention
 resource "aws_wafv2_web_acl" "bss-waf-acl" {
   name  = var.waf_name
   scope = "REGIONAL"
@@ -352,7 +357,7 @@ resource "aws_wafv2_web_acl" "bss-waf-acl" {
 }
 
 resource "aws_cloudwatch_log_group" "waf_logs" {
-  // Note CW log group name should begin aws-waf-logs
+  # Note CW log group name should begin aws-waf-logs
   name              = var.waf_log_group_name
   retention_in_days = 365
 }
@@ -410,10 +415,12 @@ resource "aws_iam_role_policy_attachment" "central_logging_att" {
   role       = aws_iam_role.cw_to_subscription_filter_role.id
 }
 
+# tflint-ignore: terraform_naming_convention
 data "aws_secretsmanager_secret" "cloudwatch-cross-accounts" {
   name = "${var.name_prefix}-cloudwatch-cross-account-logging"
 }
 
+# tflint-ignore: terraform_naming_convention
 data "aws_secretsmanager_secret_version" "cloudwatch-cross-accounts" {
   secret_id = data.aws_secretsmanager_secret.cloudwatch-cross-accounts.id
 }
@@ -475,7 +482,7 @@ resource "aws_iam_role" "eventbridge_role" {
         Action = "sts:AssumeRole"
         Condition = {
           StringEquals = {
-            "aws:SourceAccount" = "${var.aws_account_id}"
+            "aws:SourceAccount" = var.aws_account_id
           }
         }
       }

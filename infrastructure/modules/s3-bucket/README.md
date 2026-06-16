@@ -101,9 +101,7 @@ module "log_bucket" {
 
 ## Providers
 
-| Name | Version |
-| ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.47.0 |
+No providers.
 
 ## Modules
 
@@ -114,9 +112,7 @@ module "log_bucket" {
 
 ## Resources
 
-| Name | Type |
-| ---- | ---- |
-| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+No resources.
 
 ## Inputs
 

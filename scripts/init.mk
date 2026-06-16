@@ -30,22 +30,23 @@ shellscript-lint-all: # Lint all shell scripts in this project, do not fail on e
 	done
 
 githooks-config: # Trigger Git hooks on commit that are defined in this repository @Configuration
-	make _install-dependency name="pre-commit"
+	# Pre-commit is installed via mise/mise.toml, just configure hooks
 	pre-commit install \
 		--config scripts/config/pre-commit.yaml \
-		--install-hooks
+		--install-hooks --hook-type commit-msg
 
 githooks-run: # Run git hooks configured in this repository @Operations
 	pre-commit run \
 		--config scripts/config/pre-commit.yaml \
 		--all-files
 
-_install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
-	echo ${name}
+_install-dependency: # Install dependency via mise (legacy asdf target maintained for compatibility)
+	@echo "Note: Use 'mise install' to manage tool versions from .tool-versions and mise.toml"
 	asdf plugin add ${name} ||:
 	asdf install ${name} $(or ${version},)
 
-_install-dependencies: # Install all the dependencies listed in .tool-versions
+_install-dependencies: # Install all dependencies listed in .tool-versions (use 'mise install' instead)
+	@echo "Note: Use 'mise install' to manage tool versions from .tool-versions and mise.toml"
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do
 		make _install-dependency name="$${plugin}"
 	done

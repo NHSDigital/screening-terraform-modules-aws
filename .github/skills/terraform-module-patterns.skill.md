@@ -62,6 +62,27 @@ module "<resource_name>" {
 | Use `create = module.this.enabled` | Allows consumers to conditionally disable entire modules |
 | Expose minimal interface | Reduces cognitive load and prevents misuse |
 
+## Module Maintenance & Upgrades
+
+When AWS providers or upstream community modules receive updates, use the upgrade helper:
+
+```bash
+# Single module
+./scripts/terraform/upgrade-module.sh infrastructure/modules/s3-bucket
+
+# All modules
+./scripts/terraform/upgrade-module.sh update-all
+```
+
+The helper:
+
+1. Runs `terraform init -upgrade` to fetch latest versions
+2. Locks providers for all 4 platforms (Linux/Darwin × amd64/arm64)
+3. Regenerates module README via `terraform-docs`
+4. Removes temporary files (e.g., symlinks created during doc generation)
+
+Review the resulting lock file changes for unexpected upstream breaking changes before committing.
+
 ## Context/Tags Integration
 
 ### How It Works

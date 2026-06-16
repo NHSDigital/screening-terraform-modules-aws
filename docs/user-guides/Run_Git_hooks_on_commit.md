@@ -2,31 +2,74 @@
 
 - [Guide: Run Git hooks on commit](#guide-run-git-hooks-on-commit)
   - [Overview](#overview)
+  - [Setup](#setup)
   - [Key files](#key-files)
   - [Testing](#testing)
+  - [Need Help?](#need-help)
 
 ## Overview
 
-Git hooks are scripts that are located in the [`./scripts/githooks`](../../scripts/githooks) directory. They are executed automatically on each commit, provided that the `make config` command has been run locally to set up the project. These same scripts are also part of the CI/CD pipeline execution. This setup serves as a safety net and helps to ensure consistency.
+Git hooks are scripts that run automatically on each commit, helping to ensure code consistency and catch errors early. This repository uses the [pre-commit](https://pre-commit.com/) framework for managing hooks efficiently.
 
-The [pre-commit](https://pre-commit.com/) framework is a powerful tool for managing Git hooks, providing automated hook installation and management capabilities.
+In CI/CD, coding checks are executed via the `stage-1-pre-commit.yml` GitHub Actions workflow. The same hooks run locally before you commit, catching issues before they reach GitHub.
+
+## Setup
+
+### Prerequisites
+
+Install required tools via `mise` (see [README.md](../../README.md#prerequisites)):
+
+```bash
+mise install
+```
+
+### Install Hooks
+
+```bash
+# Run once after cloning the repository
+pre-commit install --install-hooks
+pre-commit install --hook-type commit-msg
+```
+
+### Verify Installation
+
+```bash
+pre-commit run --all-files
+```
+
+If successful, output ends with:
+
+```text
+====== Summary =====
+Passed: X, Failed: 0, Skipped: Y
+```
 
 ## Key files
 
-- Scripts
-  - [`check-file-format.sh`](../../scripts/githooks/check-file-format.sh)
-  - [`check-markdown-format.sh`](../../scripts/githooks/check-markdown-format.sh)
-  - [`check-terraform-format.sh`](../../scripts/githooks/check-terraform-format.sh)
-  - [`scan-secrets.sh`](../../scripts/githooks/scan-secrets.sh)
-- Configuration
-  - [`pre-commit.yaml`](../../scripts/config/pre-commit.yaml)
-  - [`init.mk`](../../scripts/init.mk): make targets
+| File | Purpose |
+| --- | --- |
+| `.pre-commit-config.yaml` | Defines all 26 hooks (Terraform, shell scripts, security, formatting, commit messages) |
+| `scripts/githooks/` | Custom hook implementations (format checking, secret scanning, validation) |
+| `.vale.ini` | English style rules (British English, NHS terminology) |
+| `.tflint.hcl` | Terraform linting rules |
 
 ## Testing
 
-You can run and test the process by executing the following commands from your terminal. These commands should be run from the top-level directory of the repository:
+Run hooks locally to validate code before committing:
 
-```shell
-make githooks-config
-make githooks-run
+```bash
+# Test all hooks on the entire repository
+pre-commit run --all-files
+
+# Test a specific hook
+pre-commit run terraform_fmt --all-files
+pre-commit run shellcheck --all-files
 ```
+
+## Need Help?
+
+For comprehensive documentation on each hook, including troubleshooting and fixes:
+
+→ **[Pre-Commit Hooks Reference Guide](Pre_commit_hooks_reference.md)** — Detailed guide to all 26 hooks, common failures, and remediation steps.
+
+For AI agent guidance and advanced scenarios, see `.github/skills/pre-commit-hooks.skill.md`.
