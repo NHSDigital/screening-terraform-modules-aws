@@ -1,0 +1,57 @@
+name: "Pre-commit checks"
+
+# Runs all pre-commit hooks against the full repository.
+# This workflow is the canonical quality gate — individual linting/format
+# jobs in stage-1-coding-standards.yaml are deprecated in favour of this.
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pre-commit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    name: "Run pre-commit hooks"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      # ------------------------------------------------------------------
+      # Install prerequisites from version files (.tool-versions/.tool-versions.yml)
+      # ------------------------------------------------------------------
+      - name: "Set up mise"
+        uses: jdx/mise-action@v3
+
+      - name: "Generate .tool-versions from .tool-versions.yml (fallback)"
+        shell: bash
+        run: |
+          if [[ ! -f .tool-versions && -f .tool-versions.yml ]]; then
+            ruby -ryaml -e 'YAML.load_file(".tool-versions.yml").fetch("infrastructure", {}).each { |k, v| puts "#{k} #{v}" }' > .tool-versions
+          fi
+
+      - name: "Install pinned tools from .tool-versions via mise"
+        shell: bash
+        run: |
+          mise install
+          mise ls
+
+      # ------------------------------------------------------------------
+      # Run all hooks
+      # ------------------------------------------------------------------
+      - name: "Run pre-commit (all files)"
+        run: mise x -- pre-commit run --all-files --show-diff-on-failure
+        env:
+          AWS_DEFAULT_REGION: eu-west-2
+          FORCE_USE_DOCKER: "true"
