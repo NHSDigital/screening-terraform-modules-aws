@@ -88,6 +88,7 @@ jobs:
       - name: "Run pre-commit shard"
         shell: bash
         run: |
+          export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
           hooks='${{ matrix.shard.hooks }}'
           for hook in ${hooks}; do
             echo "Running hook: ${hook}"
@@ -95,4 +96,3 @@ jobs:
           done
         env:
           AWS_DEFAULT_REGION: eu-west-2
-          TF_PLUGIN_CACHE_DIR: ${{ env.HOME }}/.terraform.d/plugin-cache
