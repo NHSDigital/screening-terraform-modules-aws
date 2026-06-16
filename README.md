@@ -278,7 +278,7 @@ pre-commit run --all-files
 
 | Hook | Purpose |
 | --- | --- |
-| `generate-terraform-providers` | Generate `aliased-providers.tf.json` for validation |
+| `generate-terraform-providers` | Generate per-module `aliased-providers.tf` files for validation |
 | `terraform_fmt` | Enforce canonical Terraform formatting |
 | `terraform_tflint` | Static analysis with Terraform-specific rules |
 | `terraform_validate` | Validate module configuration |

@@ -1,6 +1,6 @@
 # Pre-commit configuration for screening-terraform-modules-aws
 #
-# Prerequisites (install via mise/asdf or brew):
+# Prerequisites (install via mise or brew):
 #   terraform, tflint, terraform-docs, vale, jq, shellcheck, markdownlint-cli,
 #   editorconfig-checker, terraform-config-inspect
 #
@@ -24,7 +24,6 @@ repos:
   # with provider aliases. See: https://github.com/hashicorp/terraform/issues/28490
   #
   # Generates:
-  #   - aliased-providers.tf (root)
   #   - infrastructure/modules/*/aliased-providers.tf (per-module for validate)
   # Files are auto-gitignored and should never be committed.
   - repo: local
