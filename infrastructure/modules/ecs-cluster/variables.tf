@@ -3,6 +3,7 @@ variable "name_prefix" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "aws_account_id" {
   sensitive   = true
   description = "The AWS account ID"
@@ -15,8 +16,11 @@ variable "name" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "container_port" {
-  default = 4000
+  description = "Container port for ECS workloads"
+  type        = number
+  default     = 4000
 }
 
 
@@ -25,6 +29,7 @@ variable "vpc_id" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "environment" {
   description = "The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD"
   type        = string
