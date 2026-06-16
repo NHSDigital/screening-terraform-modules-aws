@@ -104,13 +104,18 @@ repos:
       - id: detect-private-key
 
   # --------------------------------------------------------------------------
-  # Shell script linting
+  # Shell script linting (uses scripts/shellscript-linter.sh; runs natively if
+  # shellcheck is on PATH, otherwise falls back to koalaman/shellcheck Docker
+  # image. FORCE_USE_DOCKER=true is set by the CI workflow to ensure Docker is
+  # always used in CI regardless of what is on the runner PATH.)
   # --------------------------------------------------------------------------
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: a23f6b85d0fdd5bb9d564e2579e678033debbdff # v0.10.0.1
+  - repo: local
     hooks:
       - id: shellcheck
-        args: [--severity=warning]
+        name: shellcheck
+        entry: bash -c 'for f in "$@"; do SHELLCHECK_OPTS="--severity=warning" file="$f" bash scripts/shellscript-linter.sh || exit 1; done' --
+        language: system
+        types: [shell]
 
   # --------------------------------------------------------------------------
   # Repository githook wrappers (native tool if available, Docker fallback)

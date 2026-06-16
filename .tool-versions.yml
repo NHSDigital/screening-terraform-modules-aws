@@ -7,5 +7,6 @@ infrastructure:
   python: 3.12
   vale: 3.6.0
   gitleaks: 8.30.1
+  shellcheck: 0.11.0
   jq: 1.7.1
   nodejs: 24.16.0
