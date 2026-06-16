@@ -327,17 +327,67 @@ pre-commit run --all-files
 
 ### Hooks included
 
-| Hook | Purpose |
+This repository enforces **26 hooks** across six categories:
+
+| Category | Hooks | Purpose |
+| --- | --- | --- |
+| **Terraform** (5) | `terraform_fmt`, `terraform_validate`, `terraform_tflint`, `terraform_docs`, `terraform_providers_lock` | Format, validate, lint, document, and lock Terraform modules |
+| **File Hygiene** (8) | `check-added-large-files`, `check-merge-conflict`, `no-commit-to-branch`, `end-of-file-fixer`, `trailing-whitespace`, `check-yaml`, `check-case-conflict`, `mixed-line-ending` | Prevent commits of large files, merge conflicts, direct commits to main, and enforce line ending consistency |
+| **Shell Scripts** (1) | `shellcheck` | Lint Bash/shell scripts for errors and bad practices |
+| **File Formatting** (4) | `check-file-format`, `check-markdown-format`, `check-english-usage`, `check-terraform-format` | Enforce consistent formatting and British English in documentation |
+| **Security** (3) | `detect-aws-credentials`, `detect-private-key`, `scan-secrets` | **CRITICAL:** Prevent credentials and secrets from being committed |
+| **Commit Messages** (1) | `conventional-commit` | Enforce conventional commit format |
+| **Utilities** (4) | `generate-terraform-providers`, `check-executables-have-shebangs`, custom githooks | Support functions for Terraform validation and general checks |
+
+### Understanding Hook Failures
+
+**For a comprehensive reference** covering each hook, common failure scenarios, and how to fix them, see:
+
+→ **[Pre-Commit Hooks Reference Guide](docs/user-guides/Pre_commit_hooks_reference.md)** — Detailed documentation with examples and troubleshooting
+
+**Common quick fixes:**
+
+| Issue | Fix |
 | --- | --- |
-| `generate-terraform-providers` | Generate per-module `aliased-providers.tf` files for validation |
-| `terraform_fmt` | Enforce canonical Terraform formatting |
-| `terraform_tflint` | Static analysis with Terraform-specific rules |
-| `terraform_validate` | Validate module configuration |
-| `terraform_providers_lock` | Ensure lock files are cross-platform |
-| `terraform_docs` | Auto-generate module README documentation |
-| `check-added-large-files` | Prevent committing large files |
-| `check-merge-conflict` | Detect merge conflict markers |
-| `end-of-file-fixer` | Ensure files end with a newline |
+| Terraform format mismatch | `terraform fmt -recursive infrastructure/modules/` |
+| Module docs out of sync | `pre-commit run terraform_docs --all-files` |
+| Shell script errors | Review and fix; re-run `pre-commit run shellcheck` |
+| English/spelling | Update text per Vale rules or adjust `.vale.ini` |
+| Trailing whitespace | Auto-fixed; re-stage and commit |
+| Commit message format | Use `feat(scope): description` per Conventional Commits |
+
+### Never Skip These Hooks
+
+- `detect-aws-credentials` — prevents leaked AWS credentials
+- `detect-private-key` — prevents leaked private keys
+- `scan-secrets` — scans entire git history for secrets
+- `terraform_validate` — ensures Terraform modules are syntactically valid
+- `no-commit-to-branch` — enforces PR workflow (no direct commits to main)
+
+Use `git commit --no-verify` only in genuine emergencies, and report the issue immediately.
+
+### Conventional commits
+
+Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>(<scope>): <description>
+
+optional body
+
+optional footer
+```
+
+**Valid types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+**Examples:**
+
+✅ `feat(s3-bucket): add KMS encryption support`
+✅ `fix(vpc): correct CIDR validation logic`
+❌ `Updated stuff` (too vague)
+❌ `fix bug` (missing scope)
+
+For more details, see [Pre-Commit Hooks Reference](docs/user-guides/Pre_commit_hooks_reference.md#commit-messages).
 | `trailing-whitespace` | Remove trailing whitespace |
 | `check-yaml` | Validate YAML syntax |
 | `mixed-line-ending` | Enforce LF line endings |
