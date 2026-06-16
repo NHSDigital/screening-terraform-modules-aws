@@ -67,6 +67,21 @@ jobs:
           mise install
           mise ls
 
+      - name: "Configure Terraform plugin cache"
+        if: contains(matrix.shard.name, 'terraform-')
+        shell: bash
+        run: |
+          mkdir -p ~/.terraform.d/plugin-cache
+
+      - name: "Cache Terraform plugins"
+        if: contains(matrix.shard.name, 'terraform-')
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-plugins-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-plugins-
+
       # ------------------------------------------------------------------
       # Run sharded hooks
       # ------------------------------------------------------------------
@@ -80,4 +95,5 @@ jobs:
           done
         env:
           AWS_DEFAULT_REGION: eu-west-2
+          TF_PLUGIN_CACHE_DIR: ${{ env.HOME }}/.terraform.d/plugin-cache
           FORCE_USE_DOCKER: "true"

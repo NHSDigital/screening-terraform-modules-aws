@@ -1,6 +1,7 @@
 # This file is for you! Please, updated to the versions agreed by your team.
 
 terraform 1.13.2
+tflint 0.59.1
 terraform-docs 0.24.0
 go:github.com/hashicorp/terraform-config-inspect latest
 pre-commit 4.6.0

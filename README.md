@@ -43,7 +43,7 @@ Tool versions are managed via [mise](https://mise.jdx.dev/). See `.tool-versions
 | Tool | Version | Purpose |
 | --- | --- | --- |
 | [Terraform](https://www.terraform.io/) | >= 1.13.2 | Infrastructure as code |
-| [tflint](https://github.com/terraform-linters/tflint) | latest | Terraform linter |
+| [tflint](https://github.com/terraform-linters/tflint) | 0.59.1 | Terraform linter |
 | [terraform-docs](https://terraform-docs.io/) | 0.24.0 | Auto-generate module documentation |
 | [terraform-config-inspect](https://github.com/hashicorp/terraform-config-inspect) | latest | Generate aliased providers for validation |
 | [pre-commit](https://pre-commit.com/) | 4.6.0 | Git hook framework |
@@ -259,7 +259,9 @@ The PR workflow `cicd-1-pull-request.yaml` also includes:
 - a non-blocking Conventional Commit advisory check for all commit messages in the PR
 - a final `all-checks-complete` aggregation job suitable for branch protection
 
-CI tooling versions are resolved from `.tool-versions` (mise or asdf). If `.tool-versions` is not present, the workflow generates it from `.tool-versions.yml` as a fallback.
+CI tooling versions are resolved from `.tool-versions` via mise. If `.tool-versions` is not present, the workflow generates it from `.tool-versions.yml` as a fallback.
+
+For Terraform-related matrix shards, CI enables `TF_PLUGIN_CACHE_DIR` and caches `~/.terraform.d/plugin-cache` to reduce repeated provider downloads for hooks that initialise Terraform (for example `terraform_validate` and `terraform_tflint`).
 
 ### Local setup
 
