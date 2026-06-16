@@ -100,6 +100,100 @@ variable "ebs_optimized" {
   default     = null
 }
 
+variable "ebs_volumes" {
+  description = "Map of EBS volumes to attach to the instance"
+  type = map(object({
+    encrypted                  = optional(bool)
+    final_snapshot             = optional(bool)
+    iops                       = optional(number)
+    kms_key_id                 = optional(string)
+    multi_attach_enabled       = optional(bool)
+    outpost_arn                = optional(string)
+    size                       = optional(number)
+    snapshot_id                = optional(string)
+    tags                       = optional(map(string), {})
+    throughput                 = optional(number)
+    type                       = optional(string, "gp3")
+    volume_initialization_rate = optional(number)
+    # Attachment
+    device_name                    = optional(string) # Will fall back to use map key as device name
+    force_detach                   = optional(bool)
+    skip_destroy                   = optional(bool)
+    stop_instance_before_detaching = optional(bool)
+  }))
+  default = null
+}
+
+variable "eip_domain" {
+  description = "Indicates if this EIP is for use in VPC"
+  type        = string
+  default     = "vpc"
+}
+
+variable "eip_tags" {
+  description = "A map of additional tags to add to the EIP"
+  type        = map(string)
+  default     = {}
+}
+
+variable "enable_primary_ipv6" {
+  description = "Whether to assign a primary IPv6 Global Unicast Address (GUA) to the instance when launched in a dual-stack or IPv6-only subnet"
+  type        = bool
+  default     = null
+}
+
+variable "enable_volume_tags" {
+  description = "Whether to enable volume tags (if enabled it conflicts with root_block_device tags)"
+  type        = bool
+  default     = true
+}
+
+variable "enclave_options_enabled" {
+  description = "Whether Nitro Enclaves will be enabled on the instance. Defaults to `false`"
+  type        = bool
+  default     = null
+}
+
+variable "ephemeral_block_device" {
+  description = "Customize Ephemeral (also known as Instance Store) volumes on the instance"
+  type = map(object({
+    device_name  = optional(string)
+    no_device    = optional(bool)
+    virtual_name = optional(string)
+  }))
+  default = null
+}
+
+variable "force_destroy" {
+  description = "Destroys instance even if `disable_api_termination` or `disable_api_stop` is set to true. Once this parameter is set to true, a successful terraform apply run before a destroy is required to update this value in the resource state. Without a successful terraform apply after this parameter is set, this flag will have no effect. If setting this field in the same operation that would require replacing the instance or destroying the instance, this flag will not work. Additionally when importing an instance, a successful terraform apply is required to set this value in state before it will take effect on a destroy operation."
+  type        = bool
+  default     = null
+}
+
+variable "get_password_data" {
+  description = "If true, wait for password data to become available and retrieve it"
+  type        = bool
+  default     = null
+}
+
+variable "hibernation" {
+  description = "If true, the launched EC2 instance will support hibernation"
+  type        = bool
+  default     = null
+}
+
+variable "host_id" {
+  description = "ID of a dedicated host that the instance will be assigned to. Use when an instance is to be launched on a specific dedicated host"
+  type        = string
+  default     = null
+}
+
+variable "host_resource_group_arn" {
+  description = "ARN of the host resource group in which to launch the instances. If you specify an ARN, omit the `tenancy` parameter or set it to `host`"
+  type        = string
+  default     = null
+}
+
 variable "iam_instance_profile" {
   description = "IAM Instance Profile to launch the instance with. Specified as the name of the Instance Profile"
   type        = string
