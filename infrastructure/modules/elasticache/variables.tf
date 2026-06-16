@@ -16,13 +16,13 @@ variable "auto_failover_enabled" {
 variable "number_of_shards" {
   description = "Number of shard groups in the replication group."
   type        = number
-  default = 1
+  default     = 1
 }
 
 variable "replicas_per_node_group" {
   description = "Number of replicas per shard group."
   type        = number
-  default = 2
+  default     = 2
 }
 
 variable "replication_group_description" {

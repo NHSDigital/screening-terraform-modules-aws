@@ -16,7 +16,7 @@ locals {
 resource "null_resource" "build_lambda_layer" {
   # Re-run if the script changes
   triggers = {
-    always_on  = timestamp() # forces re-run every time
+    always_on   = timestamp() # forces re-run every time
     name_prefix = var.name_prefix
   }
 
