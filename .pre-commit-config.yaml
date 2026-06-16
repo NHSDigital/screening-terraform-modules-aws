@@ -49,20 +49,9 @@ repos:
         - --args=-diff
         - --args=-recursive
       - id: terraform_tflint
+        # exclude: ^infrastructure/modules/(aws-backup-destination|aws-backup-source)/
         args:
-          - '--args=--only=terraform_deprecated_interpolation'
-          - '--args=--only=terraform_deprecated_index'
-          - '--args=--only=terraform_unused_declarations'
-          - '--args=--only=terraform_comment_syntax'
-          - '--args=--only=terraform_documented_outputs'
-          - '--args=--only=terraform_documented_variables'
-          - '--args=--only=terraform_typed_variables'
-          - '--args=--only=terraform_module_pinned_source'
-          - '--args=--only=terraform_naming_convention'
-          - '--args=--only=terraform_required_version'
-          - '--args=--only=terraform_required_providers'
-          - '--args=--only=terraform_standard_module_structure'
-          - '--args=--only=terraform_workspace_remote'
+        - '--args=--config=__GIT_WORKING_DIR__/scripts/config/.tflint.hcl'
       - id: terraform_validate
         args:
           - --args=-json
@@ -127,6 +116,9 @@ repos:
   # --------------------------------------------------------------------------
   # Repository githook wrappers (native tool if available, Docker fallback)
   # --------------------------------------------------------------------------
+  # TODO: Consider replacing these with the pre-commit hooks in .github/workflows/stage-1-commit.yaml and .github/workflows/stage-1-coding-standards.yaml, which are more efficient and run in parallel.
+  # The pre-commit hooks here are slower because they run in a single job and cannot be parallelized.
+  # Could we plug in scripts/config/pre-commit.yaml to the pre-commit hooks in .github/workflows/stage-1-commit.yaml and .github/workflows/stage-1-coding-standards.yaml?
   - repo: local
     hooks:
       - id: check-file-format

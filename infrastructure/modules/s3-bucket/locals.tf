@@ -7,13 +7,13 @@
 # name via `var.bucket_name`.
 ################################################################
 
-data "aws_region" "current" {}
-
 locals {
-  region_suffix = data.aws_region.current.region
 
   default_bucket_name = format("%s", module.this.id)
 
+  # TODO: Consider adding a region suffix to the bucket name to reduce the chance of collisions across accounts and regions. This would require updating all existing stacks that use this module, so it is not done yet.
+  # data "aws_region" "current" {}
+  # region_suffix = data.aws_region.current.region
   # default_bucket_name = format("%s-%s", module.this.id, local.region_suffix)
   bucket_name = coalesce(var.bucket_name, local.default_bucket_name)
 
