@@ -5,7 +5,10 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.28 |
 
 ## Providers
 
@@ -79,11 +82,11 @@ No requirements.
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_arn"></a> [arn](#output\_arn) | n/a |
-| <a name="output_function_name"></a> [function\_name](#output\_function\_name) | n/a |
-| <a name="output_lambda_arn"></a> [lambda\_arn](#output\_lambda\_arn) | n/a |
-| <a name="output_lambda_log_group_name"></a> [lambda\_log\_group\_name](#output\_lambda\_log\_group\_name) | n/a |
-| <a name="output_role_name"></a> [role\_name](#output\_role\_name) | n/a |
+| <a name="output_arn"></a> [arn](#output\_arn) | Invoke ARN of the Lambda function. |
+| <a name="output_function_name"></a> [function\_name](#output\_function\_name) | Name of the Lambda function. |
+| <a name="output_lambda_arn"></a> [lambda\_arn](#output\_lambda\_arn) | ARN of the Lambda function. |
+| <a name="output_lambda_log_group_name"></a> [lambda\_log\_group\_name](#output\_lambda\_log\_group\_name) | CloudWatch Logs log group name for the Lambda function. |
+| <a name="output_role_name"></a> [role\_name](#output\_role\_name) | IAM role name used by the Lambda function. |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->

@@ -8,6 +8,7 @@
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13 |
+| <a name="requirement_archive"></a> [archive](#requirement\_archive) | >= 2.7.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.42 |
 
 ## Providers
@@ -41,8 +42,8 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_environment"></a> [environment](#input\_environment) | the environment the healthcheck is deployed into | `any` | n/a | yes |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | the name prefix for the healthcheck | `any` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | the environment the healthcheck is deployed into | `string` | n/a | yes |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | the name prefix for the healthcheck | `string` | n/a | yes |
 | <a name="input_sns_topic"></a> [sns\_topic](#input\_sns\_topic) | Existing SNS topic in eu-west-2 for notifications | `string` | n/a | yes |
 
 ## Outputs

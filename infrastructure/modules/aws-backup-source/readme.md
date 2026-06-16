@@ -23,9 +23,9 @@ module "test_aws_backup" {
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.5 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
 | <a name="requirement_archive"></a> [archive](#requirement\_archive) | ~> 2 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | > 6 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.14 |
 
 ## Providers
 

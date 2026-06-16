@@ -5,7 +5,12 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_archive"></a> [archive](#requirement\_archive) | >= 2.8.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.47.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.9.0 |
 
 ## Providers
 
@@ -54,15 +59,15 @@ No modules.
 | <a name="input_firehose_splunk_url"></a> [firehose\_splunk\_url](#input\_firehose\_splunk\_url) | URL for splunk | `string` | `"https://firehose.inputs.splunk.aws.digital.nhs.uk/services/collector"` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The account, environment etc | `string` | n/a | yes |
 | <a name="input_python_version"></a> [python\_version](#input\_python\_version) | The Python version to use for the Lambda function | `string` | n/a | yes |
-| <a name="input_splunk_hec_token"></a> [splunk\_hec\_token](#input\_splunk\_hec\_token) | Splunk HEC token which points to a specific log index in Splunk | `any` | n/a | yes |
+| <a name="input_splunk_hec_token"></a> [splunk\_hec\_token](#input\_splunk\_hec\_token) | Splunk HEC token which points to a specific log index in Splunk | `string` | n/a | yes |
 | <a name="input_splunk_index"></a> [splunk\_index](#input\_splunk\_index) | Name of the Splunk index to post logs to | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_cw_to_splunk_firehose_role_arn"></a> [cw\_to\_splunk\_firehose\_role\_arn](#output\_cw\_to\_splunk\_firehose\_role\_arn) | n/a |
-| <a name="output_cw_to_splunk_firehose_stream_arn"></a> [cw\_to\_splunk\_firehose\_stream\_arn](#output\_cw\_to\_splunk\_firehose\_stream\_arn) | n/a |
+| <a name="output_cw_to_splunk_firehose_role_arn"></a> [cw\_to\_splunk\_firehose\_role\_arn](#output\_cw\_to\_splunk\_firehose\_role\_arn) | IAM role ARN used by CloudWatch to write to Firehose |
+| <a name="output_cw_to_splunk_firehose_stream_arn"></a> [cw\_to\_splunk\_firehose\_stream\_arn](#output\_cw\_to\_splunk\_firehose\_stream\_arn) | ARN of the CloudWatch to Splunk Firehose stream |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->

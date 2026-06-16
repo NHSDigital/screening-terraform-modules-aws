@@ -44,7 +44,11 @@ will be automatically marked as being valid. All users are created with the same
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.47.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.9.0 |
 
 ## Providers
 
@@ -73,26 +77,26 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_acr"></a> [acr](#input\_acr) | n/a | `string` | `"AAL1_USERPASS"` | no |
-| <a name="input_amr"></a> [amr](#input\_amr) | n/a | `string` | `"USERPASS"` | no |
-| <a name="input_attribute_names"></a> [attribute\_names](#input\_attribute\_names) | n/a | `list(string)` | <pre>[<br/>  "acr",<br/>  "amr",<br/>  "email",<br/>  "idassurancelevel",<br/>  "nhsid_nrbac_roles",<br/>  "bss_username",<br/>  "sid",<br/>  "uid"<br/>]</pre> | no |
-| <a name="input_deletion_protection"></a> [deletion\_protection](#input\_deletion\_protection) | ################################################################################# COGNITO ################################################################################# | `string` | `"INACTIVE"` | no |
+| <a name="input_acr"></a> [acr](#input\_acr) | Default ACR value for user attributes | `string` | `"AAL1_USERPASS"` | no |
+| <a name="input_amr"></a> [amr](#input\_amr) | Default AMR value for user attributes | `string` | `"USERPASS"` | no |
+| <a name="input_attribute_names"></a> [attribute\_names](#input\_attribute\_names) | Cognito custom attributes to create | `list(string)` | <pre>[<br/>  "acr",<br/>  "amr",<br/>  "email",<br/>  "idassurancelevel",<br/>  "nhsid_nrbac_roles",<br/>  "bss_username",<br/>  "sid",<br/>  "uid"<br/>]</pre> | no |
+| <a name="input_deletion_protection"></a> [deletion\_protection](#input\_deletion\_protection) | Whether user pool deletion protection is enabled | `string` | `"INACTIVE"` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `string` | n/a | yes |
-| <a name="input_message_action"></a> [message\_action](#input\_message\_action) | n/a | `string` | `"SUPPRESS"` | no |
-| <a name="input_mfa_configuration"></a> [mfa\_configuration](#input\_mfa\_configuration) | n/a | `string` | `"OFF"` | no |
+| <a name="input_message_action"></a> [message\_action](#input\_message\_action) | Message action used when creating users | `string` | `"SUPPRESS"` | no |
+| <a name="input_mfa_configuration"></a> [mfa\_configuration](#input\_mfa\_configuration) | MFA mode for the user pool | `string` | `"OFF"` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The account, environment etc | `string` | n/a | yes |
 | <a name="input_recovery_window"></a> [recovery\_window](#input\_recovery\_window) | The number of days that credentials should be retained for | `number` | n/a | yes |
 | <a name="input_secret_replication_regions"></a> [secret\_replication\_regions](#input\_secret\_replication\_regions) | List of additional regions where created secrets should be replicated | `list(string)` | n/a | yes |
-| <a name="input_user_email"></a> [user\_email](#input\_user\_email) | n/a | `string` | `"nhsdigital.axe@nhs.net"` | no |
-| <a name="input_user_password"></a> [user\_password](#input\_user\_password) | n/a | `string` | `"changeme"` | no |
+| <a name="input_user_email"></a> [user\_email](#input\_user\_email) | Initial user email address | `string` | `"nhsdigital.axe@nhs.net"` | no |
+| <a name="input_user_password"></a> [user\_password](#input\_user\_password) | Initial user password placeholder | `string` | `"changeme"` | no |
 
 ## Outputs
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_secrets_manager_random_passsword_arn"></a> [secrets\_manager\_random\_passsword\_arn](#output\_secrets\_manager\_random\_passsword\_arn) | n/a |
-| <a name="output_user_pool_domain_prefix"></a> [user\_pool\_domain\_prefix](#output\_user\_pool\_domain\_prefix) | n/a |
-| <a name="output_user_pool_id"></a> [user\_pool\_id](#output\_user\_pool\_id) | n/a |
+| <a name="output_secrets_manager_random_passsword_arn"></a> [secrets\_manager\_random\_passsword\_arn](#output\_secrets\_manager\_random\_passsword\_arn) | ARN of the Secrets Manager secret containing generated password |
+| <a name="output_user_pool_domain_prefix"></a> [user\_pool\_domain\_prefix](#output\_user\_pool\_domain\_prefix) | Domain prefix configured for the Cognito user pool domain |
+| <a name="output_user_pool_id"></a> [user\_pool\_id](#output\_user\_pool\_id) | ID of the Cognito user pool |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->

@@ -5,7 +5,10 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.42 |
 
 ## Providers
 
@@ -28,7 +31,7 @@ No modules.
 | [aws_elasticache_subnet_group.cache_subnet_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticache_subnet_group) | resource |
 | [aws_iam_service_linked_role.elasticache](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_service_linked_role) | resource |
 | [aws_security_group.cache_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [aws_vpc_security_group_ingress_rule.ecs-inbound](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
+| [aws_vpc_security_group_ingress_rule.ecs_inbound](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
 | [aws_iam_role.elasticache](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_role) | data source |
 
 ## Inputs
@@ -36,21 +39,21 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_apply_immediately"></a> [apply\_immediately](#input\_apply\_immediately) | whether to apply changes immediately - false will apply in maintenance window | `bool` | `false` | no |
-| <a name="input_auto_failover_enabled"></a> [auto\_failover\_enabled](#input\_auto\_failover\_enabled) | n/a | `any` | n/a | yes |
+| <a name="input_auto_failover_enabled"></a> [auto\_failover\_enabled](#input\_auto\_failover\_enabled) | Whether automatic failover is enabled for the replication group. | `bool` | n/a | yes |
 | <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | The AWS account ID | `string` | n/a | yes |
 | <a name="input_create_elasticache_service_role"></a> [create\_elasticache\_service\_role](#input\_create\_elasticache\_service\_role) | The service role can only be created once per account, only enable it in one stack | `bool` | `true` | no |
 | <a name="input_ecs_sg_id"></a> [ecs\_sg\_id](#input\_ecs\_sg\_id) | The id of the ECS security group to enable access for | `string` | n/a | yes |
 | <a name="input_elasticache_port"></a> [elasticache\_port](#input\_elasticache\_port) | Port on which Elasticache runs | `number` | `6379` | no |
-| <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | The Elasticache engine version | `any` | n/a | yes |
+| <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | The Elasticache engine version | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `string` | n/a | yes |
-| <a name="input_multi_az"></a> [multi\_az](#input\_multi\_az) | n/a | `any` | n/a | yes |
+| <a name="input_multi_az"></a> [multi\_az](#input\_multi\_az) | Legacy toggle retained for backwards compatibility. | `bool` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | The name of the resource | `string` | `"elasticache"` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | the prefix for the name which containts the environment and business unit | `string` | n/a | yes |
-| <a name="input_node_type"></a> [node\_type](#input\_node\_type) | n/a | `any` | n/a | yes |
-| <a name="input_notification_topic_arn"></a> [notification\_topic\_arn](#input\_notification\_topic\_arn) | Name of the SNS topic used for Elasticache alerts | `any` | n/a | yes |
-| <a name="input_number_of_shards"></a> [number\_of\_shards](#input\_number\_of\_shards) | n/a | `number` | `1` | no |
-| <a name="input_redis_auth_token"></a> [redis\_auth\_token](#input\_redis\_auth\_token) | Auth token for Redis cache | `any` | n/a | yes |
-| <a name="input_replicas_per_node_group"></a> [replicas\_per\_node\_group](#input\_replicas\_per\_node\_group) | n/a | `number` | `2` | no |
+| <a name="input_node_type"></a> [node\_type](#input\_node\_type) | Node instance type for ElastiCache replication group nodes. | `string` | n/a | yes |
+| <a name="input_notification_topic_arn"></a> [notification\_topic\_arn](#input\_notification\_topic\_arn) | Name of the SNS topic used for Elasticache alerts | `string` | n/a | yes |
+| <a name="input_number_of_shards"></a> [number\_of\_shards](#input\_number\_of\_shards) | Number of shard groups in the replication group. | `number` | `1` | no |
+| <a name="input_redis_auth_token"></a> [redis\_auth\_token](#input\_redis\_auth\_token) | Auth token for Redis cache | `string` | n/a | yes |
+| <a name="input_replicas_per_node_group"></a> [replicas\_per\_node\_group](#input\_replicas\_per\_node\_group) | Number of replicas per shard group. | `number` | `2` | no |
 | <a name="input_replication_group_description"></a> [replication\_group\_description](#input\_replication\_group\_description) | Description for replication group | `string` | `"Redis cache for BS-Select application"` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | The subnets that will be used for elasticache, usually private | `list(string)` | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The ID for the VPC | `string` | n/a | yes |
@@ -59,9 +62,9 @@ No modules.
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_redis_configuration_endpoint_address"></a> [redis\_configuration\_endpoint\_address](#output\_redis\_configuration\_endpoint\_address) | n/a |
-| <a name="output_redis_configuration_endpoint_port"></a> [redis\_configuration\_endpoint\_port](#output\_redis\_configuration\_endpoint\_port) | n/a |
-| <a name="output_redis_security_group_id"></a> [redis\_security\_group\_id](#output\_redis\_security\_group\_id) | n/a |
+| <a name="output_redis_configuration_endpoint_address"></a> [redis\_configuration\_endpoint\_address](#output\_redis\_configuration\_endpoint\_address) | Configuration endpoint address for the ElastiCache replication group. |
+| <a name="output_redis_configuration_endpoint_port"></a> [redis\_configuration\_endpoint\_port](#output\_redis\_configuration\_endpoint\_port) | Configuration endpoint port for the ElastiCache replication group. |
+| <a name="output_redis_security_group_id"></a> [redis\_security\_group\_id](#output\_redis\_security\_group\_id) | Security group ID attached to the ElastiCache replication group. |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->

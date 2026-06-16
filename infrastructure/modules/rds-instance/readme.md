@@ -7,7 +7,10 @@
 
 | Name | Version |
 | ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.42 |
 | <a name="requirement_postgresql"></a> [postgresql](#requirement\_postgresql) | >= 1.25.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.9 |
 
 ## Providers
 
@@ -36,7 +39,7 @@ No modules.
 | [aws_security_group_rule.ecs_ingress](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [random_id.final_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_password.password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
-| [random_string.final-name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
+| [random_string.final_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 
 ## Inputs
 
@@ -66,7 +69,7 @@ No modules.
 | <a name="input_maintenance_window"></a> [maintenance\_window](#input\_maintenance\_window) | The time window to perform maintenance on the database in UTC (Day:HH:MM-Day:HH:MM) | `string` | `"Tue:02:30-Tue:03:30"` | no |
 | <a name="input_monitoring_interval"></a> [monitoring\_interval](#input\_monitoring\_interval) | The interval in seconds to monitor the database | `number` | `10` | no |
 | <a name="input_multi_az"></a> [multi\_az](#input\_multi\_az) | Whether to deploy the database in multiple Availability Zones | `bool` | `true` | no |
-| <a name="input_name"></a> [name](#input\_name) | The name of the resource | `any` | n/a | yes |
+| <a name="input_name"></a> [name](#input\_name) | The name of the resource | `string` | n/a | yes |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The account, environment etc | `string` | n/a | yes |
 | <a name="input_performance_insights_enabled"></a> [performance\_insights\_enabled](#input\_performance\_insights\_enabled) | Whether to enable Performance Insights for the database | `bool` | `false` | no |
 | <a name="input_performance_insights_retention_period"></a> [performance\_insights\_retention\_period](#input\_performance\_insights\_retention\_period) | The number of days to retain Performance Insights data for | `number` | `7` | no |
@@ -95,7 +98,7 @@ No modules.
 | <a name="output_rds_instance_arn"></a> [rds\_instance\_arn](#output\_rds\_instance\_arn) | The ARN of the RDS instance |
 | <a name="output_rds_instance_endpoint"></a> [rds\_instance\_endpoint](#output\_rds\_instance\_endpoint) | The endpoint of the RDS instance including port |
 | <a name="output_rds_instance_id"></a> [rds\_instance\_id](#output\_rds\_instance\_id) | The ID of the RDS instance |
-| <a name="output_rds_name"></a> [rds\_name](#output\_rds\_name) | n/a |
+| <a name="output_rds_name"></a> [rds\_name](#output\_rds\_name) | Identifier name of the RDS instance. |
 | <a name="output_rds_sg_id"></a> [rds\_sg\_id](#output\_rds\_sg\_id) | The security group ID for the RDS instance |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
