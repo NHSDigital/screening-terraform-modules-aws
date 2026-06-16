@@ -49,7 +49,7 @@ Tool versions are managed via [mise](https://mise.jdx.dev/) (or [asdf](https://a
 | [pre-commit](https://pre-commit.com/) | 4.6.0 | Git hook framework |
 | [Vale](https://vale.sh/) | 3.6.0 | English prose linter |
 | [Gitleaks](https://github.com/gitleaks/gitleaks) | 8.30.1 | Secret scanning |
-| [jq](https://jqlang.github.io/jq/) | — | JSON processor |
+| [jq](https://jqlang.github.io/jq/) | 1.7.1 | JSON processor |
 | [shellcheck](https://www.shellcheck.net/) | — | Shell script linter |
 | [GNU make](https://www.gnu.org/software/make/) | >= 3.82 | Task runner |
 

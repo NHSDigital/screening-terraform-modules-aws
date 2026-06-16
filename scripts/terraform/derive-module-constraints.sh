@@ -10,6 +10,12 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
 modules_root="$repo_root/infrastructure/modules"
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "ERROR: jq is required but was not found on PATH." >&2
+  echo "Install jq via your tool manager (mise/asdf) or package manager (e.g. brew install jq)." >&2
+  exit 1
+fi
+
 trim() {
   local s="$1"
   s="${s#${s%%[![:space:]]*}}"
