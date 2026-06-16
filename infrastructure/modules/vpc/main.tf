@@ -1,12 +1,13 @@
 ################################################################
 # VPC Module
 #
-# Screening wrapper
-# `terraform-aws-modules/vpc/aws` module
-#   /28  firewall  – Network Firewall endpoints
-#   /24  public    – public-facing resources, NAT gateways
-#   /23  private   – private workloads with internet via NAT
-#   /23  isolated  – fully isolated, no internet route
+# Screening wrapper around the `terraform-aws-modules/vpc/aws`
+# community module.
+#
+#   firewall  – Network Firewall endpoints       (default /28)
+#   public    – public-facing resources, NAT GWs  (default /24)
+#   private   – workloads with internet via NAT    (default /23)
+#   intra     – no internet route                  (default /23)
 #
 # Naming and tagging are derived from context.tf via module.this.
 ################################################################
@@ -23,7 +24,18 @@ module "vpc" {
   azs             = local.azs
   public_subnets  = local.public_subnets
   private_subnets = local.private_subnets
-  intra_subnets   = local.isolated_subnets
+  intra_subnets   = local.intra_subnets
+
+  # IGW: when Network Firewall routing is enabled, we create the
+  # IGW as a standalone resource so that public subnets do NOT get
+  # a default route to the IGW (that route goes via the firewall
+  # VPCE instead, injected at the stack level).
+  create_igw = !var.enable_network_firewall
+
+  # Per-AZ public route tables: required when Network Firewall is
+  # enabled so that each AZ's outbound traffic traverses the
+  # firewall endpoint in the same AZ (symmetric routing).
+  create_multiple_public_route_tables = var.enable_network_firewall
 
   # NAT gateway configuration
   enable_nat_gateway     = true
@@ -33,6 +45,13 @@ module "vpc" {
   # DNS
   enable_dns_hostnames = var.enable_dns_hostnames
   enable_dns_support   = var.enable_dns_support
+
+  # DHCP options
+  enable_dhcp_options              = var.enable_dhcp_options
+  dhcp_options_domain_name         = var.dhcp_options_domain_name
+  dhcp_options_domain_name_servers = var.dhcp_options_domain_name_servers
+  dhcp_options_ntp_servers         = var.dhcp_options_ntp_servers
+  dhcp_options_tags                = var.dhcp_options_tags
 
   # Public subnets
   map_public_ip_on_launch = var.map_public_ip_on_launch
@@ -48,9 +67,10 @@ module "vpc" {
   # Subnet tags
   public_subnet_tags  = var.public_subnet_tags
   private_subnet_tags = var.private_subnet_tags
-  intra_subnet_tags   = var.isolated_subnet_tags
+  intra_subnet_tags   = var.intra_subnet_tags
 
-  tags = module.this.tags
+  # Exclude "Name" — the community module sets its own Name tags on all resources
+  tags = { for k, v in module.this.tags : k => v if k != "Name" }
 }
 
 ################################################################
@@ -61,7 +81,7 @@ module "vpc" {
 ################################################################
 
 resource "aws_subnet" "firewall" {
-  count = module.this.enabled ? local.az_count : 0
+  count = module.this.enabled && var.enable_network_firewall ? local.az_count : 0
 
   vpc_id            = module.vpc.vpc_id
   cidr_block        = local.firewall_subnets[count.index]
@@ -74,7 +94,7 @@ resource "aws_subnet" "firewall" {
 }
 
 resource "aws_route_table" "firewall" {
-  count = module.this.enabled ? local.az_count : 0
+  count = module.this.enabled && var.enable_network_firewall ? local.az_count : 0
 
   vpc_id = module.vpc.vpc_id
 
@@ -84,82 +104,151 @@ resource "aws_route_table" "firewall" {
 }
 
 resource "aws_route_table_association" "firewall" {
-  count = module.this.enabled ? local.az_count : 0
+  count = module.this.enabled && var.enable_network_firewall ? local.az_count : 0
 
   subnet_id      = aws_subnet.firewall[count.index].id
   route_table_id = aws_route_table.firewall[count.index].id
 }
 
 ################################################################
-# VPC Flow Logs
+# Internet Gateway (Network Firewall routing mode)
 #
-# Implemented as standalone resources rather than using the
-# upstream module's built-in flow log inputs, which are
-# deprecated in v6.x and will be removed in v7.0.0.
-# See: https://github.com/terraform-aws-modules/terraform-aws-vpc/tree/master/modules/flow-log
+# When enable_network_firewall = true, the community module's
+# IGW is disabled (create_igw = false) so that public subnets
+# do NOT get a default route to the IGW. Instead:
+#   - The IGW is created here as a standalone resource
+#   - Firewall subnets get 0.0.0.0/0 → IGW
+#   - Public subnets get 0.0.0.0/0 → firewall VPCE (injected
+#     at the stack level)
 #
-# Sends flow logs to a dedicated CloudWatch Log Group with an
-# IAM role scoped to that log group only.
+# When enable_network_firewall = false, these resources are not
+# created and the community module handles everything.
 ################################################################
 
-resource "aws_cloudwatch_log_group" "flow_log" {
-  count = module.this.enabled && var.enable_flow_log ? 1 : 0
+resource "aws_internet_gateway" "this" {
+  count = module.this.enabled && var.enable_network_firewall ? 1 : 0
 
-  name              = "/vpc/${module.this.id}-flow-logs"
-  retention_in_days = var.flow_log_retention_in_days
-  kms_key_id        = var.flow_log_kms_key_id
-
-  tags = module.this.tags
-}
-
-resource "aws_iam_role" "flow_log" {
-  count = module.this.enabled && var.enable_flow_log ? 1 : 0
-
-  name = "${module.this.id}-vpc-flow-logs-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Principal = { Service = "vpc-flow-logs.amazonaws.com" }
-      Action    = "sts:AssumeRole"
-    }]
-  })
-
-  tags = module.this.tags
-}
-
-resource "aws_iam_role_policy" "flow_log" {
-  count = module.this.enabled && var.enable_flow_log ? 1 : 0
-
-  name = "${module.this.id}-vpc-flow-logs-policy"
-  role = aws_iam_role.flow_log[0].id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "logs:DescribeLogStreams",
-        "logs:DescribeLogGroups"
-      ]
-      Resource = "${aws_cloudwatch_log_group.flow_log[0].arn}:*"
-    }]
-  })
-}
-
-resource "aws_flow_log" "this" {
-  count = module.this.enabled && var.enable_flow_log ? 1 : 0
-
-  vpc_id               = module.vpc.vpc_id
-  log_destination_type = "cloud-watch-logs"
-  log_destination      = aws_cloudwatch_log_group.flow_log[0].arn
-  iam_role_arn         = aws_iam_role.flow_log[0].arn
-  traffic_type         = var.flow_log_traffic_type
+  vpc_id = module.vpc.vpc_id
 
   tags = merge(module.this.tags, {
-    Name = "${module.this.id}-vpc-flow-log"
+    Name = module.this.id
   })
+}
+
+resource "aws_route" "firewall_to_igw" {
+  count = module.this.enabled && var.enable_network_firewall ? local.az_count : 0
+
+  route_table_id         = aws_route_table.firewall[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this[0].id
+}
+
+################################################################
+# IGW edge route table (Network Firewall mode)
+#
+# The edge route table is associated with the Internet Gateway.
+# It routes return traffic (from the internet) destined for each
+# public subnet CIDR through the firewall endpoint in the same
+# AZ, ensuring symmetric routing for stateful inspection.
+#
+# The actual per-CIDR routes are injected at the stack level
+# because they depend on the Network Firewall module's VPCE IDs.
+################################################################
+
+resource "aws_route_table" "edge" {
+  count = module.this.enabled && var.enable_network_firewall ? 1 : 0
+
+  vpc_id = module.vpc.vpc_id
+
+  tags = merge(module.this.tags, {
+    Name = "${module.this.id}-edge"
+  })
+}
+
+resource "aws_route_table_association" "edge" {
+  count = module.this.enabled && var.enable_network_firewall ? 1 : 0
+
+  gateway_id     = aws_internet_gateway.this[0].id
+  route_table_id = aws_route_table.edge[0].id
+}
+
+################################################################
+# VPC Flow Logs
+#
+# Uses the standalone flow-log submodule from
+# terraform-aws-modules/vpc/aws (the root module's built-in
+# flow log support is deprecated in v6.x, removed in v7.0.0).
+#
+# The submodule creates:
+#   - CloudWatch Log Group
+#   - IAM Role with scoped trust policy
+#   - VPC Flow Log resource
+################################################################
+
+module "flow_log" {
+  source  = "terraform-aws-modules/vpc/aws//modules/flow-log"
+  version = "6.6.1"
+
+  create = module.this.enabled && var.enable_flow_log
+
+  name   = "${module.this.id}-flow-log"
+  vpc_id = module.vpc.vpc_id
+
+  # CloudWatch destination
+  log_destination_type                   = "cloud-watch-logs"
+  cloudwatch_log_group_name              = "/vpc/${module.this.id}/flow-logs"
+  cloudwatch_log_group_use_name_prefix   = false
+  cloudwatch_log_group_retention_in_days = var.flow_log_retention_in_days
+  cloudwatch_log_group_kms_key_id        = var.flow_log_kms_key_id
+
+  # IAM role (created by the submodule with scoped trust policy)
+  create_iam_role           = true
+  iam_role_name             = "${module.this.id}-flow-logs"
+  iam_role_use_name_prefix  = false
+
+  traffic_type             = var.flow_log_traffic_type
+  max_aggregation_interval = var.flow_log_max_aggregation_interval
+
+  cloudwatch_log_group_tags  = var.cloudwatch_log_group_tags
+  flow_log_tags              = var.flow_log_tags
+  iam_role_tags              = var.iam_role_tags
+
+  tags = module.this.tags
+}
+
+################################################################
+# VPC Endpoints
+#
+# Uses the standalone vpc-endpoints submodule from
+# terraform-aws-modules/vpc/aws.
+#
+# Interface endpoints default to intra subnets (no internet
+# route needed – they use AWS PrivateLink). Override per-endpoint
+# with subnet_ids inside the endpoints map.
+#
+# Gateway endpoints (S3, DynamoDB) are attached to route tables
+# specified per-endpoint via route_table_ids.
+#
+# Security groups are NOT managed here – callers should create
+# them at the stack level using the security-group module and
+# pass security_group_ids per-endpoint.
+################################################################
+
+module "vpc_endpoints" {
+  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version = "6.6.1"
+
+  create = module.this.enabled && var.create_vpc_endpoints
+
+  vpc_id = module.vpc.vpc_id
+
+  # Default subnet placement: intra (no internet route)
+  subnet_ids = module.vpc.intra_subnets
+
+  # Security groups are managed at the stack level
+  create_security_group = false
+
+  endpoints = var.vpc_endpoints
+
+  tags = module.this.tags
 }

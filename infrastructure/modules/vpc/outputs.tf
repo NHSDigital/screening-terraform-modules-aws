@@ -65,21 +65,21 @@ output "private_route_table_ids" {
 }
 
 ################################################################
-# Isolated subnets (no internet)
+# Intra subnets (no internet)
 ################################################################
 
-output "isolated_subnet_ids" {
-  description = "List of IDs of the fully isolated subnets (no internet route)."
+output "intra_subnet_ids" {
+  description = "List of IDs of the intra subnets (no internet route)."
   value       = module.vpc.intra_subnets
 }
 
-output "isolated_subnets_cidr_blocks" {
-  description = "List of CIDR blocks of the isolated subnets."
+output "intra_subnets_cidr_blocks" {
+  description = "List of CIDR blocks of the intra subnets."
   value       = module.vpc.intra_subnets_cidr_blocks
 }
 
-output "isolated_route_table_ids" {
-  description = "List of IDs of the isolated route tables."
+output "intra_route_table_ids" {
+  description = "List of IDs of the intra route tables."
   value       = module.vpc.intra_route_table_ids
 }
 
@@ -122,7 +122,12 @@ output "nat_public_ips" {
 
 output "igw_id" {
   description = "The ID of the Internet Gateway."
-  value       = module.vpc.igw_id
+  value       = var.enable_network_firewall ? try(aws_internet_gateway.this[0].id, null) : module.vpc.igw_id
+}
+
+output "igw_arn" {
+  description = "The ARN of the Internet Gateway."
+  value       = var.enable_network_firewall ? try(aws_internet_gateway.this[0].arn, null) : module.vpc.igw_arn
 }
 
 ################################################################
@@ -140,15 +145,38 @@ output "default_security_group_id" {
 
 output "flow_log_id" {
   description = "The ID of the VPC Flow Log."
-  value       = try(aws_flow_log.this[0].id, null)
+  value       = module.flow_log.id
+}
+
+output "flow_log_arn" {
+  description = "The ARN of the VPC Flow Log."
+  value       = module.flow_log.arn
 }
 
 output "flow_log_cloudwatch_log_group_arn" {
   description = "The ARN of the CloudWatch Log Group for VPC flow logs."
-  value       = try(aws_cloudwatch_log_group.flow_log[0].arn, null)
+  value       = module.flow_log.cloudwatch_log_group_arn
 }
 
 output "flow_log_iam_role_arn" {
   description = "The ARN of the IAM role used by VPC flow logs."
-  value       = try(aws_iam_role.flow_log[0].arn, null)
+  value       = module.flow_log.iam_role_arn
+}
+
+################################################################
+# VPC Endpoints
+################################################################
+
+output "vpc_endpoints" {
+  description = "Map of VPC endpoints created, keyed by the logical name."
+  value       = module.vpc_endpoints.endpoints
+}
+
+################################################################
+# Edge route table
+################################################################
+
+output "edge_route_table_id" {
+  description = "ID of the IGW edge route table (only when enable_network_firewall = true)."
+  value       = try(aws_route_table.edge[0].id, null)
 }
