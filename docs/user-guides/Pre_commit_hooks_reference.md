@@ -42,6 +42,7 @@ git commit -m "feat(module): description"
 Pre-commit hooks are **automated quality checks** that run before every commit. They ensure code meets the repository's standards for formatting, security, and testing.
 
 **Benefits:**
+
 - Catch errors locally before pushing to GitHub
 - Enforce consistent code style and security
 - Prevent secrets from being committed
@@ -62,12 +63,14 @@ These hooks operate on `.tf` and `.tfvars` files to ensure Terraform modules are
 **What it does:** Enforces consistent Terraform formatting (indentation, spacing, alignment).
 
 **When it fails:**
-```
+
+```text
 ✗ Failed
 Terraform formatting checks failed
 ```
 
 **Fix:**
+
 ```bash
 # Auto-fix
 terraform fmt -recursive infrastructure/modules/
@@ -80,6 +83,7 @@ git commit -m "..."
 ```
 
 **Manual run:**
+
 ```bash
 pre-commit run terraform_fmt --files infrastructure/modules/vpc/main.tf
 ```
@@ -91,7 +95,8 @@ pre-commit run terraform_fmt --files infrastructure/modules/vpc/main.tf
 **What it does:** Checks that Terraform syntax is valid and modules are properly configured. Uses `terraform init -lockfile=readonly` internally.
 
 **When it fails:**
-```
+
+```text
 Error: Invalid resource type
 
   on infrastructure/modules/s3-bucket/main.tf line 5, in resource "aws_s3_bucket_typo":
@@ -101,14 +106,17 @@ An invalid resource type "aws_s3_bucket_typo" has been used.
 ```
 
 **Fix:**
+
 1. Review the error message
 2. Correct the HCL syntax (typos, missing brackets, invalid references, etc.)
 3. Verify locally:
+
    ```bash
    terraform -chdir="infrastructure/modules/s3-bucket" validate
    ```
 
 **Common causes:**
+
 - Resource type typos: `aws_s3_bucket_typo` instead of `aws_s3_bucket`
 - Missing required variables
 - Invalid provider configuration or missing provider blocks
@@ -121,14 +129,17 @@ An invalid resource type "aws_s3_bucket_typo" has been used.
 **What it does:** Runs `tflint` to detect code issues, bad practices, and security concerns using rules defined in `scripts/config/.tflint.hcl`.
 
 **When it fails:**
-```
+
+```text
 Error: aws_s3_bucket does not have a "tags" argument (aws_resource_missing_tags)
 ```
 
 **Fix:**
+
 1. Review the tflint rule and message
 2. Update your code to comply
 3. If it's a legitimate exception, add a tflint disable comment:
+
    ```hcl
    resource "aws_s3_bucket" "test" {
      # tflint-ignore=aws_resource_missing_tags
@@ -137,9 +148,10 @@ Error: aws_s3_bucket does not have a "tags" argument (aws_resource_missing_tags)
    ```
 
 **Common issues:**
+
 - Missing resource tags
 - Unused variables or outputs
-- Hard-coded values that should be variables
+- Literal values that should be variables
 - Non-standard naming conventions
 - Potential security issues (e.g., public access not blocked)
 
@@ -150,12 +162,14 @@ Error: aws_s3_bucket does not have a "tags" argument (aws_resource_missing_tags)
 **What it does:** Auto-generates the module README.md from variables, outputs, and code comments.
 
 **When it fails:**
-```
+
+```text
 ✗ Failed
 Documentation is out of sync
 ```
 
 **Fix:**
+
 ```bash
 # Auto-regenerate documentation
 pre-commit run terraform_docs --all-files
@@ -169,12 +183,14 @@ git commit -m "..."
 ```
 
 **Important:** Never manually edit the section between these markers:
+
 ```markdown
 <!-- BEGIN_TF_DOCS -->
 <!-- END_TF_DOCS -->
 ```
 
 Always regenerate instead using the hook or:
+
 ```bash
 cd infrastructure/modules/s3-bucket/
 terraform-docs markdown . > README.md
@@ -185,12 +201,14 @@ terraform-docs markdown . > README.md
 #### `terraform_providers_lock` — Cross-Platform Provider Locking
 
 **What it does:** Ensures `.terraform.lock.hcl` includes provider versions for all target platforms:
+
 - `linux_amd64`, `linux_arm64` (CI/CD)
 - `darwin_amd64`, `darwin_arm64` (macOS)
 - `windows_amd64` (Windows)
 
 **When it fails:**
-```
+
+```text
 ✗ Failed
 Lockfile is not cross-platform
 Missing platform: darwin_amd64
@@ -199,11 +217,13 @@ Missing platform: darwin_amd64
 **Fix:**
 
 Option 1: Use the upgrade helper (recommended)
+
 ```bash
 ./scripts/terraform/upgrade-module.sh infrastructure/modules/s3-bucket
 ```
 
 Option 2: Manual regeneration
+
 ```bash
 terraform -chdir="infrastructure/modules/s3-bucket" providers lock \
   -platform=linux_amd64 \
@@ -242,11 +262,13 @@ These hooks catch common Git mistakes and enforce best practices.
 **What it does:** Prevents committing directly to `main` (enforces PR workflow).
 
 **When it fails:**
-```
+
+```text
 You are attempting to commit to the branch: main
 ```
 
 **Fix:** Create a feature branch:
+
 ```bash
 git checkout -b feature/BCSS-12345-description
 ```
@@ -258,6 +280,7 @@ git checkout -b feature/BCSS-12345-description
 **What they do:** Auto-fix missing newlines at end of files and remove trailing spaces.
 
 **Result:** Files are auto-fixed; re-stage and commit:
+
 ```bash
 git add .
 git commit -m "..."
@@ -270,7 +293,8 @@ git commit -m "..."
 **What it does:** Validates YAML syntax in `.yml` and `.yaml` files.
 
 **When it fails:**
-```
+
+```text
 Parse error at line 5, column 3: inconsistent indentation
 ```
 
@@ -285,14 +309,17 @@ Parse error at line 5, column 3: inconsistent indentation
 **What it does:** Validates Bash/shell scripts for errors and bad practices.
 
 **When it fails:**
-```
+
+```text
 SC2119: Use foo "$@" if function's $1 should be reached.
 ```
 
 **Fix:**
+
 1. Review the warning code
 2. Update the script to comply
 3. If it's a false positive, add a disable comment:
+
    ```bash
    # shellcheck disable=SC2119
    my_function() {
@@ -301,17 +328,19 @@ SC2119: Use foo "$@" if function's $1 should be reached.
    ```
 
 **Common issues:**
+
 - Unquoted variables: `$var` → `"$var"`
 - Unused variables
 - Unreachable code
-- Hardcoded values that should be parameters
+- Literal values that should be parameters
 
 **Manual run:**
+
 ```bash
 shellcheck scripts/terraform/upgrade-module.sh
 ```
 
-**Reference:** [ShellCheck Wiki](https://www.shellcheck.net/wiki/)
+**Reference:** [shellcheck Wiki](https://www.shellcheck.net/wiki/)
 
 ---
 
@@ -327,14 +356,16 @@ shellcheck scripts/terraform/upgrade-module.sh
 
 #### `check-markdown-format`
 
-**What it does:** Validates Markdown syntax and style (via markdownlint).
+**What it does:** Validates Markdown syntax and style (via Markdown linter).
 
 **Common issues:**
+
 - Incorrect heading levels
 - Missing blank lines around code blocks
 - Inconsistent list formatting
 
 **Fix:**
+
 ```bash
 pre-commit run check-markdown-format --all-files
 ```
@@ -346,17 +377,20 @@ pre-commit run check-markdown-format --all-files
 **What it does:** Checks documentation against British English style rules using Vale.
 
 **When it fails:**
-```
+
+```text
 README.md:10:5: [Vale.Terms] Use 'repo-wide' instead of 'repo-wide mode'
 README.md:15:12: [Vale.Spelling] Did you mean 'Boolean'?
 ```
 
 **Common issues:**
+
 - American vs. British spelling: "color" → "colour"
-- Terminology: "Boolean" → "boolean"
+- Terminology: true/false wording
 - Missing articles or unclear phrasing
 
 **Fix:**
+
 ```bash
 # Update the text to match the suggestion, or
 # Relax/customize rules in .vale.ini if needed
@@ -364,6 +398,7 @@ code README.md
 ```
 
 **Manual run:**
+
 ```bash
 vale README.md
 ```
@@ -376,19 +411,20 @@ vale README.md
 
 #### `detect-aws-credentials`
 
-**What it does:** Detects hardcoded AWS access keys, secret keys, and session tokens.
+**What it does:** Detects embedded AWS access keys, secret keys, and session tokens.
 
 **When it fails:**
-```
+
+```text
 AWS credentials detected
 ```
 
 **Fix:**
+
 1. **Remove the credential immediately**
-2. Use secure alternatives:
-   - GitHub Secrets for CI/CD
-   - AWS IAM assume role or OIDC federation
-   - `~/.aws/credentials` for local development (never commit)
+2. Use GitHub Secrets for CI/CD.
+3. Use AWS iam assume role or OIDC federation.
+4. Use `~/.aws/credentials` for local development (never commit).
 
 **Prevention:** Never paste real credentials anywhere.
 
@@ -404,10 +440,11 @@ AWS credentials detected
 
 #### `scan-secrets` — Gitleaks
 
-**What it does:** Scans entire git history for hardcoded secrets (API keys, credentials, etc.).
+**What it does:** Scans entire git history for embedded secrets (API keys, credentials, etc.).
 
 **When it fails:**
-```
+
+```text
 Leaks found: 1
 File: .env.example
 Secret: aws_secret_access_key = "AKIA..."
@@ -416,6 +453,7 @@ Secret: aws_secret_access_key = "AKIA..."
 **Fix:**
 
 If it's a **real secret** (CRITICAL):
+
 ```bash
 # Use git filter-branch to remove from history
 git filter-branch --force --index-filter \
@@ -427,6 +465,7 @@ git push origin +main
 ```
 
 If it's a **false positive** (e.g., example credentials):
+
 ```bash
 # Add to .gitleaksignore
 echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
@@ -436,6 +475,7 @@ pre-commit run scan-secrets --all-files
 ```
 
 **Manual run:**
+
 ```bash
 gitleaks detect --verbose
 ```
@@ -449,7 +489,8 @@ gitleaks detect --verbose
 **What it does:** Validates that commit messages follow Conventional Commits format.
 
 **Format:**
-```
+
+```text
 <type>(<scope>): <description>
 
 optional body explaining the change
@@ -462,7 +503,8 @@ optional footer (e.g., Closes #123)
 **Examples:**
 
 ✅ **Good:**
-```
+
+```text
 feat(s3-bucket): add encryption-at-rest configuration
 
 Introduces optional KMS key support while defaulting to SSE-S3.
@@ -472,24 +514,28 @@ Closes #45
 ```
 
 ✅ **Also good:**
-```
+
+```text
 fix(vpc): correct CIDR block validation logic
 ```
 
 ❌ **Bad:**
-```
+
+```text
 Updated stuff
 fix s3 bucket
 add new feature
 ```
 
 **When it fails:**
-```
+
+```text
 Commit message does not conform to Conventional Commits.
 Expected format: <type>(<scope>): <description>
 ```
 
 **Fix:**
+
 ```bash
 git commit --amend
 # Edit the message to follow the format
@@ -531,6 +577,7 @@ cat .git/hooks/commit-msg
 ### One Hook Always Fails
 
 Run in isolation:
+
 ```bash
 pre-commit run <hook-id> --all-files
 ```
@@ -547,9 +594,10 @@ rm infrastructure/modules/*/.terraform.lock.hcl
 pre-commit run terraform_providers_lock --all-files
 ```
 
-### Shellcheck Failing Locally but Not CI
+### shellcheck Failing Locally but Not CI
 
 Ensure same shellcheck version:
+
 ```bash
 shellcheck --version
 ```
@@ -559,12 +607,14 @@ Compare with CI logs and update locally if needed.
 ### Terraform Validate Fails Only Locally
 
 Check AWS credentials and region:
+
 ```bash
 echo $AWS_DEFAULT_REGION
 aws sts get-caller-identity
 ```
 
 If `AWS_DEFAULT_REGION` is missing, add it:
+
 ```bash
 export AWS_DEFAULT_REGION=eu-west-2
 pre-commit run terraform_validate --all-files
@@ -573,6 +623,7 @@ pre-commit run terraform_validate --all-files
 ### Vale Checks Too Strict
 
 Edit `.vale.ini` to relax rules or add custom exceptions for your terminology:
+
 ```bash
 code .vale.ini
 ```
@@ -610,11 +661,13 @@ git commit --no-verify -m "..."
 ```
 
 ⚠️ **Use only when:**
+
 - A hook has a genuine bug (report it immediately)
-- Emergency hotfix to production
+- Emergency production fix
 - You'll fix the issues immediately in a follow-up commit
 
 **NEVER use `--no-verify` to bypass:**
+
 - `detect-aws-credentials` — detects leaked credentials
 - `detect-private-key` — detects leaked private keys
 - `scan-secrets` — scans git history for secrets
@@ -627,7 +680,7 @@ If you use `--no-verify`, report the issue immediately.
 
 - [pre-commit framework](https://pre-commit.com/)
 - [antonbabenko/pre-commit-terraform](https://github.com/antonbabenko/pre-commit-terraform)
-- [ShellCheck](https://www.shellcheck.net/)
+- [shellcheck](https://www.shellcheck.net/)
 - [terraform-docs](https://terraform-docs.io/)
 - [Vale — English Prose Linter](https://vale.sh/)
 - [Gitleaks — Secret Scanning](https://github.com/gitleaks/gitleaks)

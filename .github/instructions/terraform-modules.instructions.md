@@ -66,11 +66,13 @@ module "<resource>" {
 When AWS provider versions change or community modules receive updates:
 
 1. Use the upgrade helper to refresh a single module:
+
    ```bash
    ./scripts/terraform/upgrade-module.sh infrastructure/modules/vpc
    ```
 
 2. Or refresh all modules at once:
+
    ```bash
    ./scripts/terraform/upgrade-module.sh update-all
    ```

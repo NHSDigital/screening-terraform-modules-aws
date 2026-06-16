@@ -20,7 +20,7 @@ All tests run via `bash tests/run-all-tests.sh` in the CI/CD pipeline and locall
 
 Tests live in `tests/`:
 
-```
+```text
 tests/
 ├── run-all-tests.sh                # Orchestrator; runs all test suites
 ├── test-conventional-commit.sh    # Validates conventional commit message format
@@ -206,7 +206,7 @@ bash tests/test-module-upgrade.sh
 
 Output shows pass/fail for each test:
 
-```
+```text
 Running test_normalise_module_path_absolute...
 ✓ Test passed
 Running test_normalise_module_path_relative...
@@ -223,7 +223,7 @@ bash tests/run-all-tests.sh
 
 Output aggregates all test suites:
 
-```
+```text
 Test 1: Conventional Commits
 ============================
 Running conventional commit tests...
@@ -338,7 +338,7 @@ bash -x tests/test-module-upgrade.sh
 
 Output shows every command executed:
 
-```
+```text
 + terraform() { echo "$@" >> ...
 + test_terraform_init_upgrade
 + local module_path=infrastructure/modules/vpc

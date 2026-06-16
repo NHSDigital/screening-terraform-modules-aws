@@ -366,11 +366,11 @@ This repository enforces **26 hooks** across six categories:
 
 Use `git commit --no-verify` only in genuine emergencies, and report the issue immediately.
 
-### Conventional commits
+### Conventional commit hook implementation
 
 Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-```
+```text
 <type>(<scope>): <description>
 
 optional body

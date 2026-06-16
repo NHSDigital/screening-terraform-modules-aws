@@ -45,6 +45,7 @@ The script will warn before starting and then iterate through all modules under 
 2. Watch for breaking changes in upstream community modules
 3. Run `terraform validate` in each module to confirm correctness
 4. Commit the changes with a clear message:
+
    ```bash
    git add infrastructure/modules/*/
    git commit -m "chore: refresh provider locks and documentation"

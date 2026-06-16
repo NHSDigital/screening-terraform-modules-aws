@@ -77,7 +77,7 @@ module "s3_bucket" {
 When upgrading:
 
 1. Update the version in `main.tf`
-2. Run `terraform init -upgrade` to refetch
+2. Run `terraform init -upgrade` to download the latest dependencies
 3. Review changes in `.terraform.lock.hcl` and module outputs
 4. Test and validate before committing
 
@@ -115,13 +115,13 @@ Pre-commit hooks will validate that README.md is in sync with the module's varia
 
 After upgrading a module:
 
-1. **Check security baseline**: Verify that enforcement controls haven't been weakened
-   - Encryption settings still hardcoded
-   - Public access blocks still enabled
-   - iam policies still minimal (no `*` actions)
-2. **Review upstream breaking changes**: Check community module release notes for incompatible API changes
-3. **Validate outputs**: Ensure stable output names are preserved; consumers depend on them
-4. **Test in context**: If possible, apply the module in a test stack to confirm integration
+1. **Check security baseline**: Verify that enforcement controls haven't been weakened.
+2. **Confirm encryption defaults**: Ensure encryption settings still use fixed values.
+3. **Confirm public access blocks**: Ensure public access blocks are still enabled.
+4. **Confirm iam permissions**: Keep iam policies minimal (no `*` actions).
+5. **Review upstream breaking changes**: Check community module release notes for incompatible API changes.
+6. **Validate outputs**: Ensure stable output names are preserved; consumers depend on them.
+7. **Test in context**: If possible, apply the module in a test stack to confirm integration.
 
 ## Module Lifecycle
 
@@ -176,7 +176,7 @@ The `.terraform.lock.hcl` file ensures Terraform downloads the correct version f
 - [ ] Run `terraform validate` in the module
 - [ ] Run `bash tests/run-all-tests.sh` to ensure no regressions
 - [ ] Commit with a clear message: `chore: upgrade <module> to <version>`
-- [ ] Verify pre-commit hooks pass (fmt, docs, security)
+- [ ] Verify pre-commit hooks pass (formatting, docs, security)
 - [ ] Push and watch CI/CD pipeline
 
 ## References

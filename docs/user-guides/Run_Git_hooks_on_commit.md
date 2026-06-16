@@ -38,7 +38,8 @@ pre-commit run --all-files
 ```
 
 If successful, output ends with:
-```
+
+```text
 ====== Summary =====
 Passed: X, Failed: 0, Skipped: Y
 ```

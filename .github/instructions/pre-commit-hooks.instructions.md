@@ -39,7 +39,7 @@ git commit -m "type(scope): description"
 
 ## Never Skip These Hooks
 
-- `detect-aws-credentials` — detects hardcoded secrets
+- `detect-aws-credentials` — detects embedded secrets
 - `detect-private-key` — detects leaked private keys
 - `scan-secrets` — scans git history for secrets
 - `terraform_validate` — ensures modules are syntactically valid
