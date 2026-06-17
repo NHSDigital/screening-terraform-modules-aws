@@ -507,6 +507,15 @@ bash tests/test-workflow-security.sh verbose
 
 For detailed module authoring guidance, see `infrastructure/AGENTS.md`.
 
+### Dependabot Policy
+
+Dependabot configuration is maintained in `.github/dependabot.yaml`.
+
+For Dependabot PRs, the `CI/CD - On Pull Request` workflow runs core validation checks (metadata, pre-commit/coding standards, and validation tests).
+Privileged report-upload jobs in coding standards are skipped for Dependabot because they rely on sensitive upload configuration intended for trusted human-driven flows.
+
+This keeps automated dependency updates fully validated without granting unnecessary privileged execution paths to bot-authored PRs.
+
 ## Contacts
 
 Raise an issue or open a GitHub discussion on this repository.
