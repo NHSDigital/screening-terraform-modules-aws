@@ -72,6 +72,8 @@ test_valid "feat(pre-commit): replace external hook with bash validator" "feat w
 test_valid "fix(tools): consolidate mise.toml and .tool-versions" "fix with scope"
 test_valid "docs(readme): update installation instructions" "docs with scope"
 test_valid "docs(README.md): update example using jdx/mise-action version pinning" "docs with dotted scope"
+test_valid "feat!: remove legacy validator" "feat with breaking change marker"
+test_valid "feat(validators)!: replace external validator" "feat with scope and breaking marker"
 test_valid "style(formatting): apply prettier to all files" "style with scope"
 test_valid "refactor(workflows): simplify GitHub Actions configuration" "refactor with scope"
 test_valid "perf(ci): optimize terraform plugin caching" "perf with scope"
