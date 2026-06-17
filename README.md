@@ -68,6 +68,18 @@ Tool versions are maintained in two complementary formats for compatibility:
 
 Both files must be kept in sync. Update `.tool-versions` first, then ensure `mise.toml` is updated accordingly. Run `mise lock` to regenerate the lock file.
 
+For routine upgrades, use the shared helper so local and CI use the same logic:
+
+```shell
+bash scripts/mise/update-tool-versions.sh
+```
+
+Preview only (no file changes):
+
+```shell
+bash scripts/mise/update-tool-versions.sh --dry-run
+```
+
 Local development and CI both resolve pinned versions from these files through mise.
 
 ### Configuration
