@@ -35,18 +35,6 @@ output "master_user_secret_arn" {
   value       = module.rds.db_instance_master_user_secret_arn
 }
 
-# Security group
-
-output "rds_security_group" {
-  description = "The security group created for the RDS instance. Null when vpc_security_group_ids was provided by the caller"
-  value       = local.create_security_group ? aws_security_group.this[0] : null
-}
-
-output "security_group_id" {
-  description = "ID of the RDS security group. Null when vpc_security_group_ids was provided by the caller"
-  value       = local.create_security_group ? aws_security_group.this[0].id : null
-}
-
 # Subnet group
 
 output "rds_subnet_group" {

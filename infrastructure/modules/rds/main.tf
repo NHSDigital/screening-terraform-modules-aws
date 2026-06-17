@@ -1,65 +1,3 @@
-data "aws_vpc" "selected" {
-  id = var.vpc_id
-}
-
-locals {
-  create_security_group         = length(var.vpc_security_group_ids) == 0
-  effective_ingress_cidr_blocks = length(var.ingress_cidr_blocks) > 0 ? var.ingress_cidr_blocks : [data.aws_vpc.selected.cidr_block]
-}
-
-# ----------------------------------------------------------------------------
-# Security group for the RDS instance.
-#
-# Only created when vpc_security_group_ids is not provided. The security group
-# allows inbound traffic on the DB port (and optionally the Performance Insights
-# agent port) from the VPC CIDR or caller-supplied CIDR blocks, and restricts
-# outbound traffic to HTTPS only.
-# ----------------------------------------------------------------------------
-
-# tflint-ignore: terraform_required_providers
-resource "aws_security_group" "this" {
-  # checkov:skip=CKV2_AWS_5: SG is attached to the RDS instance via vpc_security_group_ids in the community module below
-  count = local.create_security_group ? 1 : 0
-
-  name_prefix = "${module.this.id}-rds-"
-  description = "Allow VPC traffic to ${var.engine} RDS instance on port ${var.port}"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description = "DB port from VPC"
-    from_port   = var.port
-    to_port     = var.port
-    protocol    = "tcp"
-    cidr_blocks = local.effective_ingress_cidr_blocks
-  }
-
-  dynamic "ingress" {
-    for_each = var.pi_port != null ? [1] : []
-    content {
-      description = "Performance Insights agent port"
-      from_port   = var.pi_port
-      to_port     = var.pi_port
-      protocol    = "tcp"
-      cidr_blocks = length(var.pi_cidr_block) > 0 ? var.pi_cidr_block : local.effective_ingress_cidr_blocks
-    }
-  }
-
-  egress {
-    description      = "HTTPS egress for AWS service communication"
-    from_port        = 443
-    to_port          = 443
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = merge(module.this.tags, { Name = "${module.this.id}-rds" })
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 # ----------------------------------------------------------------------------
 # RDS instance
 #
@@ -105,7 +43,7 @@ module "rds" {
 
   # Networking
   publicly_accessible    = false
-  vpc_security_group_ids = local.create_security_group ? [aws_security_group.this[0].id] : var.vpc_security_group_ids
+  vpc_security_group_ids = var.vpc_security_group_ids
 
   # Subnet group (always managed by this module)
   create_db_subnet_group = true
