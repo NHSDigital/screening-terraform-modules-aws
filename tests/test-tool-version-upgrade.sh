@@ -11,6 +11,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 repo_root="$(git rev-parse --show-toplevel)"
+mkdir -p "$repo_root/tmp"
 fixture_root="$(mktemp -d "$repo_root/tmp/tool-version-upgrade-test.XXXXXX")"
 bin_root="$(mktemp -d)"
 log_file="$fixture_root/calls.log"
