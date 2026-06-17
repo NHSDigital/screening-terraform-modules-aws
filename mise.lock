@@ -154,55 +154,37 @@ channel = "conda-forge"
 [tools.make."platforms.linux-arm64"]
 checksum = "sha256:d243aea768e6fa360b7eda598340f43d2a41c9fc169d9f97f505410be68815f8"
 url = "https://conda.anaconda.org/conda-forge/linux-aarch64/make-4.4.1-h2a6d0cb_2.conda"
-conda_deps = [
-    "libgcc-ng >=13",
-]
+conda_deps = []
 
 [tools.make."platforms.linux-arm64-musl"]
 checksum = "sha256:d243aea768e6fa360b7eda598340f43d2a41c9fc169d9f97f505410be68815f8"
 url = "https://conda.anaconda.org/conda-forge/linux-aarch64/make-4.4.1-h2a6d0cb_2.conda"
-conda_deps = [
-    "libgcc-ng >=13",
-]
+conda_deps = []
 
 [tools.make."platforms.linux-x64"]
 checksum = "sha256:1c6bac75dff518720d86d4535d8eb10647037925a2662d6cf8009e7252966cb2"
 url = "https://conda.anaconda.org/conda-forge/linux-64/make-4.4.1-hb9d3cd8_0.conda"
-conda_deps = [
-    "__glibc >=2.17,<3.0.a0",
-    "libgcc-ng >=13",
-]
+conda_deps = []
 
 [tools.make."platforms.linux-x64-musl"]
 checksum = "sha256:1c6bac75dff518720d86d4535d8eb10647037925a2662d6cf8009e7252966cb2"
 url = "https://conda.anaconda.org/conda-forge/linux-64/make-4.4.1-hb9d3cd8_0.conda"
-conda_deps = [
-    "__glibc >=2.17,<3.0.a0",
-    "libgcc-ng >=13",
-]
+conda_deps = []
 
 [tools.make."platforms.macos-arm64"]
 checksum = "sha256:90ca65e788406d9029ae23ad4bd944a8b5353ad5f59bd6ce326f980cde46f37e"
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/make-4.4.1-hc9fafa5_2.conda"
-conda_deps = [
-    "__osx >=11.0",
-]
+conda_deps = []
 
 [tools.make."platforms.macos-x64"]
 checksum = "sha256:5a5ab3ee828309185e0a76ca80f5da85f31d8480d923abb508ca00fe194d1b5a"
 url = "https://conda.anaconda.org/conda-forge/osx-64/make-4.4.1-h00291cd_2.conda"
-conda_deps = [
-    "__osx >=10.13",
-]
+conda_deps = []
 
 [tools.make."platforms.windows-x64"]
 checksum = "sha256:a810cdca3d5fa50d562cda23c0c1195b45ff5f9b0c41e0d4c8c2dd3c043ff4f2"
 url = "https://conda.anaconda.org/conda-forge/win-64/make-4.4.1-h0e40799_2.conda"
-conda_deps = [
-    "libgcc >=13",
-    "libwinpthread >=12.0.0.r4.gg4f2fc60ca",
-    "ucrt >=10.0.20348.0",
-]
+conda_deps = []
 
 [[tools.node]]
 version = "24.16.0"
