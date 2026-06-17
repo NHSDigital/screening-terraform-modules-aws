@@ -124,31 +124,8 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
-variable "vpc_id" {
-  description = "VPC ID. Used to derive the VPC CIDR for security group ingress when ingress_cidr_blocks is not set"
-  type        = string
-}
-
 variable "vpc_security_group_ids" {
-  description = "List of existing security group IDs to associate with the instance. When provided, no security group is created by this module"
-  type        = list(string)
-  default     = []
-}
-
-variable "ingress_cidr_blocks" {
-  description = "CIDR blocks allowed to connect on the DB port. Defaults to the VPC CIDR when empty"
-  type        = list(string)
-  default     = []
-}
-
-variable "pi_port" {
-  description = "Performance Insights agent port. When set, an additional ingress rule is added to the security group"
-  type        = number
-  default     = null
-}
-
-variable "pi_cidr_block" {
-  description = "CIDR blocks allowed to connect on the Performance Insights port. Defaults to ingress_cidr_blocks when empty"
+  description = "List of security group IDs to associate with the instance. Create the security group using the dedicated security group module and pass its ID here"
   type        = list(string)
   default     = []
 }

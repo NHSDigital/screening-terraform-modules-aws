@@ -2,7 +2,7 @@
 
 Thin NHS wrapper around [`terraform-aws-modules/rds/aws`](https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest) (v7.2.0).
 
-The module provisions an RDS DB instance together with its subnet group, parameter group, option group, and (optionally) an Enhanced Monitoring IAM role. It also creates a security group unless the caller supplies their own via `vpc_security_group_ids`.
+The module provisions an RDS DB instance together with its subnet group, parameter group, option group, and (optionally) an Enhanced Monitoring IAM role. The caller is responsible for creating a security group (use the dedicated security group module) and passing its ID via `vpc_security_group_ids`.
 
 ## Fixed controls
 
@@ -55,10 +55,8 @@ module "oracle_rds" {
   password_wo_version = 1
 
   # networking
-  subnet_ids   = data.aws_subnets.private.ids
-  vpc_id       = data.aws_vpc.selected.id
-  pi_port      = 1529
-  pi_cidr_block = ["10.0.0.0/8"]
+  subnet_ids             = data.aws_subnets.private.ids
+  vpc_security_group_ids = [module.rds_security_group.security_group_id]
 
   # options (Oracle S3 integration and timezone)
   options = [
@@ -132,8 +130,6 @@ The master password ARN is exposed via the `master_user_secret_arn` output.
 | `instance_arn` | ARN of the RDS instance |
 | `instance_resource_id` | RDS resource ID (used for IAM authentication) |
 | `master_user_secret_arn` | Secrets Manager ARN for the master password (when `manage_master_user_password = true`) |
-| `rds_security_group` | Full security group object (`.id`, `.arn`, etc.) — null when `vpc_security_group_ids` is provided |
-| `security_group_id` | Security group ID — null when `vpc_security_group_ids` is provided |
 | `rds_subnet_group` | Object with `.id` and `.arn` for the DB subnet group |
 | `db_subnet_group_id` | DB subnet group name/ID |
 | `db_parameter_group_id` | DB parameter group ID |
@@ -144,7 +140,7 @@ The master password ARN is exposed via the `master_user_secret_arn` output.
 
 When migrating from `../../modules/rds` in the bcss repo to this shared module, note:
 
-1. **Output names** — `instance_endpoint`, `instance_address`, `instance_port`, and `rds_security_group` are compatible. `rds_subnet_group` is compatible (both expose an object with `.id`).
+1. **Output names** — `instance_endpoint`, `instance_address`, `instance_port`, and `rds_subnet_group` are compatible with the local module. `rds_security_group` is no longer an output — the caller now owns the security group resource.
 2. **`snapshot_identifier`** — The local module used `""` as "no snapshot". This module uses `null`. Update the calling stack.
 3. **`password_wo`** — The local module accepted `master_password` as a plain variable (stored in state). This module uses `password_wo` (write-only, not persisted in state).
 4. **`deletion_protection`** — Defaults to `true` here (defaults to whatever `var.deletion_protection` was in the local module). Add `#checkov:skip=CKV_AWS_293` to the module call in non-production stacks.
