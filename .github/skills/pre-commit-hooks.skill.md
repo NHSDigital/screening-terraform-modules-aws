@@ -86,7 +86,9 @@ pre-commit run terraform_fmt --files infrastructure/modules/vpc/main.tf
 
 #### 1.2 `terraform_validate` — Validate Terraform Configuration
 
-**What it does:** Ensures Terraform syntax is valid and modules are properly configured. Uses `terraform init -lockfile=readonly` internally.
+**What it does:** Ensures Terraform syntax is valid and modules are properly configured.
+
+Local pre-commit runs allow Terraform to refresh `.terraform.lock.hcl` when provider constraints change. In CI, `terraform_validate` is run with `terraform init -lockfile=readonly` so checks remain deterministic and do not mutate lockfiles.
 
 **When it fails:**
 
