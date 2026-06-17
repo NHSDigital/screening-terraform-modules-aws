@@ -7,4 +7,10 @@ module "iam_policy" {
   create = module.this.enabled
   name   = module.this.id
   tags   = module.this.tags
+
+  description = var.description
+  path        = var.path
+  policy      = var.policy
+
+  # `name_prefix` conflicts with `name`, hence we omit it
 }
