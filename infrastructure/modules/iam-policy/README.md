@@ -12,6 +12,92 @@ the shared `context.tf` for naming and tagging.
 | Globally unique name     | Default name is `<module.this.id>-<aws_region>`                                   |
 | Tagging                  | Via `module.this.tags`  |
 
+## Usage
+
+### Minimal managed policy (inline JSON)
+
+```hcl
+module "read_only_s3_policy" {
+    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/iam-policy?ref=main"
+
+    service     = "bcss"
+    project     = "ingest"
+    environment = "development"
+    name        = "s3-readonly"
+
+    description = "Read-only access to a specific S3 bucket"
+
+    policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+            {
+                Sid    = "ListBucket"
+                Effect = "Allow"
+                Action = ["s3:ListBucket"]
+                Resource = [
+                    "arn:aws:s3:::example-data-bucket"
+                ]
+            },
+            {
+                Sid    = "GetObjects"
+                Effect = "Allow"
+                Action = ["s3:GetObject"]
+                Resource = [
+                    "arn:aws:s3:::example-data-bucket/*"
+                ]
+            }
+        ]
+    })
+}
+```
+
+### Managed policy from `aws_iam_policy_document`
+
+```hcl
+data "aws_iam_policy_document" "assume_read_secrets" {
+    statement {
+        sid    = "ReadParameterStore"
+        effect = "Allow"
+
+        actions = [
+            "ssm:GetParameter",
+            "ssm:GetParameters",
+            "ssm:GetParametersByPath"
+        ]
+
+        resources = [
+            "arn:aws:ssm:eu-west-2:123456789012:parameter/bcss/prod/*"
+        ]
+    }
+
+    statement {
+        sid    = "ReadSecretsManager"
+        effect = "Allow"
+
+        actions = [
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret"
+        ]
+
+        resources = [
+            "arn:aws:secretsmanager:eu-west-2:123456789012:secret:bcss/prod/*"
+        ]
+    }
+}
+
+module "runtime_secrets_read_policy" {
+    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/iam-policy?ref=main"
+
+    service     = "bcss"
+    project     = "runtime"
+    environment = "prod"
+    name        = "runtime-secrets-read"
+
+    description = "Read application runtime secrets and parameters"
+    policy      = data.aws_iam_policy_document.assume_read_secrets.json
+}
+```
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
