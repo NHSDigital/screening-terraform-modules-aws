@@ -6,6 +6,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 lock_platforms=(
   linux_arm64
   linux_amd64
+  darwin_arm64
   darwin_amd64
   windows_amd64
 )
