@@ -92,7 +92,11 @@ pre-commit run terraform_fmt --files infrastructure/modules/vpc/main.tf
 
 #### `terraform_validate` — Validate Configuration
 
-**What it does:** Checks that Terraform syntax is valid and modules are properly configured. Uses `terraform init -lockfile=readonly` internally.
+**What it does:** Checks that Terraform syntax is valid and modules are properly configured.
+
+In this repository's pre-commit configuration, `terraform_providers_lock` runs before `terraform_validate` so lock file platform coverage is reconciled first.
+
+Local pre-commit runs allow Terraform to refresh `.terraform.lock.hcl` when provider constraints change. In CI, `terraform_validate` runs with `terraform init -lockfile=readonly` so checks stay deterministic and do not mutate lock files.
 
 **When it fails:**
 
@@ -210,7 +214,7 @@ terraform-docs markdown . > README.md
 
 ```text
 ✗ Failed
-Lockfile is not cross-platform
+Lock file is not cross-platform
 Missing platform: darwin_amd64
 ```
 

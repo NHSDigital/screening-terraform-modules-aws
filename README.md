@@ -59,9 +59,6 @@ Install all tool versions:
 mise install
 ```
 
-> [!NOTE]
-> On macOS the default GNU make is too old. Install a newer version with `brew install make` and ensure it is on your `$PATH`.
-
 ### Tool Version Source of Truth
 
 Tool versions are maintained in two complementary formats for compatibility:
@@ -331,7 +328,7 @@ This repository enforces **26 hooks** across six categories:
 
 | Category | Hooks | Purpose |
 | --- | --- | --- |
-| **Terraform** (5) | `terraform_fmt`, `terraform_validate`, `terraform_tflint`, `terraform_docs`, `terraform_providers_lock` | Format, validate, lint, document, and lock Terraform modules |
+| **Terraform** (5) | `terraform_fmt`, `terraform_providers_lock`, `terraform_validate`, `terraform_tflint`, `terraform_docs` | Format, lock, validate, lint, and document Terraform modules |
 | **File Hygiene** (8) | `check-added-large-files`, `check-merge-conflict`, `no-commit-to-branch`, `end-of-file-fixer`, `trailing-whitespace`, `check-yaml`, `check-case-conflict`, `mixed-line-ending` | Prevent commits of large files, merge conflicts, direct commits to main, and enforce line ending consistency |
 | **Shell Scripts** (1) | `shellcheck` | Lint Bash/shell scripts for errors and bad practices |
 | **File Formatting** (4) | `check-file-format`, `check-markdown-format`, `check-english-usage`, `check-terraform-format` | Enforce consistent formatting and British English in documentation |
@@ -467,7 +464,7 @@ All GitHub Actions in CI/CD workflows are pinned to immutable commit SHAs rather
 
 ```yaml
 - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-- uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3.6.3
+- uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
 ```
 
 This prevents tag relinking attacks and supply chain compromises. Version comments are maintained for readability when reviewing workflows.
