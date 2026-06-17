@@ -1,0 +1,187 @@
+# Pre-commit configuration for screening-terraform-modules-aws
+#
+# Prerequisites (install via mise or brew):
+#   terraform, tflint, terraform-docs, vale, jq, shellcheck, markdownlint-cli,
+#   editorconfig-checker, terraform-config-inspect
+#
+# Usage:
+#   pre-commit install --install-hooks
+#   pre-commit install --hook-type commit-msg
+#   pre-commit run --all-files
+#
+# See: https://github.com/antonbabenko/pre-commit-terraform
+
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+repos:
+  # --------------------------------------------------------------------------
+  # Local: generate aliased providers for terraform_validate compatibility
+  # --------------------------------------------------------------------------
+  # Generates provider block definitions for modules using provider configuration_aliases.
+  # This solves the Terraform 0.15+ known issue where terraform validate fails on modules
+  # with provider aliases. See: https://github.com/hashicorp/terraform/issues/28490
+  #
+  # Generates:
+  #   - infrastructure/modules/*/aliased-providers.tf (per-module for validate)
+  # Files are auto-gitignored and should never be committed.
+  - repo: local
+    hooks:
+      - id: generate-terraform-providers
+        name: generate-terraform-providers
+        require_serial: true
+        entry: ./scripts/githooks/generate-terraform-providers.sh
+        language: script
+        files: \.tf(vars)?$
+        pass_filenames: false
+
+  # --------------------------------------------------------------------------
+  # Terraform hooks (format, lint, validate, docs, lock)
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: d61ded22bf9aa0f757303ebcbb0d6d71c4b54015 # v1.106.0
+    hooks:
+      - id: terraform_fmt
+        args:
+        - --args=-no-color
+        - --args=-diff
+        - --args=-recursive
+      - id: terraform_validate
+        args:
+          - --args=-json
+          - --args=-no-color
+          - --env-vars=AWS_DEFAULT_REGION=eu-west-2
+          - --tf-init-args=-lockfile=readonly
+          - --hook-config=--retry-once-with-cleanup=true
+      - id: terraform_tflint
+        # exclude: ^infrastructure/modules/(aws-backup-destination|aws-backup-source)/
+        args:
+        - '--args=--config=__GIT_WORKING_DIR__/scripts/config/.tflint.hcl'
+      - id: terraform_docs
+        args:
+          - '--args=--lockfile=true'
+          - --hook-config=--path-to-file=README.md
+          - --hook-config=--add-to-existing-file=true
+          - --hook-config=--create-file-if-not-exist=false
+          - '--hook-config=--custom-marker-begin=<!-- vale off -->\n<!-- markdownlint-disable -->\n<!-- BEGIN_TF_DOCS -->'
+          - '--hook-config=--custom-marker-end=<!-- END_TF_DOCS -->\n<!-- markdownlint-restore -->\n<!-- vale on -->'
+      - id: terraform_providers_lock
+        args:
+          - --hook-config=--mode=check-lockfile-is-cross-platform
+          # - --hook-config=--mode=always-regenerate-lockfile
+          - --hook-config=--mode=regenerate-lockfile-if-some-platform-missed
+
+  # --------------------------------------------------------------------------
+  # General file hygiene
+  # --------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
+    hooks:
+      # Git style
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-vcs-permalinks
+      - id: forbid-new-submodules
+      - id: no-commit-to-branch
+
+      # Common errors
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+        exclude: CHANGELOG.md
+      - id: check-yaml
+      - id: check-executables-have-shebangs
+
+      # Cross platform
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+      # Security
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: detect-private-key
+
+  # --------------------------------------------------------------------------
+  # Shell script linting (uses scripts/shellscript-linter.sh; runs natively if
+  # shellcheck is on PATH, otherwise falls back to koalaman/shellcheck Docker
+  # image. Local and CI follow the same logic so behaviour is consistent.)
+  #
+  # NOTE: require_serial=true prevents pre-commit from running this hook in
+  # parallel with other hooks. This is critical because when the Docker fallback
+  # is used, concurrent container spawning can exhaust available memory (exit 137).
+  # Sequential execution ensures Docker containers are cleaned up between files.
+  # --------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        entry: bash -c 'for f in "$@"; do SHELLCHECK_OPTS="--severity=warning" file="$f" bash scripts/shellscript-linter.sh || exit 1; done' --
+        language: system
+        types: [shell]
+        require_serial: true
+
+  # --------------------------------------------------------------------------
+  # Repository githook wrappers (native tool if available, Docker fallback)
+  # --------------------------------------------------------------------------
+  # TODO: Keep this file as the single source of truth for checks and tune CI by
+  # sharding pre-commit hook execution in a matrix (instead of duplicating checks
+  # across standalone workflows). Keep terraform_validate and terraform_docs in the
+  # same shard because docs generation relies on init/validation context.
+  - repo: local
+    hooks:
+      - id: check-file-format
+        name: check-file-format
+        entry: bash -c 'check=all ./scripts/githooks/check-file-format.sh'
+        language: system
+        pass_filenames: false
+
+      - id: check-markdown-format
+        name: check-markdown-format
+        entry: bash -c 'check=all ./scripts/githooks/check-markdown-format.sh'
+        language: system
+        files: \.md$
+        pass_filenames: false
+
+      - id: check-english-usage
+        name: check-english-usage
+        entry: bash -c 'check=all ./scripts/githooks/check-english-usage.sh'
+        language: system
+        files: \.md$
+        pass_filenames: false
+
+      - id: check-terraform-format
+        name: check-terraform-format
+        entry: bash -c 'check_only=true ./scripts/githooks/check-terraform-format.sh'
+        language: system
+        files: \.tf(vars)?$
+        pass_filenames: false
+
+      - id: scan-secrets
+        name: scan-secrets
+        entry: bash -c 'check=whole-history ./scripts/githooks/scan-secrets.sh'
+        language: system
+        pass_filenames: false
+
+  # --------------------------------------------------------------------------
+  # Conventional Commits (commit message format)
+  # --------------------------------------------------------------------------
+  # Replaced external compilerla/conventional-pre-commit with native bash validator
+  # to avoid external dependencies. Uses scripts/githooks/validate-conventional-commit.sh
+  # instead.
+  #
+  # Original:
+  #   - repo: https://github.com/compilerla/conventional-pre-commit
+  #     rev: 91ab4bf57e58b32adf1a122681f6ebe164d081c8 # v4.4.0
+  #     hooks:
+  #       - id: conventional-pre-commit
+  #         stages: [commit-msg]
+  #         args: [--strict, feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+  - repo: local
+    hooks:
+      - id: conventional-commit
+        name: Conventional Commit format check
+        entry: scripts/githooks/validate-conventional-commit.sh
+        language: script
+        stages: [commit-msg]

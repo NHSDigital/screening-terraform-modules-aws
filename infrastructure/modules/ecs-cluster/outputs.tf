@@ -1,11 +1,14 @@
 output "ecs_cluster_name" {
-  value = aws_ecs_cluster.ecs_cluster.name
+  description = "Name of the ECS cluster"
+  value       = aws_ecs_cluster.ecs_cluster.name
 }
 
 output "ecs_sg_id" {
-  value = aws_security_group.ecs_sg.id
+  description = "Security group ID for the ECS cluster"
+  value       = aws_security_group.ecs_sg.id
 }
 
 output "ecs_cluster_arn" {
-  value = aws_ecs_cluster.ecs_cluster.arn
+  description = "ARN of the ECS cluster"
+  value       = aws_ecs_cluster.ecs_cluster.arn
 }

@@ -5,13 +5,17 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.42 |
+| <a name="requirement_time"></a> [time](#requirement\_time) | >= 0.14 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
 | <a name="provider_time"></a> [time](#provider\_time) | 0.14.0 |
 
 ## Modules
@@ -50,21 +54,21 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | n/a | `any` | n/a | yes |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | n/a | `any` | n/a | yes |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment i.e prod, nonprod | `any` | n/a | yes |
-| <a name="input_exclude_ip_set_name"></a> [exclude\_ip\_set\_name](#input\_exclude\_ip\_set\_name) | Service | `any` | n/a | yes |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | n/a | `any` | n/a | yes |
-| <a name="input_waf_log_group_name"></a> [waf\_log\_group\_name](#input\_waf\_log\_group\_name) | waf log group | `any` | n/a | yes |
-| <a name="input_waf_name"></a> [waf\_name](#input\_waf\_name) | waf name | `any` | n/a | yes |
-| <a name="input_web_services_ip_set_name"></a> [web\_services\_ip\_set\_name](#input\_web\_services\_ip\_set\_name) | n/a | `any` | n/a | yes |
+| <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | AWS account ID used in IAM and logging integrations. | `string` | n/a | yes |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region where WAF resources are deployed. | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment i.e prod, nonprod | `string` | n/a | yes |
+| <a name="input_exclude_ip_set_name"></a> [exclude\_ip\_set\_name](#input\_exclude\_ip\_set\_name) | Service | `string` | n/a | yes |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Prefix used for naming related resources. | `string` | n/a | yes |
+| <a name="input_waf_log_group_name"></a> [waf\_log\_group\_name](#input\_waf\_log\_group\_name) | waf log group | `string` | n/a | yes |
+| <a name="input_waf_name"></a> [waf\_name](#input\_waf\_name) | waf name | `string` | n/a | yes |
+| <a name="input_web_services_ip_set_name"></a> [web\_services\_ip\_set\_name](#input\_web\_services\_ip\_set\_name) | Name of the IP set for web service source addresses. | `string` | n/a | yes |
 | <a name="input_webservices_ip_set_addresses"></a> [webservices\_ip\_set\_addresses](#input\_webservices\_ip\_set\_addresses) | List of IP addresses for web services | `list(string)` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_web_acl_arn"></a> [web\_acl\_arn](#output\_web\_acl\_arn) | n/a |
+| <a name="output_web_acl_arn"></a> [web\_acl\_arn](#output\_web\_acl\_arn) | ARN of the WAFv2 web ACL. |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->

@@ -97,9 +97,3 @@ resource "aws_iam_role_policy" "copy_recovery_point_policy" {
   role   = aws_iam_role.copy_recovery_point[0].id
   policy = data.aws_iam_policy_document.copy_recovery_point_permissions[0].json
 }
-
-output "copy_recovery_point_role_arn" {
-  description = "ARN of role to assume from source account lambda (set ASSUME_ROLE_ARN to this). Only present if enabled."
-  value       = try(aws_iam_role.copy_recovery_point[0].arn, null)
-  depends_on  = [aws_iam_role.copy_recovery_point]
-}

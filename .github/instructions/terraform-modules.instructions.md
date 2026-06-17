@@ -61,6 +61,49 @@ module "<resource>" {
 - File naming: one concern per file, named descriptively (`main.tf`, `variables.tf`, `outputs.tf`, `locals.tf`, `versions.tf`, `context.tf`).
 - Variables grouped with `################################################################` comment banner headers.
 
+## Module Maintenance
+
+When AWS provider versions change or community modules receive updates:
+
+1. Use the upgrade helper to refresh a single module:
+
+   ```bash
+   ./scripts/terraform/upgrade-module.sh infrastructure/modules/vpc
+   ```
+
+2. Or refresh all modules at once:
+
+   ```bash
+   ./scripts/terraform/upgrade-module.sh update-all
+   ```
+
+The helper automates three steps:
+
+- `terraform init -upgrade` – fetch latest upstream versions
+- `terraform providers lock -platform=linux_amd64 -platform=linux_arm64 -platform=darwin_amd64 -platform=windows_amd64` – lock providers for all target platforms
+- `terraform-docs` – regenerate module README documentation
+
+After running the helper, verify the lock file changes are sensible and commit the results.
+
+## Pre-Commit Hooks
+
+All Terraform changes must pass pre-commit hooks before committing:
+
+```bash
+pre-commit install --install-hooks
+pre-commit run --all-files
+```
+
+Key hooks for Terraform work:
+
+- `terraform_fmt` — enforces code formatting
+- `terraform_validate` — validates module syntax and configuration
+- `terraform_tflint` — static analysis for errors and best practices
+- `terraform_docs` — keeps README.md in sync with variables/outputs
+- `terraform_providers_lock` — ensures cross-platform provider locks
+
+See `.github/skills/pre-commit-hooks.skill.md` for detailed documentation on all 26 hooks and how to fix failures.
+
 ## Required Module Files
 
 Every module must contain:

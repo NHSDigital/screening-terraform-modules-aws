@@ -1,17 +1,20 @@
 
 variable "exclude_extra_logging" {
+  type        = bool
   default     = false
   description = "Exclude extra logging information in the Lambda function that preprocesses the CW logs before sending to Splunk"
 }
 
 variable "firehose_splunk_url" {
   description = "URL for splunk"
+  type        = string
   default     = "https://firehose.inputs.splunk.aws.digital.nhs.uk/services/collector"
 }
 
 variable "splunk_hec_token" {
   description = "Splunk HEC token which points to a specific log index in Splunk"
   sensitive   = true
+  type        = string
 }
 
 variable "splunk_index" {
@@ -30,6 +33,7 @@ variable "aws_account_id" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "environment" {
   description = "The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD"
   type        = string
