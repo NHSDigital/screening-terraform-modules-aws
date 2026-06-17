@@ -379,12 +379,6 @@ variable "private_ip" {
   default     = null
 }
 
-variable "region" {
-  description = "Region where the resource(s) will be managed. Defaults to the Region set in the provider configuration"
-  type        = string
-  default     = null
-}
-
 variable "root_block_device" {
   description = "Customize details about the root block device of the instance"
   type = object({

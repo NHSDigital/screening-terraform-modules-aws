@@ -58,7 +58,7 @@ module "ec2_instance" {
   placement_partition_number           = var.placement_partition_number
   private_dns_name_options             = var.private_dns_name_options
   private_ip                           = var.private_ip
-  region                               = var.region
+  region                               = var.aws_region
   root_block_device                    = var.root_block_device
   secondary_network_interface          = var.secondary_network_interface
   secondary_private_ips                = var.secondary_private_ips
