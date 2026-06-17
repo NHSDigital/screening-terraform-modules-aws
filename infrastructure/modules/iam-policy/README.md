@@ -1,5 +1,17 @@
 # iam Policy
 
+NHS Screening wrapper around the community
+[`terraform-aws-modules/iam/aws//modules/iam-policy`](https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest/submodules/iam-policy)
+submodule that enforces the platform's baseline controls and consumes
+the shared `context.tf` for naming and tagging.
+
+## What this module enforces
+
+| Control                  | How it is enforced                                                                |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| Globally unique name     | Default name is `<module.this.id>-<aws_region>`                                   |
+| Tagging                  | Via `module.this.tags`  |
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
