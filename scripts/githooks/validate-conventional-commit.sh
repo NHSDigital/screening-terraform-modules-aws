@@ -30,8 +30,9 @@ if [[ -z "$COMMIT_MSG" ]]; then
 fi
 
 # Validate format: type(scope): description OR type: description
-# Allow optional scope in parentheses
-if ! [[ "$COMMIT_MSG" =~ ^([a-z]+)(\([a-z0-9_-]+\))?:\ .+ ]]; then
+# Allow optional scope in parentheses, but keep it a single token with common
+# path-like punctuation and no spaces.
+if ! printf '%s\n' "$COMMIT_MSG" | grep -Eq '^([a-z]+)(\([A-Za-z0-9._/-]+\))?: .+'; then
   echo "ERROR: Commit message does not follow Conventional Commits format." >&2
   echo "Expected format: type(scope): description" >&2
   echo "Got: $COMMIT_MSG" >&2
