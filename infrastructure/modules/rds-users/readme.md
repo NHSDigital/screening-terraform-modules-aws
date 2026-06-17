@@ -7,13 +7,16 @@
 
 | Name | Version |
 | ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.42 |
 | <a name="requirement_postgresql"></a> [postgresql](#requirement\_postgresql) | >= 1.25.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.9 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
 | <a name="provider_postgresql"></a> [postgresql](#provider\_postgresql) | 1.26.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.9.0 |
 
@@ -51,7 +54,7 @@ No modules.
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_bss_user_secret_arn"></a> [bss\_user\_secret\_arn](#output\_bss\_user\_secret\_arn) | n/a |
+| <a name="output_bss_user_secret_arn"></a> [bss\_user\_secret\_arn](#output\_bss\_user\_secret\_arn) | ARN of the Secrets Manager secret containing bss\_user credentials. |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->

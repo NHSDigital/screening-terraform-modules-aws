@@ -1,3 +1,4 @@
+# tflint-ignore: terraform_unused_declarations
 variable "environment" {
   description = "The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD"
   type        = string
@@ -24,6 +25,7 @@ variable "bucket_policy" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "additional_kms_key_policy_statements" {
   description = "Additional statements to add to the kms key policy"
   type        = list(any)

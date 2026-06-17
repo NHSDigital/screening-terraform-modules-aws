@@ -79,7 +79,7 @@ resource "aws_ecs_task_definition" "task_definition" {
     [
       {
         "name" : "${var.name_prefix}-rds-access-gateway",
-        "image" : "${var.image_name}",
+        "image" : var.image_name,
         "essential" : true,
         "command" : ["sleep", "infinity"],
         "readonlyRootFilesystem" : true,

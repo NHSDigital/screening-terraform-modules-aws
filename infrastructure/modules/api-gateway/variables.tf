@@ -1,6 +1,20 @@
-variable "aws_account_id" {}
-variable "aws_lambda_name" {}
-variable "aws_lambda_arn" {}
+# tflint-ignore: terraform_unused_declarations
+variable "aws_account_id" {
+  description = "AWS account ID for the deployment context"
+  type        = string
+}
+
+variable "aws_lambda_name" {
+  description = "Lambda function name"
+  type        = string
+}
+
+variable "aws_lambda_arn" {
+  description = "Lambda function ARN"
+  type        = string
+}
+
+# tflint-ignore: terraform_unused_declarations
 variable "aws_region" {
   description = "The AWS region where the API Gateway is deployed"
   type        = string
@@ -10,14 +24,17 @@ variable "aws_region" {
 
 variable "api_gateway_name" {
   description = "the name of the API Gateway"
+  type        = string
 }
 
 variable "api_path_part" {
   description = "the url path for the API"
+  type        = string
 }
 
 variable "stage_name" {
   description = "the API stage name"
+  type        = string
 }
 
 

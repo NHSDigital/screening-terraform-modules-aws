@@ -4,15 +4,8 @@ resource "aws_vpc_endpoint_service" "service" {
   acceptance_required        = true
   network_load_balancer_arns = [aws_lb.nlb.arn]
   tags = {
-    Name = "${var.vpces_name}"
+    Name = var.vpces_name
   }
-}
-
-# Get Subnet CIDRs from Subnet IDs
-data "aws_subnet" "selected" {
-  for_each = toset(var.subnet_ids)
-
-  id = each.value
 }
 
 # NLB that forwards to ALB IPs
@@ -77,16 +70,16 @@ resource "aws_lb_listener" "listener" {
 }
 
 #Allow other accounts to use this VPCE service
-data "aws_secretsmanager_secret" "pi-account-id" {
+data "aws_secretsmanager_secret" "pi_account_id" {
   name = var.allowed_principal_secret_name
 }
 
-data "aws_secretsmanager_secret_version" "pi-account-id-version" {
-  secret_id = data.aws_secretsmanager_secret.pi-account-id.id
+data "aws_secretsmanager_secret_version" "pi_account_id_version" {
+  secret_id = data.aws_secretsmanager_secret.pi_account_id.id
 }
 
 locals {
-  pi_account_id = jsondecode(data.aws_secretsmanager_secret_version.pi-account-id-version.secret_string)["aws_account_id"]
+  pi_account_id = jsondecode(data.aws_secretsmanager_secret_version.pi_account_id_version.secret_string)["aws_account_id"]
 }
 
 resource "aws_vpc_endpoint_service_allowed_principal" "allowed_principal" {
