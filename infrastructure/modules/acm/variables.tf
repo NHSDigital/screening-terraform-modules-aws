@@ -27,6 +27,12 @@ variable "wait_for_validation" {
   default     = true
 }
 
+variable "validation_record_fqdns" {
+  description = "When DNS validation records are managed externally, provide the FQDNs for certificate validation."
+  type        = list(string)
+  default     = []
+}
+
 variable "zone_id" {
   description = "The ID of the hosted zone to contain this record, for validating via Route53."
   type        = string
@@ -36,6 +42,29 @@ variable "zones" {
   description = "Map containing the Route53 Zone IDs for additional domains."
   type        = map(string)
   default     = {}
+}
+
+variable "create_route53_records_only" {
+  description = "When true, creates only Route53 validation records for a certificate created outside this module."
+  type        = bool
+  default     = false
+
+  validation {
+    condition     = !var.create_route53_records_only || (length(var.distinct_domain_names) > 0 && try(length(var.acm_certificate_domain_validation_options), 0) > 0)
+    error_message = "When create_route53_records_only is true, distinct_domain_names and acm_certificate_domain_validation_options must both be provided."
+  }
+}
+
+variable "acm_certificate_domain_validation_options" {
+  description = "Domain validation options from an externally created ACM certificate, used with create_route53_records_only."
+  type        = any
+  default     = {}
+}
+
+variable "distinct_domain_names" {
+  description = "Distinct domain names matching the external certificate validation options, used with create_route53_records_only."
+  type        = list(string)
+  default     = []
 }
 
 variable "domain_name" {
@@ -60,6 +89,12 @@ variable "key_algorithm" {
   description = "Specifies the algorithm of the public and private key pair that your Amazon issued certificate uses to encrypt data"
   type        = string
   default     = null
+}
+
+variable "certificate_transparency_logging_preference" {
+  description = "Whether certificate transparency logging is enabled for issued certificates."
+  type        = bool
+  default     = true
 }
 
 variable "private_authority_arn" {
