@@ -1,12 +1,12 @@
 # ADR-003: Acceptable use of GitHub authentication and authorisation mechanisms
 
->|              | |
->| ------------ | --- |
->| Date         | `04/09/2023` |
->| Status       | `RFC` |
->| Deciders     | `Engineering` |
->| Significance | `Construction techniques` |
->| Owners       | `Amaan Ibn-Nasar, Jacob Gill, Dan Stefaniuk` |
+| | |
+| --- | --- |
+| Date | `04/09/2023` |
+| Status | `RFC` |
+| Deciders | `Engineering` |
+| Significance | `Construction techniques` |
+| Owners | `Amaan Ibn-Nasar, Jacob Gill, Dan Stefaniuk` |
 
 ---
 

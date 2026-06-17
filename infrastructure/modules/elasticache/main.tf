@@ -82,7 +82,7 @@ resource "aws_security_group" "cache_sg" {
   vpc_id      = var.vpc_id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "ecs-inbound" {
+resource "aws_vpc_security_group_ingress_rule" "ecs_inbound" {
   description                  = "Allows inbound connection from ECS cluster"
   security_group_id            = aws_security_group.cache_sg.id
   referenced_security_group_id = var.ecs_sg_id

@@ -11,7 +11,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
@@ -88,7 +88,7 @@ resource "aws_subnet" "private_subnet_c" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
@@ -102,7 +102,7 @@ resource "aws_route_table" "public_rt" {
     gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
@@ -112,13 +112,13 @@ resource "aws_nat_gateway" "nat_gw_a" {
   allocation_id = aws_eip.eip_a.id
   subnet_id     = aws_subnet.public_subnet_a.id
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
 resource "aws_eip" "eip_a" {
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
@@ -126,13 +126,13 @@ resource "aws_nat_gateway" "nat_gw_b" {
   allocation_id = aws_eip.eip_b.id
   subnet_id     = aws_subnet.public_subnet_b.id
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
 resource "aws_eip" "eip_b" {
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
@@ -140,13 +140,13 @@ resource "aws_nat_gateway" "nat_gw_c" {
   allocation_id = aws_eip.eip_c.id
   subnet_id     = aws_subnet.public_subnet_c.id
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
 resource "aws_eip" "eip_c" {
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
@@ -161,7 +161,7 @@ resource "aws_route_table" "private_rt_a" {
     nat_gateway_id = aws_nat_gateway.nat_gw_a.id
   }
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 
@@ -173,7 +173,7 @@ resource "aws_route_table" "private_rt_b" {
     nat_gateway_id = aws_nat_gateway.nat_gw_b.id
   }
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 resource "aws_route_table" "private_rt_c" {
@@ -184,7 +184,7 @@ resource "aws_route_table" "private_rt_c" {
     nat_gateway_id = aws_nat_gateway.nat_gw_c.id
   }
   tags = {
-    Name = "${var.name_prefix}"
+    Name = var.name_prefix
   }
 }
 

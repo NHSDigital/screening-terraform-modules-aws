@@ -16,7 +16,8 @@ locals {
 resource "null_resource" "build_lambda_layer" {
   # Re-run if the script changes
   triggers = {
-    always_on = timestamp() # forces re-run every time
+    always_on   = timestamp() # forces re-run every time
+    name_prefix = var.name_prefix
   }
 
   provisioner "local-exec" {
@@ -30,6 +31,6 @@ resource "aws_lambda_layer_version" "this" {
   layer_name          = var.layer_name
   description         = var.description
   filename            = "${path.module}/zips/${var.layer_name}-${local.file_suffix}.zip"
-  compatible_runtimes = ["python3.12"]
+  compatible_runtimes = var.compatible_runtimes
   depends_on          = [null_resource.build_lambda_layer]
 }

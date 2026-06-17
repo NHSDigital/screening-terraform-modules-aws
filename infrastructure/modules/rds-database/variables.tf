@@ -4,6 +4,7 @@ variable "rds_name" {
   default     = "postgres"
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "environment" {
   description = "the environment the resource is deployed into"
   type        = string

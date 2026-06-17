@@ -63,13 +63,16 @@ There are many other variables which have default values which can be overwritte
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.47.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
 
 ## Modules
 
@@ -108,10 +111,10 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_environment"></a> [environment](#input\_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `any` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | The name of the resource | `string` | `""` | no |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | the environment and project | `any` | n/a | yes |
-| <a name="input_vpc_cidr_prefix"></a> [vpc\_cidr\_prefix](#input\_vpc\_cidr\_prefix) | The CIDR block prefix for the VPC | `any` | n/a | yes |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | the environment and project | `string` | n/a | yes |
+| <a name="input_vpc_cidr_prefix"></a> [vpc\_cidr\_prefix](#input\_vpc\_cidr\_prefix) | The CIDR block prefix for the VPC | `string` | n/a | yes |
 
 ## Outputs
 

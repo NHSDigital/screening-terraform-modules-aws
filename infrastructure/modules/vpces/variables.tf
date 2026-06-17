@@ -1,14 +1,17 @@
+# tflint-ignore: terraform_unused_declarations
 variable "environment" {
   description = "The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD"
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "nation" {
   description = "en for england or ni for northern ireland"
   type        = string
   default     = "en"
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "prefix" {
   description = "The prefix to use for naming resources"
   type        = string
@@ -48,6 +51,7 @@ variable "alb_arn" {
 
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "alb_listener" {
   description = "The ARN of the ALB listener to target"
   type        = string
