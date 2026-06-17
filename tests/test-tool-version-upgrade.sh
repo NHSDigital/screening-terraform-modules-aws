@@ -23,27 +23,33 @@ cleanup() {
 
 trap cleanup EXIT
 
-mkdir -p "$fixture_root"
+write_fixture_files() {
+  mkdir -p "$fixture_root"
 
-cat > "$fixture_root/mise.toml" <<'EOF'
+  cat > "$fixture_root/mise.toml" <<'EOF'
 [settings]
 lockfile = true
 
 [tools]
 terraform = "1.13.2"
-python = "3.12"
+python = "3.12.0"
+node = "20.11.0"
 "go:github.com/hashicorp/terraform-config-inspect" = "latest"
 EOF
 
-cat > "$fixture_root/.tool-versions" <<'EOF'
+  cat > "$fixture_root/.tool-versions" <<'EOF'
 terraform 1.13.2
-python 3.12
+python 3.12.0
+node 20.11.0
 go:github.com/hashicorp/terraform-config-inspect latest
 EOF
 
-cat > "$fixture_root/mise.lock" <<'EOF'
+  cat > "$fixture_root/mise.lock" <<'EOF'
 # old lock
 EOF
+}
+
+write_fixture_files
 
 cat > "$bin_root/mise" <<'EOF'
 #!/usr/bin/env bash
@@ -55,20 +61,64 @@ printf '%s\n' "mise:$*" >> "$log_file"
 
 case "$1" in
   outdated)
-    echo "terraform 1.13.2 -> 1.13.3"
+    if [[ "${2:-}" == "--local" && "${3:-}" == "--bump" && "${4:-}" == "--json" ]]; then
+      cat <<'JSON'
+{"terraform":{"current":"1.13.2","latest":"1.13.3"},"python":{"current":"3.12.0","latest":"3.13.0"},"node":{"current":"20.11.0","latest":"21.1.0"},"go:github.com/hashicorp/terraform-config-inspect":{"current":"latest","latest":"latest"}}
+JSON
+    else
+      echo "terraform 1.13.2 -> 1.13.3"
+      echo "python 3.12.0 -> 3.13.0"
+      echo "node 20.11.0 -> 21.1.0"
+    fi
     ;;
   install)
     ;;
   upgrade)
-    cat > "$repo_root/mise.toml" <<'TOML'
+    if [[ "$*" == "upgrade --local --bump terraform" ]]; then
+      cat > "$repo_root/mise.toml" <<'TOML'
+[settings]
+lockfile = true
+
+[tools]
+terraform = "1.13.3"
+python = "3.12.0"
+node = "20.11.0"
+"go:github.com/hashicorp/terraform-config-inspect" = "latest"
+TOML
+    elif [[ "$*" == "upgrade --local --bump python" ]]; then
+      cat > "$repo_root/mise.toml" <<'TOML'
+[settings]
+lockfile = true
+
+[tools]
+terraform = "1.13.2"
+python = "3.13.0"
+node = "20.11.0"
+"go:github.com/hashicorp/terraform-config-inspect" = "latest"
+TOML
+    elif [[ "$*" == "upgrade --local --bump node" ]]; then
+      cat > "$repo_root/mise.toml" <<'TOML'
+[settings]
+lockfile = true
+
+[tools]
+terraform = "1.13.2"
+python = "3.12.0"
+node = "21.1.0"
+"go:github.com/hashicorp/terraform-config-inspect" = "latest"
+TOML
+    else
+      cat > "$repo_root/mise.toml" <<'TOML'
 [settings]
 lockfile = true
 
 [tools]
 terraform = "1.13.3"
 python = "3.13"
+node = "21.1.0"
 "go:github.com/hashicorp/terraform-config-inspect" = "latest"
 TOML
+    fi
     ;;
   lock)
     cat > "$repo_root/mise.lock" <<'LOCK'
@@ -128,6 +178,7 @@ assert_contains_file "$log_file" "mise:upgrade --local --bump" "Runs mise upgrad
 assert_contains_file "$log_file" "mise:lock" "Regenerates lockfile"
 assert_contains_file "$fixture_root/.tool-versions" "terraform 1.13.3" "Syncs terraform version to .tool-versions"
 assert_contains_file "$fixture_root/.tool-versions" "python 3.13" "Syncs python version to .tool-versions"
+assert_contains_file "$fixture_root/.tool-versions" "node 21.1.0" "Syncs node version to .tool-versions"
 assert_contains_file "$fixture_root/.tool-versions" "go:github.com/hashicorp/terraform-config-inspect latest" "Preserves tool aliases from mise.toml"
 assert_not_contains_file "$fixture_root/.tool-versions" "terraform 1.13.2" "Removes stale terraform version from .tool-versions"
 assert_contains_file "$fixture_root/mise.lock" "# regenerated lock" "Rewrites mise.lock"
@@ -148,6 +199,54 @@ else
   FAILED=$((FAILED + 1))
   printf "%-72s ... %b\n" "Dry-run leaves .tool-versions unchanged" "${RED}✗${NC}"
 fi
+
+echo
+printf '%s\n' "" > "$log_file"
+write_fixture_files
+
+MISE_TEST_LOG="$log_file" REPO_ROOT="$fixture_root" PATH="$bin_root:$PATH" bash "$repo_root/$SCRIPT" --upgrade-level patch
+
+assert_contains_file "$log_file" "mise:outdated --local --bump --json" "Filtered run reads outdated JSON"
+assert_contains_file "$log_file" "mise:upgrade --local --bump terraform" "Patch-only run upgrades only patch-level tools"
+assert_contains_file "$fixture_root/.tool-versions" "terraform 1.13.3" "Patch-only run updates terraform"
+assert_contains_file "$fixture_root/.tool-versions" "python 3.12.0" "Patch-only run leaves python unchanged"
+assert_contains_file "$fixture_root/.tool-versions" "node 20.11.0" "Patch-only run leaves node unchanged"
+
+echo
+printf '%s\n' "" > "$log_file"
+write_fixture_files
+
+MISE_TEST_LOG="$log_file" REPO_ROOT="$fixture_root" PATH="$bin_root:$PATH" bash "$repo_root/$SCRIPT" --upgrade-level minor
+
+assert_contains_file "$log_file" "mise:outdated --local --bump --json" "Minor-only run reads outdated JSON"
+assert_contains_file "$log_file" "mise:upgrade --local --bump python" "Minor-only run upgrades only minor-level tools"
+assert_contains_file "$fixture_root/.tool-versions" "python 3.13.0" "Minor-only run updates python"
+assert_contains_file "$fixture_root/.tool-versions" "terraform 1.13.2" "Minor-only run leaves terraform unchanged"
+assert_contains_file "$fixture_root/.tool-versions" "node 20.11.0" "Minor-only run leaves node unchanged"
+
+echo
+printf '%s\n' "" > "$log_file"
+write_fixture_files
+
+MISE_TEST_LOG="$log_file" REPO_ROOT="$fixture_root" PATH="$bin_root:$PATH" bash "$repo_root/$SCRIPT" --upgrade-level major
+
+assert_contains_file "$log_file" "mise:outdated --local --bump --json" "Major-only run reads outdated JSON"
+assert_contains_file "$log_file" "mise:upgrade --local --bump node" "Major-only run upgrades only major-level tools"
+assert_contains_file "$fixture_root/.tool-versions" "node 21.1.0" "Major-only run updates node"
+assert_contains_file "$fixture_root/.tool-versions" "terraform 1.13.2" "Major-only run leaves terraform unchanged"
+assert_contains_file "$fixture_root/.tool-versions" "python 3.12.0" "Major-only run leaves python unchanged"
+
+echo
+printf '%s\n' "" > "$log_file"
+write_fixture_files
+
+MISE_TEST_LOG="$log_file" REPO_ROOT="$fixture_root" PATH="$bin_root:$PATH" bash "$repo_root/$SCRIPT" --upgrade-level all
+
+assert_contains_file "$log_file" "mise:install" "Explicit all run installs tools"
+assert_contains_file "$log_file" "mise:upgrade --local --bump" "Explicit all run upgrades without per-tool filter"
+assert_contains_file "$fixture_root/.tool-versions" "terraform 1.13.3" "Explicit all run updates terraform"
+assert_contains_file "$fixture_root/.tool-versions" "python 3.13" "Explicit all run updates python"
+assert_contains_file "$fixture_root/.tool-versions" "node 21.1.0" "Explicit all run updates node"
 
 echo
 echo "======================================================================"

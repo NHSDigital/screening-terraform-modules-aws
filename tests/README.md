@@ -71,6 +71,7 @@ bash tests/test-tool-version-upgrade.sh
 - ✓ Synchronizes `.tool-versions` values from upgraded `mise.toml`
 - ✓ Preserves alias-style tool keys (for example `go:...`)
 - ✓ Supports `--dry-run` without changing files
+- ✓ Supports all `--upgrade-level` modes (`patch`, `minor`, `major`, and `all`)
 
 ## Test Results
 

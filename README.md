@@ -74,11 +74,29 @@ For routine upgrades, use the shared helper so local and CI use the same logic:
 bash scripts/mise/update-tool-versions.sh
 ```
 
+Choose an upgrade level when needed:
+
+```shell
+# Patch updates only
+bash scripts/mise/update-tool-versions.sh --upgrade-level patch
+
+# Minor updates only
+bash scripts/mise/update-tool-versions.sh --upgrade-level minor
+
+# Major updates only
+bash scripts/mise/update-tool-versions.sh --upgrade-level major
+
+# All updates (default)
+bash scripts/mise/update-tool-versions.sh --upgrade-level all
+```
+
 Preview only (no file changes):
 
 ```shell
 bash scripts/mise/update-tool-versions.sh --dry-run
 ```
+
+The scheduled `dependency-tools-mise-upgrade` workflow defaults to patch updates, and manual runs can override the level via the `upgrade_level` input.
 
 Local development and CI both resolve pinned versions from these files through mise.
 

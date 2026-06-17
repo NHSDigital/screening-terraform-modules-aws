@@ -4,7 +4,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: scripts/mise/update-tool-versions.sh [--dry-run]
+Usage: scripts/mise/update-tool-versions.sh [--dry-run] [--upgrade-level <all|major|minor|patch>]
 
 Updates project-managed tool versions by:
 1) Running mise upgrade against local project tool definitions
@@ -12,20 +12,45 @@ Updates project-managed tool versions by:
 3) Regenerating mise.lock
 
 Options:
-  --dry-run   Show outdated tools only; make no changes
+  --dry-run                       Show outdated tools only; make no changes
+  --upgrade-level <all|major|minor|patch>
+                                  Filter upgrades by semantic version delta.
+                                  Defaults to all.
 EOF
 }
 
-if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  usage
-  exit 0
-fi
-
 DRY_RUN=false
-if [[ "${1:-}" == "--dry-run" ]]; then
-  DRY_RUN=true
-elif [[ -n "${1:-}" ]]; then
-  echo "Unsupported argument: $1" >&2
+UPGRADE_LEVEL="all"
+
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --dry-run)
+      DRY_RUN=true
+      shift
+      ;;
+    --upgrade-level)
+      if [[ "$#" -lt 2 ]]; then
+        echo "Missing value for --upgrade-level" >&2
+        usage >&2
+        exit 2
+      fi
+      UPGRADE_LEVEL="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unsupported argument: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+if [[ ! "$UPGRADE_LEVEL" =~ ^(all|major|minor|patch)$ ]]; then
+  echo "Invalid --upgrade-level value: $UPGRADE_LEVEL" >&2
   usage >&2
   exit 2
 fi
@@ -35,17 +60,106 @@ if ! command -v mise >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ "$UPGRADE_LEVEL" != "all" ]] && ! command -v jq >/dev/null 2>&1; then
+  echo "jq is required when --upgrade-level is set to major/minor/patch" >&2
+  exit 1
+fi
+
 REPO_ROOT="${REPO_ROOT:-$(git rev-parse --show-toplevel)}"
 cd "$REPO_ROOT"
 
-if [[ "$DRY_RUN" == "true" ]]; then
-  echo "Running in dry-run mode"
-  mise outdated --local --bump
-  exit 0
-fi
+classify_semver_delta() {
+  local current="$1"
+  local latest="$2"
+  local curr_maj curr_min curr_pat lat_maj lat_min lat_pat
+  local -a match=()
 
-mise install
-mise upgrade --local --bump
+  current="${current#v}"
+  latest="${latest#v}"
+
+  if [[ ! "$current" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+    echo "non-semver"
+    return 0
+  fi
+  match=("${BASH_REMATCH[@]}")
+  curr_maj="${match[1]}"
+  curr_min="${match[2]}"
+  curr_pat="${match[3]}"
+
+  if [[ ! "$latest" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+    echo "non-semver"
+    return 0
+  fi
+  match=("${BASH_REMATCH[@]}")
+  lat_maj="${match[1]}"
+  lat_min="${match[2]}"
+  lat_pat="${match[3]}"
+
+  if (( 10#$lat_maj > 10#$curr_maj )); then
+    echo "major"
+  elif (( 10#$lat_min > 10#$curr_min )); then
+    echo "minor"
+  elif (( 10#$lat_pat > 10#$curr_pat )); then
+    echo "patch"
+  else
+    echo "none"
+  fi
+}
+
+collect_filtered_tools() {
+  local level="$1"
+  local outdated_json="$2"
+  local tool current latest delta
+  local selected_tools=()
+
+  while IFS=$'\t' read -r tool current latest; do
+    delta="$(classify_semver_delta "$current" "$latest")"
+
+    if [[ "$delta" == "non-semver" ]]; then
+      echo "Skipping non-semver tool for filtered upgrades: $tool ($current -> $latest)" >&2
+      continue
+    fi
+
+    if [[ "$delta" == "$level" ]]; then
+      selected_tools+=("$tool")
+    fi
+  done < <(printf '%s\n' "$outdated_json" | jq -r 'to_entries[] | "\(.key)\t\(.value.current // "")\t\(.value.latest // "")"')
+
+  printf '%s\n' "${selected_tools[@]}"
+}
+
+if [[ "$UPGRADE_LEVEL" == "all" ]]; then
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "Running in dry-run mode"
+    mise outdated --local --bump
+    exit 0
+  fi
+
+  mise install
+  mise upgrade --local --bump
+else
+  outdated_json="$(mise outdated --local --bump --json)"
+  mapfile -t tools_to_upgrade < <(collect_filtered_tools "$UPGRADE_LEVEL" "$outdated_json")
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "Running in dry-run mode (upgrade-level=$UPGRADE_LEVEL)"
+    if [[ "${#tools_to_upgrade[@]}" -eq 0 ]]; then
+      echo "No $UPGRADE_LEVEL updates available."
+    else
+      echo "Tools eligible for $UPGRADE_LEVEL updates:"
+      printf '  - %s\n' "${tools_to_upgrade[@]}"
+    fi
+    exit 0
+  fi
+
+  if [[ "${#tools_to_upgrade[@]}" -eq 0 ]]; then
+    echo "No $UPGRADE_LEVEL updates available. Nothing to do."
+    exit 0
+  fi
+
+  mise install
+  mise upgrade --local --bump "${tools_to_upgrade[@]}"
+fi
 
 sync_tool_versions_from_toml() {
   local toml_file="mise.toml"
