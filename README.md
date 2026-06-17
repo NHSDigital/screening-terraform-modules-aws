@@ -464,7 +464,7 @@ All GitHub Actions in CI/CD workflows are pinned to immutable commit SHAs rather
 
 ```yaml
 - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-- uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3.6.3
+- uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
 ```
 
 This prevents tag relinking attacks and supply chain compromises. Version comments are maintained for readability when reviewing workflows.
