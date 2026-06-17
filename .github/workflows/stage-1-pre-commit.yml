@@ -40,8 +40,8 @@ jobs:
               check-terraform-format
           - name: "terraform-validate-docs-lock"
             hooks: >-
-              generate-terraform-providers terraform_validate terraform_docs
-              terraform_providers_lock
+              generate-terraform-providers terraform_providers_lock
+              terraform_validate terraform_docs
     steps:
       - name: "Checkout code"
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
