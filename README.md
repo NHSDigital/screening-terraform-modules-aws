@@ -59,9 +59,6 @@ Install all tool versions:
 mise install
 ```
 
-> [!NOTE]
-> On macOS the default GNU make is too old. Install a newer version with `brew install make` and ensure it is on your `$PATH`.
-
 ### Tool Version Source of Truth
 
 Tool versions are maintained in two complementary formats for compatibility:
