@@ -91,6 +91,11 @@ jobs:
           export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
           hooks='${{ matrix.shard.hooks }}'
           for hook in ${hooks}; do
+            if [[ "${hook}" == "terraform_validate" ]]; then
+              export TF_CLI_ARGS_init="-lockfile=readonly"
+            else
+              unset TF_CLI_ARGS_init
+            fi
             echo "Running hook: ${hook}"
             mise x -- pre-commit run --all-files --show-diff-on-failure "$hook"
           done
