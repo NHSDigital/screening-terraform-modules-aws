@@ -12,7 +12,7 @@
 
 module "acm" {
   source  = "terraform-aws-modules/acm/aws"
-  version = "~> 6.3.0"
+  version = "6.3.0"
 
   create_certificate   = module.this.enabled
   validate_certificate = module.this.enabled
@@ -29,14 +29,14 @@ module "acm" {
   # ----------------------------------------------------------------
   # Validation: only DNS is supported, unless you have imported the certificate
   # ----------------------------------------------------------------
-  validation_method                  = var.validation_method
+  validation_method                  = local.validation_method
   validation_allow_overwrite_records = var.validation_allow_overwrite_records
   validation_timeout                 = var.validation_timeout
   wait_for_validation                = var.wait_for_validation
   zone_id                            = var.zone_id
   zones                              = var.zones
-  create_route53_records             = true
-  create_route53_records_only        = false
+  create_route53_records             = local.create_route53_records
+  create_route53_records_only        = local.create_route53_records_only
   dns_ttl                            = var.dns_ttl
 
   # ----------------------------------------------------------------
