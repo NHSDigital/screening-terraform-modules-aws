@@ -328,7 +328,7 @@ This repository enforces **26 hooks** across six categories:
 
 | Category | Hooks | Purpose |
 | --- | --- | --- |
-| **Terraform** (5) | `terraform_fmt`, `terraform_validate`, `terraform_tflint`, `terraform_docs`, `terraform_providers_lock` | Format, validate, lint, document, and lock Terraform modules |
+| **Terraform** (5) | `terraform_fmt`, `terraform_providers_lock`, `terraform_validate`, `terraform_tflint`, `terraform_docs` | Format, lock, validate, lint, and document Terraform modules |
 | **File Hygiene** (8) | `check-added-large-files`, `check-merge-conflict`, `no-commit-to-branch`, `end-of-file-fixer`, `trailing-whitespace`, `check-yaml`, `check-case-conflict`, `mixed-line-ending` | Prevent commits of large files, merge conflicts, direct commits to main, and enforce line ending consistency |
 | **Shell Scripts** (1) | `shellcheck` | Lint Bash/shell scripts for errors and bad practices |
 | **File Formatting** (4) | `check-file-format`, `check-markdown-format`, `check-english-usage`, `check-terraform-format` | Enforce consistent formatting and British English in documentation |
