@@ -106,11 +106,10 @@ classify_semver_delta() {
   fi
 }
 
-collect_filtered_tools() {
+collect_filtered_upgrades_tsv() {
   local level="$1"
   local outdated_json="$2"
   local tool current latest delta
-  local selected_tools=()
 
   while IFS=$'\t' read -r tool current latest; do
     delta="$(classify_semver_delta "$current" "$latest")"
@@ -121,11 +120,9 @@ collect_filtered_tools() {
     fi
 
     if [[ "$delta" == "$level" ]]; then
-      selected_tools+=("$tool")
+      printf '%s\t%s\t%s\n' "$tool" "$current" "$latest"
     fi
   done < <(printf '%s\n' "$outdated_json" | jq -r 'to_entries[] | "\(.key)\t\(.value.current // "")\t\(.value.latest // "")"')
-
-  printf '%s\n' "${selected_tools[@]}"
 }
 
 if [[ "$UPGRADE_LEVEL" == "all" ]]; then
@@ -135,19 +132,35 @@ if [[ "$UPGRADE_LEVEL" == "all" ]]; then
     exit 0
   fi
 
+  echo "Planned upgrades (all levels):"
+  mise outdated --local --bump
+
   mise install
   mise upgrade --local --bump
 else
   outdated_json="$(mise outdated --local --bump --json)"
-  mapfile -t tools_to_upgrade < <(collect_filtered_tools "$UPGRADE_LEVEL" "$outdated_json")
+  mapfile -t filtered_upgrade_rows < <(collect_filtered_upgrades_tsv "$UPGRADE_LEVEL" "$outdated_json")
+  tools_to_upgrade=()
+
+  for row in "${filtered_upgrade_rows[@]}"; do
+    IFS=$'\t' read -r tool _ _ <<< "$row"
+    tools_to_upgrade+=("$tool")
+  done
+
+  echo "Planned $UPGRADE_LEVEL upgrades:"
+  if [[ "${#filtered_upgrade_rows[@]}" -eq 0 ]]; then
+    echo "  - none"
+  else
+    for row in "${filtered_upgrade_rows[@]}"; do
+      IFS=$'\t' read -r tool current latest <<< "$row"
+      echo "  - $tool: $current -> $latest"
+    done
+  fi
 
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "Running in dry-run mode (upgrade-level=$UPGRADE_LEVEL)"
     if [[ "${#tools_to_upgrade[@]}" -eq 0 ]]; then
       echo "No $UPGRADE_LEVEL updates available."
-    else
-      echo "Tools eligible for $UPGRADE_LEVEL updates:"
-      printf '  - %s\n' "${tools_to_upgrade[@]}"
     fi
     exit 0
   fi
