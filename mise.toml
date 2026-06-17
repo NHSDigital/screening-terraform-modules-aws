@@ -18,3 +18,4 @@ nodejs = "24.16.0"
 
 # Go-based tools using backend syntax
 "go:github.com/hashicorp/terraform-config-inspect" = "latest"
+go = "1.26.4"
