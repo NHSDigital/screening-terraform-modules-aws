@@ -20,7 +20,7 @@
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_findings_label"></a> [findings\_label](#module\_findings\_label) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.6.0 |
+| <a name="module_findings_label"></a> [findings\_label](#module\_findings\_label) | ../tags | n/a |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
