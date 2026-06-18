@@ -184,7 +184,17 @@ jobs:
   coding-standards: # Recommended maximum execution time is 5 minutes
     name: "Enforce Coding Standards"
     needs: [metadata, dependabot-auto-fix-terraform]
-    if: github.event.pull_request.draft == false && needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+    if: >-
+      always() &&
+      github.event.pull_request.draft == false &&
+      needs.metadata.result == 'success' &&
+      (
+        github.actor != 'dependabot[bot]' ||
+        (
+          needs.dependabot-auto-fix-terraform.result == 'success' &&
+          needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+        )
+      )
     uses: ./.github/workflows/stage-1-coding-standards.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -259,7 +269,17 @@ jobs:
   validation-tests:
     name: "Validation Tests"
     needs: [metadata, dependabot-auto-fix-terraform]
-    if: github.event.pull_request.draft == false && needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+    if: >-
+      always() &&
+      github.event.pull_request.draft == false &&
+      needs.metadata.result == 'success' &&
+      (
+        github.actor != 'dependabot[bot]' ||
+        (
+          needs.dependabot-auto-fix-terraform.result == 'success' &&
+          needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
