@@ -152,36 +152,43 @@ version = "0.0.0-20260224005459-813a97530220"
 backend = "go:github.com/hashicorp/terraform-config-inspect"
 
 [[tools.jq]]
-version = "1.7.1"
+version = "1.8.1"
 backend = "aqua:jqlang/jq"
 
 [tools.jq."platforms.linux-arm64"]
-checksum = "sha256:4dd2d8a0661df0b22f1bb9a1f9830f06b6f3b8f7d91211a1ef5d7c4f06a8b4a5"
-url = "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-arm64"
+checksum = "sha256:6bc62f25981328edd3cfcfe6fe51b073f2d7e7710d7ef7fcdac28d4e384fc3d4"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-arm64"
+provenance = "github-attestations"
 
 [tools.jq."platforms.linux-arm64-musl"]
-checksum = "sha256:4dd2d8a0661df0b22f1bb9a1f9830f06b6f3b8f7d91211a1ef5d7c4f06a8b4a5"
-url = "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-arm64"
+checksum = "sha256:6bc62f25981328edd3cfcfe6fe51b073f2d7e7710d7ef7fcdac28d4e384fc3d4"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-arm64"
+provenance = "github-attestations"
 
 [tools.jq."platforms.linux-x64"]
-checksum = "sha256:5942c9b0934e510ee61eb3e30273f1b3fe2590df93933a93d7c58b81d19c8ff5"
-url = "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64"
+checksum = "sha256:020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64"
+provenance = "github-attestations"
 
 [tools.jq."platforms.linux-x64-musl"]
-checksum = "sha256:5942c9b0934e510ee61eb3e30273f1b3fe2590df93933a93d7c58b81d19c8ff5"
-url = "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64"
+checksum = "sha256:020468de7539ce70ef1bceaf7cde2e8c4f2ca6c3afb84642aabc5c97d9fc2a0d"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64"
+provenance = "github-attestations"
 
 [tools.jq."platforms.macos-arm64"]
-checksum = "sha256:0bbe619e663e0de2c550be2fe0d240d076799d6f8a652b70fa04aea8a8362e8a"
-url = "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-macos-arm64"
+checksum = "sha256:a9fe3ea2f86dfc72f6728417521ec9067b343277152b114f4e98d8cb0e263603"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-macos-arm64"
+provenance = "github-attestations"
 
 [tools.jq."platforms.macos-x64"]
-checksum = "sha256:4155822bbf5ea90f5c79cf254665975eb4274d426d0709770c21774de5407443"
-url = "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-macos-amd64"
+checksum = "sha256:e80dbe0d2a2597e3c11c404f03337b981d74b4a8504b70586c354b7697a7c27f"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-macos-amd64"
+provenance = "github-attestations"
 
 [tools.jq."platforms.windows-x64"]
-checksum = "sha256:7451fbbf37feffb9bf262bd97c54f0da558c63f0748e64152dd87b0a07b6d6ab"
-url = "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-windows-amd64.exe"
+checksum = "sha256:23cb60a1354eed6bcc8d9b9735e8c7b388cd1fdcb75726b93bc299ef22dd9334"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-windows-amd64.exe"
+provenance = "github-attestations"
 
 [[tools.make]]
 version = "4.4.1"
@@ -369,36 +376,36 @@ checksum = "sha256:8a4e35ab0b331c85d73567b12f2a444df187f483e5079ceffa6bda1faa2e7
 url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.zip"
 
 [[tools.terraform]]
-version = "1.13.2"
+version = "1.13.5"
 backend = "aqua:hashicorp/terraform"
 
 [tools.terraform."platforms.linux-arm64"]
-checksum = "sha256:9b3814d36b5b22d9bc7a2856a676770c7b2597b8df025004054354226865ced6"
-url = "https://releases.hashicorp.com/terraform/1.13.2/terraform_1.13.2_linux_arm64.zip"
+checksum = "sha256:fc1ddcb403fb57e25bdbdceb1ef2b1a102650c01b4d65dd3410082d2ef8b4417"
+url = "https://releases.hashicorp.com/terraform/1.13.5/terraform_1.13.5_linux_arm64.zip"
 
 [tools.terraform."platforms.linux-arm64-musl"]
-checksum = "sha256:9b3814d36b5b22d9bc7a2856a676770c7b2597b8df025004054354226865ced6"
-url = "https://releases.hashicorp.com/terraform/1.13.2/terraform_1.13.2_linux_arm64.zip"
+checksum = "sha256:fc1ddcb403fb57e25bdbdceb1ef2b1a102650c01b4d65dd3410082d2ef8b4417"
+url = "https://releases.hashicorp.com/terraform/1.13.5/terraform_1.13.5_linux_arm64.zip"
 
 [tools.terraform."platforms.linux-x64"]
-checksum = "sha256:b7554c87f36dbb2231d54c4277cbbddf58ae8ba916fa97461564836a2c4954c0"
-url = "https://releases.hashicorp.com/terraform/1.13.2/terraform_1.13.2_linux_amd64.zip"
+checksum = "sha256:0dbe3fcc268eb670801af6a6456799d1ae26e72e73797f6c6167e18aafd1fd9a"
+url = "https://releases.hashicorp.com/terraform/1.13.5/terraform_1.13.5_linux_amd64.zip"
 
 [tools.terraform."platforms.linux-x64-musl"]
-checksum = "sha256:b7554c87f36dbb2231d54c4277cbbddf58ae8ba916fa97461564836a2c4954c0"
-url = "https://releases.hashicorp.com/terraform/1.13.2/terraform_1.13.2_linux_amd64.zip"
+checksum = "sha256:0dbe3fcc268eb670801af6a6456799d1ae26e72e73797f6c6167e18aafd1fd9a"
+url = "https://releases.hashicorp.com/terraform/1.13.5/terraform_1.13.5_linux_amd64.zip"
 
 [tools.terraform."platforms.macos-arm64"]
-checksum = "sha256:150c55bd7459ee1216d994307b3b84b3e44ad57354f62357d792e4cbb8b2f64b"
-url = "https://releases.hashicorp.com/terraform/1.13.2/terraform_1.13.2_darwin_arm64.zip"
+checksum = "sha256:1bf942231235e7e1a4c38c6d7b820e54f526ac487f87d19f0c4a425c6ddb62cb"
+url = "https://releases.hashicorp.com/terraform/1.13.5/terraform_1.13.5_darwin_arm64.zip"
 
 [tools.terraform."platforms.macos-x64"]
-checksum = "sha256:6eab5472d9afd510b6f4fb43ebe74e098821dfaab50cf5fcfb696082f73f5328"
-url = "https://releases.hashicorp.com/terraform/1.13.2/terraform_1.13.2_darwin_amd64.zip"
+checksum = "sha256:92f76865230cbe6bb747e49cb3dc5b44a054324bbdd1a080bb127b326b94c404"
+url = "https://releases.hashicorp.com/terraform/1.13.5/terraform_1.13.5_darwin_amd64.zip"
 
 [tools.terraform."platforms.windows-x64"]
-checksum = "sha256:d4b15db71c7f597291fbc7c7e61ed213dd6fe34ab8971d12a93bf9bb66b340e9"
-url = "https://releases.hashicorp.com/terraform/1.13.2/terraform_1.13.2_windows_amd64.zip"
+checksum = "sha256:73f97943c93f268ae2c645b2a737d552175aa64d00a5c8b8f5ccc5831c033c8a"
+url = "https://releases.hashicorp.com/terraform/1.13.5/terraform_1.13.5_windows_amd64.zip"
 
 [[tools.terraform-docs]]
 version = "0.24.0"
@@ -433,36 +440,36 @@ checksum = "sha256:afc02cbdf63726d3e5fb26a077ca1f24acd4820d7e44c21b03a3e030f9266
 url = "https://github.com/terraform-docs/terraform-docs/releases/download/v0.24.0/terraform-docs-v0.24.0-windows-amd64.zip"
 
 [[tools.tflint]]
-version = "0.59.1"
+version = "0.62.1"
 backend = "aqua:terraform-linters/tflint"
 
 [tools.tflint."platforms.linux-arm64"]
-checksum = "sha256:426f998f9cbd0d738164ed0fb52e9ee268139dc52d8622c8c7a40afbea2c2811"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.59.1/tflint_linux_arm64.zip"
+checksum = "sha256:9f3bce43f7f58f05ddcf193f0bf1f7e7a9c7a79d7f46f72dd38e97f96fcaf14c"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_linux_arm64.zip"
 
 [tools.tflint."platforms.linux-arm64-musl"]
-checksum = "sha256:426f998f9cbd0d738164ed0fb52e9ee268139dc52d8622c8c7a40afbea2c2811"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.59.1/tflint_linux_arm64.zip"
+checksum = "sha256:9f3bce43f7f58f05ddcf193f0bf1f7e7a9c7a79d7f46f72dd38e97f96fcaf14c"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_linux_arm64.zip"
 
 [tools.tflint."platforms.linux-x64"]
-checksum = "sha256:6108d84282292f11d793dc8038ce08fbc629dcd25324d6f13c63d8100b52e01f"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.59.1/tflint_linux_amd64.zip"
+checksum = "sha256:c004ec45ade3caf87cd4089feb1d2af9f7df57b13140a36df8a63c0a8cc69f14"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_linux_amd64.zip"
 
 [tools.tflint."platforms.linux-x64-musl"]
-checksum = "sha256:6108d84282292f11d793dc8038ce08fbc629dcd25324d6f13c63d8100b52e01f"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.59.1/tflint_linux_amd64.zip"
+checksum = "sha256:c004ec45ade3caf87cd4089feb1d2af9f7df57b13140a36df8a63c0a8cc69f14"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_linux_amd64.zip"
 
 [tools.tflint."platforms.macos-arm64"]
-checksum = "sha256:f9981304b30e2b6b9a6f40b9ca02dd23100bd23b0846ccd50f54044c0f24ff7e"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.59.1/tflint_darwin_arm64.zip"
+checksum = "sha256:927866fef68382138b8fed038721a03c0928ce9486e1616b18bd3dd11e7cdacb"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_darwin_arm64.zip"
 
 [tools.tflint."platforms.macos-x64"]
-checksum = "sha256:28affeb10bf74e6d70a88bcfe359ee62b2742de6e5157a2485255a72ba41f658"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.59.1/tflint_darwin_amd64.zip"
+checksum = "sha256:7f55df3a25deb610c267f600eb4247657e3ff776d0322916ceecd7b58142a73a"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_darwin_amd64.zip"
 
 [tools.tflint."platforms.windows-x64"]
-checksum = "sha256:2d92018dd301852069d631a860d447458a1f75fcc66b040926a1ded7647590a9"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.59.1/tflint_windows_amd64.zip"
+checksum = "sha256:bef472fd62dcbdb616bbdf67800f1bcf8db64598529c09610154686555180edd"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_windows_amd64.zip"
 
 [[tools.vale]]
 version = "3.6.0"
