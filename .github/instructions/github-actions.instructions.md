@@ -6,7 +6,7 @@ applyTo: ".github/workflows/*.{yml,yaml},.github/actions/**/*.{yml,yaml}"
 
 ## Workflow Conventions
 
-- Use YAML extension `.yml` for workflows.
+- Use YAML extension `.yaml` for workflows.
 - Lint all workflows with `actionlint` before committing.
 - Use composite actions under `.github/actions/` for reusable logic.
 - Reference composite actions as `uses: ./.github/actions/<action-name>`.
