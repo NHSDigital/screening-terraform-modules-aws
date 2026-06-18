@@ -515,6 +515,7 @@ Custom hooks are implemented as local scripts where practical:
 
 - `scripts/githooks/validate-conventional-commit.sh` — Native bash conventional commit validation script
 - `scripts/githooks/generate-terraform-providers.sh` — Local provider alias generator
+- `scripts/githooks/check-dependabot-config.sh` — Regenerates Dependabot configuration when modules change
 
 This reduces external dependencies and improves supply chain security.
 
@@ -539,7 +540,64 @@ For detailed module authoring guidance, see `infrastructure/AGENTS.md`.
 
 ### Dependabot Policy
 
-Dependabot configuration is maintained in `.github/dependabot.yaml`.
+Dependabot configuration is automatically maintained in `.github/dependabot.yaml` and kept in sync with all modules in `infrastructure/modules/` through the `regenerate-dependabot-config` pre-commit hook.
+
+#### Automatic Configuration Discovery
+
+The `.github/dependabot.yaml` configuration is regenerated automatically whenever module `versions.tf` files change. This ensures Dependabot watches all Terraform modules without manual maintenance:
+
+```bash
+# Generate configuration manually if needed
+scripts/generate-dependabot-config.sh
+```
+
+The generator:
+
+- Scans `infrastructure/modules/` recursively for all `versions.tf` files
+- Excludes `.terraform/` cache directories (downloaded dependencies)
+- Creates a Dependabot entry for each module
+- Preserves non-Terraform ecosystems (Docker, GitHub Actions, npm, pip)
+
+#### When You Add a New Module
+
+1. Create your module with `infrastructure/modules/<module-name>/versions.tf`
+2. Commit your changes
+3. The `regenerate-dependabot-config` pre-commit hook runs automatically
+4. If new modules are found, the hook regenerates `.github/dependabot.yaml` and fails the commit
+5. Review the updated config and commit it:
+
+```bash
+git add .github/dependabot.yaml
+git commit -m "chore: update Dependabot configuration"
+```
+
+#### Testing Configuration Generation
+
+Test the Dependabot configuration system locally:
+
+```bash
+bash tests/test-generate-dependabot-config.sh
+```
+
+For details, see the Dependabot Configuration Generation Tests section in the testing documentation.
+
+#### Documentation Generation Style Rules
+
+When generating or updating documentation, follow these rules to avoid markdownlint and Vale failures:
+
+- Use `1.` for every ordered-list item (markdownlint `MD029` style `one`)
+- Leave a blank line before and after lists and fenced code blocks (`MD031`, `MD032`)
+- Use 2-space indentation for nested list content (`MD007`)
+- Use canonical product/project names (for example, `GitHub`, not `github`) to satisfy Vale terminology checks
+
+Validate documentation before committing:
+
+```bash
+pre-commit run check-markdown-format --all-files
+pre-commit run check-english-usage --all-files
+```
+
+#### Dependabot PR Handling
 
 For Dependabot PRs, the `CI/CD - On Pull Request` workflow runs core validation checks (metadata, pre-commit/coding standards, and validation tests).
 Privileged report-upload jobs in coding standards are skipped for Dependabot because they rely on sensitive upload configuration intended for trusted human-driven flows.
