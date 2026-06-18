@@ -5,4 +5,17 @@ module "ssm_parameter" {
   create = module.this.enabled
   name   = local.name # if it's a path, it must be fully qualified
   tags   = module.this.tags
+
+  allowed_pattern      = var.allowed_pattern
+  data_type            = var.ssm_data_type
+  description          = var.description
+  ignore_value_changes = var.ignore_value_changes
+  key_id               = var.key_id
+  overwrite            = var.overwrite
+  secure_type          = var.secure_type
+  tier                 = var.tier
+  type                 = var.type
+  value                = var.value
+  value_wo_version     = var.value_wo_version
+  values               = var.values
 }
