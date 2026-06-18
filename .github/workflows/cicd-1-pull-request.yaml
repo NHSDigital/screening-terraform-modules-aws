@@ -17,8 +17,10 @@ permissions:
   pull-requests: read
 
 jobs:
+  # Dependabot PRs should run core validation checks (metadata, coding standards, validation tests).
+  # Only advisory commit-message style checks remain human-focused.
   metadata:
-    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+    if: github.event.pull_request.draft == false
     name: "Set Metadata"
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -52,7 +54,6 @@ jobs:
           sql_file: ${{ inputs.sql_file || 'coreData.sql' }}
 
   coding-standards: # Recommended maximum execution time is 5 minutes
-    if: github.actor != 'dependabot[bot]'
     name: "Enforce Coding Standards"
     needs: [metadata]
     uses: ./.github/workflows/stage-1-coding-standards.yaml
@@ -68,6 +69,7 @@ jobs:
 
   conventional-commit-advisory:
     name: "Conventional Commit Advisory"
+    # Bot PR commit formats are tool-generated and non-blocking by design.
     if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -85,7 +87,7 @@ jobs:
             }
 
             // Conventional Commits: type(scope optional)!: description
-            const pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?(!)?: .+/;
+            const pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([A-Za-z0-9._/-]+\))?(!)?: .+/;
 
             const commits = await github.paginate(github.rest.pulls.listCommits, {
               owner: context.repo.owner,
@@ -127,7 +129,7 @@ jobs:
 
   validation-tests:
     name: "Validation Tests"
-    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
