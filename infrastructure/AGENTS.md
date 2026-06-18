@@ -219,6 +219,7 @@ See `infrastructure/modules/s3-bucket/README.md` as the canonical example.
 7. Run `terraform fmt -recursive` and `terraform validate`.
 8. Update `README.md` when adding or changing module interfaces.
 9. Use British English in comments and documentation.
+10. **New modules are automatically added to Dependabot configuration** — the `regenerate-dependabot-config` pre-commit hook will update `.github/dependabot.yaml` when you add a `versions.tf` file. Ensure your commit includes the regenerated configuration file.
 
 ## What Agents Must NOT Do
 

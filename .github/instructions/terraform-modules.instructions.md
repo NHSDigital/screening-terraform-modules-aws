@@ -194,6 +194,46 @@ Module READMEs should include:
 3. Usage examples (minimal, with options, advanced).
 4. Conventions section explaining naming and notable defaults.
 
+## Documentation & README Updates
+
+**Documentation must be updated alongside code changes.** This is a quality gate, not an afterthought.
+
+### When Adding or Modifying a Module
+
+1. **Run the upgrade helper** to regenerate module documentation.
+
+   ```bash
+   ./scripts/terraform/upgrade-module.sh infrastructure/modules/<name>
+   ```
+
+   This automatically updates the module's `README.md` via `terraform-docs`.
+
+1. **Update the root README.md** if you've added a new module, changed Dependabot automation behaviour, or changed module sourcing/upgrade procedures.
+
+1. **Update relevant user guides** in `docs/user-guides/`.
+If you've added/changed a pre-commit hook, update `Pre_commit_hooks_reference.md`. If you've changed upgrade procedures or tooling, update the related guides.
+
+1. **Update `infrastructure/AGENTS.md`** if you've introduced a new pattern/tool, changed naming conventions, or changed quality expectations/validation rules.
+
+1. **Update `.github/instructions/` files** if instructions no longer reflect current practice, or if new hooks/validation steps were added.
+
+### Pre-Commit Hook for Documentation
+
+The `terraform_docs` hook automatically regenerates module README files when `variables.tf`, `outputs.tf`, or `context.tf` change. Commit the regenerated README without manual edits (unless template customization is needed).
+
+### Validation Checklist
+
+Before committing, verify:
+
+- [ ] Module code changes complete (main.tf, variables.tf, outputs.tf, etc.)
+- [ ] `terraform fmt -recursive` run on the module
+- [ ] `terraform validate` passes
+- [ ] Module README.md regenerated (via upgrade helper or terraform_docs hook)
+- [ ] `infrastructure/AGENTS.md` updated if patterns changed
+- [ ] Root `README.md` updated if module list or procedures changed
+- [ ] User guide files updated if hooks or workflows changed
+- [ ] All pre-commit hooks pass: `pre-commit run --all-files`
+
 ## Formatting & Style
 
 - Run `terraform fmt -recursive` before committing.

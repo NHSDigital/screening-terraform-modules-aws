@@ -86,6 +86,19 @@ else
 fi
 echo ""
 
+# Test 5: Dependabot Configuration Generation
+echo -e "${BLUE}Running: Dependabot Configuration Generation Tests${NC}"
+echo "----------------------------------------------------------------------"
+if bash tests/test-generate-dependabot-config.sh "${VERBOSE:-}" > /tmp/test-dependabot-config.log 2>&1; then
+  cat /tmp/test-dependabot-config.log
+  echo -e "${GREEN}✓ Dependabot config generation tests passed${NC}"
+else
+  cat /tmp/test-dependabot-config.log
+  echo -e "${RED}✗ Dependabot config generation tests failed${NC}"
+  TOTAL_FAILED=$((TOTAL_FAILED + 1))
+fi
+echo ""
+
 # Final summary
 echo "======================================================================"
 echo "Test Suite Summary"
