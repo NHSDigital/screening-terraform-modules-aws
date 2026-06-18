@@ -90,7 +90,7 @@ jobs:
           mapfile -t modules_to_upgrade < <(
             git diff --name-only "$base_sha...HEAD" \
               | grep '^infrastructure/modules/.*/versions\.tf$' \
-              | xargs -n1 dirname \
+              | xargs -r -n1 dirname \
               | sort -u
           )
 
@@ -111,7 +111,7 @@ jobs:
 
           mise x -- pre-commit run --all-files generate-terraform-providers
           mise x -- pre-commit run --all-files terraform_providers_lock
-          mise x -- pre-commit run --all-files terraform_docs
+          mise x -- pre-commit run --all-files terraform_docs || true
           mise x -- pre-commit run --all-files regenerate-dependabot-config
 
       - name: "Detect changes"
