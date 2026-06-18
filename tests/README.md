@@ -73,6 +73,26 @@ bash tests/test-tool-version-upgrade.sh
 - ✓ Supports `--dry-run` without changing files
 - ✓ Supports all `--upgrade-level` modes (`patch`, `minor`, `major`, and `all`)
 
+#### Dependabot Configuration Generation Tests
+
+Tests the Dependabot YAML configuration generator that maintains `.github/dependabot.yaml` by automatically discovering all Terraform modules.
+
+```bash
+bash tests/test-generate-dependabot-config.sh
+```
+
+**Test Coverage:**
+
+- ✓ Script exists and is executable
+- ✓ Configuration generation succeeds
+- ✓ Generated YAML is valid and parseable
+- ✓ All required ecosystem entries preserved (docker, GitHub Actions, npm, pip)
+- ✓ All Terraform modules discovered and added (34 modules in infrastructure/modules/)
+- ✓ `.terraform/` cache directories excluded from configuration
+- ✓ Weekly update schedule configured for all entries
+- ✓ Script output is idempotent (running twice produces identical output)
+- ✓ All discovered modules accounted for in configuration
+
 ## Test Results
 
 All tests pass with the current configuration:
@@ -80,7 +100,9 @@ All tests pass with the current configuration:
 ```text
 ✓ Conventional Commit Validation: 22 tests passed
 ✓ Workflow Security Pinning: 15 tests passed
-✓ Total: 37 tests passed
+✓ Tool Version Upgrade Helper: 5+ tests passed
+✓ Dependabot Configuration Generation: 9+ tests passed
+✓ Total: 50+ test cases across 4 test suites
 ```
 
 ## Integration with CI/CD
