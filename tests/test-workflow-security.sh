@@ -76,6 +76,16 @@ test_pattern_exists ".github/workflows/stage-1-pre-commit.yml" "AWS_DEFAULT_REGI
 test_pattern_exists ".github/workflows/stage-1-pre-commit.yml" "TF_PLUGIN_CACHE_DIR" "Terraform plugin cache"
 echo ""
 
+# Check dependency-tools-mise-upgrade.yml
+printf "%b\n" "${YELLOW}Workflow: .github/workflows/dependency-tools-mise-upgrade.yml${NC}"
+check_file_exists ".github/workflows/dependency-tools-mise-upgrade.yml"
+
+test_action_pinned ".github/workflows/dependency-tools-mise-upgrade.yml" "actions/checkout"
+test_action_pinned ".github/workflows/dependency-tools-mise-upgrade.yml" "jdx/mise-action"
+test_action_pinned ".github/workflows/dependency-tools-mise-upgrade.yml" "peter-evans/create-pull-request"
+test_pattern_exists ".github/workflows/dependency-tools-mise-upgrade.yml" "scripts/mise/update-tool-versions.sh" "Shared tool-version update helper is used"
+echo ""
+
 # Check pre-commit configuration
 printf "%b\n" "${YELLOW}Pre-commit Configuration: .pre-commit-config.yaml${NC}"
 check_file_exists ".pre-commit-config.yaml"

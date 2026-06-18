@@ -7,6 +7,7 @@ This repository includes comprehensive test coverage for new features and config
 - **Conventional commit validation** — Native bash implementation replacing external dependency
 - **Workflow security** — GitHub Actions and pre-commit hook pinning verification
 - **Tool version synchronization** — `.tool-versions` and `mise.toml` consistency
+- **Tool version upgrade automation** — Script and workflow logic for upgrading mise-managed tools
 
 ## Running Tests
 
@@ -55,6 +56,22 @@ bash tests/test-workflow-security.sh verbose  # Show detailed output
 - ✓ Local custom hooks exist and are executable
 - ✓ Tool version files synchronized
 - 15 total test cases
+
+#### Tool Version Upgrade Helper Tests
+
+Tests the shared bash helper used both locally and in CI to update `mise.toml`, sync `.tool-versions`, and regenerate `mise.lock`.
+
+```bash
+bash tests/test-tool-version-upgrade.sh
+```
+
+**Test Coverage:**
+
+- ✓ Calls `mise install`, `mise upgrade --local --bump`, and `mise lock`
+- ✓ Synchronizes `.tool-versions` values from upgraded `mise.toml`
+- ✓ Preserves alias-style tool keys (for example `go:...`)
+- ✓ Supports `--dry-run` without changing files
+- ✓ Supports all `--upgrade-level` modes (`patch`, `minor`, `major`, and `all`)
 
 ## Test Results
 

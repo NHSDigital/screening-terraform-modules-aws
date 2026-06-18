@@ -68,6 +68,36 @@ Tool versions are maintained in two complementary formats for compatibility:
 
 Both files must be kept in sync. Update `.tool-versions` first, then ensure `mise.toml` is updated accordingly. Run `mise lock` to regenerate the lock file.
 
+For routine upgrades, use the shared helper so local and CI use the same logic:
+
+```shell
+bash scripts/mise/update-tool-versions.sh
+```
+
+Choose an upgrade level when needed:
+
+```shell
+# Patch updates only
+bash scripts/mise/update-tool-versions.sh --upgrade-level patch
+
+# Minor updates only
+bash scripts/mise/update-tool-versions.sh --upgrade-level minor
+
+# Major updates only
+bash scripts/mise/update-tool-versions.sh --upgrade-level major
+
+# All updates (default)
+bash scripts/mise/update-tool-versions.sh --upgrade-level all
+```
+
+Preview only (no file changes):
+
+```shell
+bash scripts/mise/update-tool-versions.sh --dry-run
+```
+
+The scheduled `dependency-tools-mise-upgrade` workflow defaults to patch updates, and manual runs can override the level via the `upgrade_level` input.
+
 Local development and CI both resolve pinned versions from these files through mise.
 
 ### Configuration
@@ -506,6 +536,15 @@ bash tests/test-workflow-security.sh verbose
 5. All modules must include the required files listed in [Module layout](#module-layout) and meet the [security baseline](#wrapper-module-pattern).
 
 For detailed module authoring guidance, see `infrastructure/AGENTS.md`.
+
+### Dependabot Policy
+
+Dependabot configuration is maintained in `.github/dependabot.yaml`.
+
+For Dependabot PRs, the `CI/CD - On Pull Request` workflow runs core validation checks (metadata, pre-commit/coding standards, and validation tests).
+Privileged report-upload jobs in coding standards are skipped for Dependabot because they rely on sensitive upload configuration intended for trusted human-driven flows.
+
+This keeps automated dependency updates fully validated without granting unnecessary privileged execution paths to bot-authored PRs.
 
 ## Contacts
 
