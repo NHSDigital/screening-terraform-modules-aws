@@ -136,6 +136,23 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # Optional (disabled): enable GPG-signed auto-fix commits.
+      # Prerequisites:
+      # - Configure secrets: AUTOFIX_GPG_PRIVATE_KEY, AUTOFIX_GPG_PASSPHRASE,
+      #   AUTOFIX_GIT_NAME, AUTOFIX_GIT_EMAIL, and AUTOFIX_PUSH_TOKEN.
+      # - Ensure AUTOFIX_GIT_EMAIL is verified on the GitHub account that owns the GPG key.
+      # - Update checkout step above to use:
+      #   token: ${{ secrets.AUTOFIX_PUSH_TOKEN }}
+      # - Uncomment this step and signed commit commands below.
+      # - name: "Import GPG key for signed commits"
+      #   if: steps.detect.outputs.changed == 'true'
+      #   uses: crazy-max/ghaction-import-gpg@<PINNED_SHA>
+      #   with:
+      #     gpg_private_key: ${{ secrets.AUTOFIX_GPG_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.AUTOFIX_GPG_PASSPHRASE }}
+      #     git_user_signingkey: true
+      #     git_commit_gpgsign: true
+
       - name: "Commit and push auto-fixes"
         # Push an auto-fix commit so the next PR workflow run validates the refreshed content.
         if: steps.detect.outputs.changed == 'true'
@@ -143,8 +160,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # For signed commits, use the automation identity configured for the imported GPG key:
+          # git config user.name "${{ secrets.AUTOFIX_GIT_NAME }}"
+          # git config user.email "${{ secrets.AUTOFIX_GIT_EMAIL }}"
           git add -A
           git commit -m "chore(dependabot): regenerate terraform docs and lockfiles"
+          # Signed variant:
+          # git commit -S -m "chore(dependabot): regenerate terraform docs and lockfiles"
           git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
 
       - name: "Comment on PR with auto-fix summary"
