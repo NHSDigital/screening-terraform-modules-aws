@@ -82,9 +82,33 @@ jobs:
         shell: bash
         run: mise install
 
-      - name: "Apply Terraform lock/docs and Dependabot regeneration hooks"
+      - name: "Upgrade Terraform locks and run regeneration hooks"
         shell: bash
         run: |
+          base_sha="${{ github.event.pull_request.base.sha }}"
+
+          mapfile -t modules_to_upgrade < <(
+            git diff --name-only "$base_sha...HEAD" \
+              | grep '^infrastructure/modules/.*/versions\.tf$' \
+              | xargs -n1 dirname \
+              | sort -u
+          )
+
+          if [[ ${#modules_to_upgrade[@]} -gt 0 ]]; then
+            for module_path in "${modules_to_upgrade[@]}"; do
+              echo "Upgrading Terraform lock file for $module_path"
+              terraform -chdir="$module_path" init -upgrade -no-color
+              terraform -chdir="$module_path" providers lock \
+                -platform=linux_arm64 \
+                -platform=linux_amd64 \
+                -platform=darwin_arm64 \
+                -platform=darwin_amd64 \
+                -platform=windows_amd64
+            done
+          else
+            echo "No module versions.tf changes detected; skipping explicit lock upgrade loop."
+          fi
+
           mise x -- pre-commit run --all-files generate-terraform-providers
           mise x -- pre-commit run --all-files terraform_providers_lock
           mise x -- pre-commit run --all-files terraform_docs
@@ -121,7 +145,7 @@ jobs:
             Dependabot Terraform auto-fix applied by CI.
 
             The workflow regenerated and committed:
-            - Terraform provider lock files (`terraform_providers_lock`)
+            - Terraform provider lock files (`terraform init -upgrade` + `terraform providers lock`)
             - Module docs (`terraform_docs`)
             - Dependabot configuration (`regenerate-dependabot-config`)
 
