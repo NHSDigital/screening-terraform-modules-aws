@@ -136,7 +136,7 @@ jobs:
 
       - name: "Comment on PR with auto-fix summary"
         if: steps.detect.outputs.changed == 'true'
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ github.token }}
           script: |
@@ -204,7 +204,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: "Review PR commit messages (non-blocking)"
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         continue-on-error: true
         with:
           github-token: ${{ github.token }}
