@@ -64,7 +64,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
-      pull-requests: read
+      pull-requests: write
+      issues: write
     outputs:
       changed: ${{ steps.detect.outputs.changed }}
     steps:
@@ -108,6 +109,53 @@ jobs:
           git add -A
           git commit -m "chore(dependabot): regenerate terraform docs and lockfiles"
           git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+
+      - name: "Comment on PR with auto-fix summary"
+        if: steps.detect.outputs.changed == 'true'
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const marker = '<!-- dependabot-terraform-autofix -->';
+            const body = `${marker}
+            Dependabot Terraform auto-fix applied by CI.
+
+            The workflow regenerated and committed:
+            - Terraform provider lock files (`terraform_providers_lock`)
+            - Module docs (`terraform_docs`)
+            - Dependabot configuration (`regenerate-dependabot-config`)
+
+            A new commit was pushed to this PR branch, so checks will re-run automatically.`;
+
+            const issue_number = context.payload.pull_request.number;
+            const { owner, repo } = context.repo;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+
+            const existing = comments.find(
+              (c) => c.user?.login === 'github-actions[bot]' && c.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
 
   coding-standards: # Recommended maximum execution time is 5 minutes
     name: "Enforce Coding Standards"
