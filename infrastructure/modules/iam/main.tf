@@ -36,7 +36,7 @@ module "policy_label" {
 }
 
 module "role_label" {
-  source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.6.0"
+  source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v4.1.0"
   for_each = var.roles
 
   context    = module.this.context
