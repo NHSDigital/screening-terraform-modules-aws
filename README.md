@@ -581,6 +581,22 @@ bash tests/test-generate-dependabot-config.sh
 
 For details, see the Dependabot Configuration Generation Tests section in the testing documentation.
 
+#### Documentation Generation Style Rules
+
+When generating or updating documentation, follow these rules to avoid markdownlint and Vale failures:
+
+- Use `1.` for every ordered-list item (markdownlint `MD029` style `one`)
+- Leave a blank line before and after lists and fenced code blocks (`MD031`, `MD032`)
+- Use 2-space indentation for nested list content (`MD007`)
+- Use canonical product/project names (for example, `GitHub`, not `github`) to satisfy Vale terminology checks
+
+Validate documentation before committing:
+
+```bash
+pre-commit run check-markdown-format --all-files
+pre-commit run check-english-usage --all-files
+```
+
 #### Dependabot PR Handling
 
 For Dependabot PRs, the `CI/CD - On Pull Request` workflow runs core validation checks (metadata, pre-commit/coding standards, and validation tests).

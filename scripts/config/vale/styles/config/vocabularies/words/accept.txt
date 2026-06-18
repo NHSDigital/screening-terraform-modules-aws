@@ -86,6 +86,7 @@ stage_name
 start_time
 subnet
 Syft
+[Mm]arkdownlint
 [Tt]eardown
 [Tt]erraform
 terraform-docs

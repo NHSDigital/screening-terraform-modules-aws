@@ -236,6 +236,39 @@ else
     ((failed++))
 fi
 
+# Test 11: Documentation lint checks for touched docs in this feature
+printf "\n${blue}Test: Documentation lint checks${nc}\n"
+docs_to_check=(
+    "${repo_root}/README.md"
+    "${repo_root}/tests/README.md"
+    "${repo_root}/.github/instructions/terraform-modules.instructions.md"
+    "${repo_root}/docs/user-guides/Pre_commit_hooks_reference.md"
+)
+
+if command -v markdownlint >/dev/null 2>&1; then
+    if markdownlint "${docs_to_check[@]}" --config "${repo_root}/scripts/config/markdownlint.yaml" >/dev/null 2>&1; then
+        printf "${green}✓${nc} Markdownlint passes for touched docs\n"
+        ((passed++))
+    else
+        printf "${red}✗${nc} Markdownlint failed for touched docs\n"
+        ((failed++))
+    fi
+else
+    printf "${yellow}⊘${nc} markdownlint not available (skip markdown docs lint assertion)\n"
+fi
+
+if command -v vale >/dev/null 2>&1; then
+    if vale --config "${repo_root}/scripts/config/vale/vale.ini" "${docs_to_check[@]}" >/dev/null 2>&1; then
+        printf "${green}✓${nc} Vale passes for touched docs\n"
+        ((passed++))
+    else
+        printf "${red}✗${nc} Vale failed for touched docs\n"
+        ((failed++))
+    fi
+else
+    printf "${yellow}⊘${nc} vale not available (skip prose lint assertion)\n"
+fi
+
 # ============================================================================
 # Summary
 # ============================================================================
