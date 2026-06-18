@@ -602,6 +602,14 @@ pre-commit run check-english-usage --all-files
 For Dependabot PRs, the `CI/CD - On Pull Request` workflow runs core validation checks (metadata, pre-commit/coding standards, and validation tests).
 Privileged report-upload jobs in coding standards are skipped for Dependabot because they rely on sensitive upload configuration intended for trusted human-driven flows.
 
+For Terraform module version bumps, CI also applies auto-fixes on Dependabot PR branches before running the full quality gates:
+
+- Regenerates Terraform provider lock files (`terraform_providers_lock`)
+- Regenerates module docs (`terraform_docs`)
+- Regenerates Dependabot config (`regenerate-dependabot-config`)
+
+If auto-fixes are needed, CI commits and pushes them to the Dependabot branch, then the PR pipeline re-runs on the refreshed commit.
+
 This keeps automated dependency updates fully validated without granting unnecessary privileged execution paths to bot-authored PRs.
 
 ## Contacts

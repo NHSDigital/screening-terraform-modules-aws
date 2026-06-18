@@ -53,9 +53,66 @@ jobs:
           action: ${{ inputs.action || 'apply' }}
           sql_file: ${{ inputs.sql_file || 'coreData.sql' }}
 
+  dependabot-auto-fix-terraform:
+    name: "Dependabot auto-fix Terraform docs/locks"
+    needs: [metadata]
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: read
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+    steps:
+      - name: "Checkout PR branch"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: "Set up mise"
+        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+
+      - name: "Install pinned tools"
+        shell: bash
+        run: mise install
+
+      - name: "Apply Terraform lock/docs and Dependabot regeneration hooks"
+        shell: bash
+        run: |
+          mise x -- pre-commit run --all-files generate-terraform-providers
+          mise x -- pre-commit run --all-files terraform_providers_lock
+          mise x -- pre-commit run --all-files terraform_docs
+          mise x -- pre-commit run --all-files regenerate-dependabot-config
+
+      - name: "Detect changes"
+        id: detect
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: "Commit and push auto-fixes"
+        if: steps.detect.outputs.changed == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(dependabot): regenerate terraform docs and lockfiles"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+
   coding-standards: # Recommended maximum execution time is 5 minutes
     name: "Enforce Coding Standards"
-    needs: [metadata]
+    needs: [metadata, dependabot-auto-fix-terraform]
+    if: github.event.pull_request.draft == false && needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
     uses: ./.github/workflows/stage-1-coding-standards.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -129,7 +186,8 @@ jobs:
 
   validation-tests:
     name: "Validation Tests"
-    if: github.event.pull_request.draft == false
+    needs: [metadata, dependabot-auto-fix-terraform]
+    if: github.event.pull_request.draft == false && needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -179,6 +237,7 @@ jobs:
     if: always()
     needs:
       - metadata
+      - dependabot-auto-fix-terraform
       - coding-standards
       - conventional-commit-advisory
       - validation-tests
