@@ -44,6 +44,7 @@ updates:
       - "infrastructure/modules/cw-firehose-splunk"
       - "infrastructure/modules/ecr"
       - "infrastructure/modules/ecs-cluster"
+      - "infrastructure/modules/ecs-service"
       - "infrastructure/modules/elasticache"
       - "infrastructure/modules/github-config"
       - "infrastructure/modules/guardduty"
