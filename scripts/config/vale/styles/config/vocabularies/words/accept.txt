@@ -4,6 +4,7 @@
 [Aa]utotest
 Adhoc
 account_id
+actionlint
 api_gateway_name
 api_path_part
 arn
@@ -101,3 +102,4 @@ url
 vault_lock_type
 vault_name
 [Uu][Uu][Ii][Dd]
+yq
