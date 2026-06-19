@@ -2,6 +2,19 @@
 
 Screening wrapper around the [`terraform-aws-modules/vpc/aws`](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest) upstream module (v6.6.1), providing a standardised four-tier subnet layout.
 
+## Breaking change
+
+This module is a breaking replacement for the original local `vpc` module.
+
+Consumers must review and update module calls before upgrading, including:
+
+- Input variables and defaults
+- Output names and semantics
+- Routing behaviour when enabling Network Firewall mode
+- Flow log configuration and tagging
+
+Treat adoption of this module as a migration, not a drop-in swap.
+
 ## subnet tiers
 
 | Tier | Prefix | Purpose |

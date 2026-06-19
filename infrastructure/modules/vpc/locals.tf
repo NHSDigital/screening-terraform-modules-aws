@@ -20,7 +20,7 @@ locals {
   firewall_newbits = var.firewall_subnet_prefix - local.vpc_prefix_length
   public_newbits   = var.public_subnet_prefix - local.vpc_prefix_length
   private_newbits  = var.private_subnet_prefix - local.vpc_prefix_length
-  intra_newbits = var.intra_subnet_prefix - local.vpc_prefix_length
+  intra_newbits    = var.intra_subnet_prefix - local.vpc_prefix_length
 
   # Build a flat list of newbits: [firewall x N, public x N, private x N, intra x N]
   # cidrsubnets() guarantees non-overlapping, correctly-aligned CIDRs.
@@ -35,7 +35,7 @@ locals {
   auto_firewall_subnets = slice(local.auto_subnets, 0, local.az_count)
   auto_public_subnets   = slice(local.auto_subnets, local.az_count, 2 * local.az_count)
   auto_private_subnets  = slice(local.auto_subnets, 2 * local.az_count, 3 * local.az_count)
-  auto_intra_subnets = slice(local.auto_subnets, 3 * local.az_count, 4 * local.az_count)
+  auto_intra_subnets    = slice(local.auto_subnets, 3 * local.az_count, 4 * local.az_count)
 
   # Allow explicit overrides per tier
   firewall_subnets = length(var.firewall_subnets) > 0 ? var.firewall_subnets : local.auto_firewall_subnets
