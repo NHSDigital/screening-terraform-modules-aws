@@ -716,6 +716,37 @@ aws sts get-caller-identity
 
 Edit `.vale.ini` to relax rules or add exceptions for your terminology.
 
+### Tool Version Mismatches in Scripts
+
+If pre-commit hooks that invoke tools (e.g., `yq`, `actionlint`) fail with syntax errors or "can't open" errors, ensure your shell scripts wrap tool invocations with `mise x --`:
+
+**Problem:**
+
+```bash
+# System version might have different CLI syntax
+if ! yq eval '.' config.yaml > /dev/null; then
+    echo "YAML validation failed"
+fi
+```
+
+**Solution:**
+
+```bash
+# Always use mise-managed version for consistency
+if command -v mise &>/dev/null; then
+    if ! mise x -- yq eval '.' config.yaml > /dev/null 2>&1; then
+        echo "YAML validation failed"
+    fi
+elif command -v yq &>/dev/null; then
+    # Fallback to system version if mise not available
+    if ! yq eval '.' config.yaml > /dev/null 2>&1; then
+        echo "YAML validation failed"
+    fi
+fi
+```
+
+**Why?** Different implementations of the same tool (e.g., Python vs Go `yq`) have incompatible CLI syntax. Using `mise x --` guarantees the correct version is used, preventing subtle syntax mismatches.
+
 ---
 
 ## Quick Reference Table

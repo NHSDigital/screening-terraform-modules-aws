@@ -47,6 +47,22 @@ git commit -m "type(scope): description"
 - `regenerate-dependabot-config` — ensures Dependabot watches all modules
 - `no-commit-to-branch` — enforces PR workflow
 
+## Tool Invocation in Scripts
+
+When writing shell scripts that invoke tools (especially in pre-commit hooks), always wrap tool invocations with `mise x --` to ensure the correct version is used:
+
+```bash
+# Good: Uses mise-managed tool version
+mise x -- yq eval '.' config.yaml
+mise x -- actionlint .github/workflows/*.yml
+
+# Avoid: May use system version (syntax differences between implementations)
+yq eval '.' config.yaml
+actionlint .github/workflows/*.yml
+```
+
+**Why?** Different implementations (e.g., Go vs Python versions of yq) have different CLI syntax. Using `mise x --` guarantees version consistency across environments and prevents subtle failures.
+
 ## Need Help?
 
 See `.github/skills/pre-commit-hooks.skill.md` for detailed documentation on each hook.
