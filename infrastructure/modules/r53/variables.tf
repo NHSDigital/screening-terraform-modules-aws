@@ -68,7 +68,7 @@ variable "resolver_endpoints" {
     name      = optional(string)
     direction = optional(string, "INBOUND")
     type      = optional(string)
-    protocols = optional(list(string), [])
+    protocols = optional(list(string), ["Do53"])
     ip_address = optional(list(object({
       ip        = optional(string)
       ipv6      = optional(string)
@@ -115,6 +115,16 @@ variable "resolver_endpoints" {
     tags = optional(map(string), {})
   }))
   default = {}
+
+  validation {
+    condition = alltrue([
+      for key, ep in var.resolver_endpoints :
+      alltrue([
+        for p in ep.protocols : contains(["Do53", "DoH", "DoH-FIPS"], p)
+      ])
+    ])
+    error_message = "Each protocol value must be one of: Do53, DoH, DoH-FIPS. An empty list defaults to Do53."
+  }
 }
 
 variable "resolver_firewall_rule_groups" {
@@ -132,6 +142,8 @@ variable "resolver_firewall_rule_groups" {
     ram_resource_associations = optional(map(object({
       resource_share_arn = string
     })), {})
+    vpc_ids  = optional(map(string), {})
+    priority = optional(number, 100)
     rules = optional(map(object({
       name                               = optional(string)
       domains                            = optional(list(string))

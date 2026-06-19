@@ -21,8 +21,9 @@
 #
 
 module "this" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.5.0"
+  source = "../tags"
 
+  enabled             = var.enabled
   service             = var.service
   project             = var.project
   region              = var.region
@@ -80,7 +81,14 @@ variable "context" {
     label_value_case    = null
     terraform_source    = null
     descriptor_formats  = {}
-    labels_as_tags      = ["unset"]
+    # Note: we have to use [] instead of null for unset lists due to
+    # https://github.com/hashicorp/terraform/issues/28137
+    # which was not fixed until Terraform 1.0.0,
+    # but we want the default to be all the labels in `label_order`
+    # and we want users to be able to prevent all tag generation
+    # by setting `labels_as_tags` to `[]`, so we need
+    # a different sentinel to indicate "default"
+    labels_as_tags = ["unset"]
   }
   description = <<-EOT
     Single object for setting entire context at once.
@@ -104,7 +112,7 @@ variable "context" {
 variable "terraform_source" {
   type        = string
   default     = null
-  description = "Source location to record in the Terraform_source tag. Defaults to this module path."
+  description = "Source location to record in the Terraform_source tag. Defaults to the caller module path when not set."
 }
 
 variable "enabled" {
@@ -254,6 +262,7 @@ variable "label_key_case" {
     Possible values: `lower`, `title`, `upper`.
     Default value: `title`.
   EOT
+
   validation {
     condition     = var.label_key_case == null ? true : contains(["lower", "title", "upper"], var.label_key_case)
     error_message = "Allowed values: `lower`, `title`, `upper`."
@@ -271,6 +280,7 @@ variable "label_value_case" {
     Set this to `title` and set `delimiter` to `""` to yield Pascal Case IDs.
     Default value: `lower`.
   EOT
+
   validation {
     condition     = var.label_value_case == null ? true : contains(["lower", "title", "upper", "none"], var.label_value_case)
     error_message = "Allowed values: `lower`, `title`, `upper`, `none`."
@@ -293,7 +303,7 @@ variable "descriptor_formats" {
     Label values will be normalized before being passed to `format()` so they will be
     identical to how they appear in `id`.
     Default is `{}` (`descriptors` output will be empty).
-  EOT
+    EOT
 }
 
 variable "owner" {
@@ -328,6 +338,7 @@ variable "data_type" {
   }
 }
 
+
 variable "public_facing" {
   type        = bool
   description = "Whether this resource is public facing"
@@ -343,7 +354,6 @@ variable "service_category" {
     error_message = "The Service Category must be one of n/a, Bronze, Silver, Gold, Platinum"
   }
 }
-
 variable "on_off_pattern" {
   type        = string
   description = "Used to turn resources on and off based on a time pattern"
