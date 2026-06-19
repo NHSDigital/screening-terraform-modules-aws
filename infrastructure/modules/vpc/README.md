@@ -24,7 +24,7 @@ Treat adoption of this module as a migration, not a drop-in swap.
 | Private | /23 | Private workloads with internet access via NAT Gateway |
 | Intra | /23 | Intra, no internet route via NAT Gateway |
 
-Subnet CIDRs are auto-calculated from the VPC CIDR across all available AZs in the region. The auto-calculation works with **any VPC prefix length** between /16 and /28 (AWS limits). Explicit overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `intra_subnets` variables.
+Subnet CIDRs are auto-calculated from the VPC CIDR across the first three available AZs in the region by default. Set `availability_zones` to pin a specific AZ list or to use a different AZ count. Explicit CIDR overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `intra_subnets`.
 
 **Auto-calculation logic:** The module uses Terraform's `cidrsubnets()` function to carve non-overlapping subnets from the VPC CIDR, sizing each tier per the `*_subnet_prefix` variables. For example:
 
@@ -36,6 +36,7 @@ Subnet CIDRs are auto-calculated from the VPC CIDR across all available AZs in t
 - VPC CIDR block: `/16` to `/28` netmask
 - Subnet CIDR block: `/16` to `/28` netmask
 - Subnet prefix must be larger (numerically) than VPC prefix (so subnets can be carved from the VPC)
+- Smaller VPC CIDRs may require larger subnet prefixes or explicit subnet overrides when the requested subnet count cannot fit inside the CIDR range
 
 ## Features
 
@@ -66,12 +67,13 @@ module "vpc" {
 
 | Variable | Description | Default |
 | --- | --- | --- |
-| `vpc_cidr` | VPC CIDR block (/16 to /28 per AWS limits); auto-calculation works with any prefix length | `10.0.0.0/16` |
+| `vpc_cidr` | VPC CIDR block (/16 to /28 per AWS limits) | Required |
+| `availability_zones` | Explicit AZs for subnet placement; defaults to the first three available AZs | `null` |
 | `single_nat_gateway` | Use one shared NAT instead of per-AZ | `false` |
 | `enable_flow_log` | Enable VPC flow logs | `true` |
 | `flow_log_retention_in_days` | CloudWatch log retention | `365` |
 | `flow_log_traffic_type` | ACCEPT, REJECT, or ALL | `ALL` |
-| `flow_log_kms_key_id` | KMS key arn for log encryption | `null` |
+| `flow_log_kms_key_id` | KMS key ARN for log encryption | `null` |
 | `map_public_ip_on_launch` | Auto-assign public IPs in public subnets | `false` |
 
 ## Key outputs
@@ -131,6 +133,7 @@ module "vpc" {
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
+| <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | Availability zones to use for the VPC. Leave null to use the first three available AZs in the current region. | `list(string)` | `null` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
 | <a name="input_cloudwatch_log_group_tags"></a> [cloudwatch\_log\_group\_tags](#input\_cloudwatch\_log\_group\_tags) | Additional tags for the CloudWatch log group. | `map(string)` | `{}` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |

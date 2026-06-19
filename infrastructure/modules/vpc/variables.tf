@@ -48,6 +48,12 @@ variable "vpc_cidr" {
 # cidrsubnets() to carve non-overlapping ranges automatically.
 ################################################################
 
+variable "availability_zones" {
+  description = "Availability zones to use for the VPC. Leave null to use the first three available AZs in the current region."
+  type        = list(string)
+  default     = null
+}
+
 variable "firewall_subnet_prefix" {
   description = "Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix. It is highly recommended to use /28 for firewall subnets to minimize wasted IPs."
   type        = number

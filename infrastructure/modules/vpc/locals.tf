@@ -1,5 +1,5 @@
 locals {
-  azs      = data.aws_availability_zones.available.names
+  azs      = length(coalesce(var.availability_zones, [])) > 0 ? var.availability_zones : slice(data.aws_availability_zones.available.names, 0, 3)
   az_count = length(local.azs)
 
   # ─────────────────────────────────────────────────────────────
