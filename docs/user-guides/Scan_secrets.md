@@ -33,7 +33,7 @@ Scanning a repository for hard-coded secrets is a crucial security practice. "Ha
 You can execute and test the secret scanning across all commits locally on a developer's workstation using the following command
 
 ```shell
-ALL_FILES=true ./scripts/githooks/scan-secrets.sh
+ALL_FILES=true mise run githooks-scan-secrets
 ```
 
 ## Removing sensitive data

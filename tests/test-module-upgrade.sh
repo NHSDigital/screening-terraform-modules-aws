@@ -103,7 +103,7 @@ echo
 PATH="$bin_root:$PATH" bash "$repo_root/$SCRIPT" "$fixture_root/infrastructure/modules/example-one"
 
 assert_contains "terraform:-chdir=$relative_fixture_root/infrastructure/modules/example-one init -upgrade" "Single-module init uses -upgrade"
-assert_contains "terraform:-chdir=$relative_fixture_root/infrastructure/modules/example-one providers lock -platform=linux_arm64 -platform=linux_amd64 -platform=darwin_amd64 -platform=windows_amd64" "Single-module providers lock runs with all target platforms"
+assert_contains "terraform:-chdir=$relative_fixture_root/infrastructure/modules/example-one providers lock -platform=linux_arm64 -platform=linux_amd64 -platform=darwin_arm64 -platform=darwin_amd64 -platform=windows_amd64" "Single-module providers lock runs with all target platforms"
 assert_contains "pre-commit:run terraform_docs --files $relative_fixture_root/infrastructure/modules/example-one/README.md" "Single-module terraform_docs runs against README.md"
 
 printf '%s\n' '' > "$log_file"

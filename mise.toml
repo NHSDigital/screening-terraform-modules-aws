@@ -22,3 +22,106 @@ make = "4.4.1" # default version on macos is too old
 
 # Go-based tools using backend syntax
 "go:github.com/hashicorp/terraform-config-inspect" = "latest"
+
+# Referenced tasks (used by current automation/documentation)
+
+[tasks.update-tool-versions]
+description = "Update mise-managed tool versions, sync manifests, refresh README prerequisites, and regenerate lockfile"
+run = "scripts/mise/update-tool-versions.sh"
+
+[tasks.generate-dependabot-config]
+description = "Generate Dependabot configuration from infrastructure/modules"
+run = "scripts/generate-dependabot-config.sh"
+
+[tasks.shellscript-linter]
+description = "Run shell script lint wrapper"
+run = "scripts/shellscript-linter.sh"
+
+[tasks.terraform-upgrade-module]
+description = "Refresh Terraform lockfiles/docs for a module or all modules"
+run = "scripts/terraform/upgrade-module.sh"
+
+[tasks.terraform-derive-module-constraints]
+description = "Derive Terraform module constraints"
+run = "scripts/terraform/derive-module-constraints.sh"
+
+[tasks.terraform-wrapper]
+description = "Run repository Terraform wrapper"
+run = "scripts/terraform/terraform.sh"
+
+[tasks.reports-create-lines-of-code]
+description = "Generate lines-of-code report"
+run = "scripts/reports/create-lines-of-code-report.sh"
+
+[tasks.reports-create-sbom]
+description = "Generate software bill of materials report"
+run = "scripts/reports/create-sbom-report.sh"
+
+[tasks.reports-perform-static-analysis]
+description = "Run static analysis report generation"
+run = "scripts/reports/perform-static-analysis.sh"
+
+[tasks.reports-scan-vulnerabilities]
+description = "Scan generated SBOM for vulnerabilities"
+run = "scripts/reports/scan-vulnerabilities.sh"
+
+[tasks.githooks-check-dependabot-config]
+description = "Check and regenerate Dependabot configuration"
+run = "scripts/githooks/check-dependabot-config.sh"
+
+[tasks.githooks-check-english-usage]
+description = "Run English usage checks"
+run = "scripts/githooks/check-english-usage.sh"
+
+[tasks.githooks-check-file-format]
+description = "Run file format checks"
+run = "scripts/githooks/check-file-format.sh"
+
+[tasks.githooks-check-markdown-format]
+description = "Run Markdown format checks"
+run = "scripts/githooks/check-markdown-format.sh"
+
+[tasks.githooks-check-terraform-format]
+description = "Run Terraform format checks"
+run = "scripts/githooks/check-terraform-format.sh"
+
+[tasks.githooks-generate-terraform-providers]
+description = "Generate aliased Terraform provider stubs"
+run = "scripts/githooks/generate-terraform-providers.sh"
+
+[tasks.githooks-scan-secrets]
+description = "Scan for hardcoded secrets"
+run = "scripts/githooks/scan-secrets.sh"
+
+[tasks.githooks-validate-conventional-commit]
+description = "Validate Conventional Commit message format"
+run = "scripts/githooks/validate-conventional-commit.sh"
+
+# Unreferenced tasks (starter/manual scripts; disabled by default)
+# [tasks.docker-dgoss]
+# description = "Run dgoss test harness"
+# run = "scripts/docker/dgoss.sh"
+
+# [tasks.docker-dockerfile-linter]
+# description = "Lint Dockerfiles via repository wrapper"
+# run = "scripts/docker/dockerfile-linter.sh"
+
+# [tasks.docker-tests]
+# description = "Run Docker script test suite"
+# run = "scripts/docker/tests/docker.test.sh"
+
+# [tasks.tests-unit]
+# description = "Run unit-style script tests"
+# run = "scripts/tests/unit.sh"
+
+# [tasks.tests-style]
+# description = "Run style-oriented script tests"
+# run = "scripts/tests/style.sh"
+
+# [tasks.tests-release-config]
+# description = "Run release configuration tests"
+# run = "scripts/tests/release-config.sh"
+
+# [tasks.tests-release-updater]
+# description = "Run release updater tests"
+# run = "scripts/tests/release-updater.sh"

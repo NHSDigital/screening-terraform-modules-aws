@@ -8,6 +8,7 @@ This repository includes comprehensive test coverage for new features and config
 - **Workflow security** — GitHub Actions and pre-commit hook pinning verification
 - **Tool version synchronization** — `.tool-versions` and `mise.toml` consistency
 - **Tool version upgrade automation** — Script and workflow logic for upgrading mise-managed tools
+- **mise task surface policy** — Referenced tasks remain active and commented-out tasks stay unreferenced
 
 ## Running Tests
 
@@ -93,6 +94,20 @@ bash tests/test-generate-dependabot-config.sh
 - ✓ Script output is idempotent (running twice produces identical output)
 - ✓ All discovered modules accounted for in configuration
 
+#### mise Task Surface Policy Tests
+
+Enforces task-surface consistency between `mise.toml` and current automation/docs references.
+
+```bash
+bash tests/test-mise-task-surface.sh
+```
+
+**Test Coverage:**
+
+- ✓ Every `mise run <task>` reference in workflows/actions/pre-commit/README/tests points to an active task in `mise.toml`
+- ✓ Every active task in `mise.toml` is either referenced or explicitly allowed as maintained manual task
+- ✓ No commented-out task in `mise.toml` is referenced by automation/docs/tests
+
 ## Test Results
 
 All tests pass with the current configuration:
@@ -102,7 +117,7 @@ All tests pass with the current configuration:
 ✓ Workflow Security Pinning: 15 tests passed
 ✓ Tool Version Upgrade Helper: 5+ tests passed
 ✓ Dependabot Configuration Generation: 9+ tests passed
-✓ Total: 50+ test cases across 4 test suites
+✓ Total: 70+ test cases across 5 test suites
 ```
 
 ## Integration with CI/CD
@@ -178,7 +193,7 @@ Test individual components manually:
 ```bash
 # Test conventional commit validator directly
 echo "feat(scope): test message" > /tmp/test-msg.txt
-bash scripts/githooks/validate-conventional-commit.sh /tmp/test-msg.txt
+mise run githooks-validate-conventional-commit -- /tmp/test-msg.txt
 echo "Exit code: $?"  # 0 = pass, 1 = fail
 
 # Check action pinning

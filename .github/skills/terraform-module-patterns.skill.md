@@ -68,10 +68,10 @@ When AWS providers or upstream community modules receive updates, use the upgrad
 
 ```bash
 # Single module
-./scripts/terraform/upgrade-module.sh infrastructure/modules/s3-bucket
+mise run terraform-upgrade-module -- infrastructure/modules/s3-bucket
 
 # All modules
-./scripts/terraform/upgrade-module.sh update-all
+mise run terraform-upgrade-module -- update-all
 ```
 
 The helper:

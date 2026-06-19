@@ -41,14 +41,14 @@ You can run and test the process locally on a developer's workstation using the 
 SBOM generator
 
 ```shell
-./scripts/reports/create-sbom-report.sh
+mise run reports-create-sbom
 cat sbom-repository-report.json | jq
 ```
 
 CVE scanner
 
 ```shell
-./scripts/reports/scan-vulnerabilities.sh
+mise run reports-scan-vulnerabilities
 cat vulnerabilities-repository-reportc.json | jq
 ```
 

@@ -99,6 +99,19 @@ else
 fi
 echo ""
 
+# Test 6: mise Task Surface Policy
+echo -e "${BLUE}Running: mise Task Surface Policy Tests${NC}"
+echo "----------------------------------------------------------------------"
+if bash tests/test-mise-task-surface.sh "${VERBOSE:-}" > /tmp/test-mise-task-surface.log 2>&1; then
+  cat /tmp/test-mise-task-surface.log
+  echo -e "${GREEN}✓ mise task surface policy tests passed${NC}"
+else
+  cat /tmp/test-mise-task-surface.log
+  echo -e "${RED}✗ mise task surface policy tests failed${NC}"
+  TOTAL_FAILED=$((TOTAL_FAILED + 1))
+fi
+echo ""
+
 # Final summary
 echo "======================================================================"
 echo "Test Suite Summary"

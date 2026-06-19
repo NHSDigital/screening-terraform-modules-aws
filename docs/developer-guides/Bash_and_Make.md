@@ -135,7 +135,7 @@ VERBOSE=1 make docker-example-build
 for Bash scripts
 
 ```shell
-VERBOSE=1 scripts/shellscript-linter.sh
+VERBOSE=1 mise run shellscript-linter
 ```
 
 ### Scripts
@@ -143,11 +143,11 @@ VERBOSE=1 scripts/shellscript-linter.sh
 Most scripts provided with this repository template can use tools installed on your `PATH` if they are available or run them from within a Docker container. To force a script to use Docker, the `FORCE_USE_DOCKER` variable is provided. This feature allows you to use custom tooling if it is present on the command-line path. Here is how to use it:
 
 ```shell
-FORCE_USE_DOCKER=1 scripts/shellscript-linter.sh
+FORCE_USE_DOCKER=1 mise run shellscript-linter
 ```
 
 You can combine it with the `VERBOSE` flag to see the details of the execution flow:
 
 ```shell
-VERBOSE=1 FORCE_USE_DOCKER=1 scripts/shellscript-linter.sh
+VERBOSE=1 FORCE_USE_DOCKER=1 mise run shellscript-linter
 ```

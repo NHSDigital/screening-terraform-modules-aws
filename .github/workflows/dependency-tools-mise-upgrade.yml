@@ -42,7 +42,7 @@ jobs:
         shell: bash
         run: |
           level="${UPGRADE_LEVEL:-patch}"
-          bash scripts/mise/update-tool-versions.sh --upgrade-level "$level"
+          mise run update-tool-versions -- --upgrade-level "$level"
 
       - name: "Create pull request"
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
@@ -55,6 +55,7 @@ jobs:
             Updated files:
             - .tool-versions
             - mise.toml
+            - README.md
             - mise.lock
 
             Upgrade level: `${{ github.event.inputs.upgrade_level || 'patch' }}`
@@ -67,4 +68,5 @@ jobs:
           add-paths: |
             .tool-versions
             mise.toml
+            README.md
             mise.lock

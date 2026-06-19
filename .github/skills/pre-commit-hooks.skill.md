@@ -244,7 +244,7 @@ terraform -chdir="infrastructure/modules/s3-bucket" providers lock \
 Or use the helper script:
 
 ```bash
-./scripts/terraform/upgrade-module.sh infrastructure/modules/s3-bucket
+mise run terraform-upgrade-module -- infrastructure/modules/s3-bucket
 ```
 
 **Manual run:**
