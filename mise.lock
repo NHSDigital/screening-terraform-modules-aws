@@ -83,6 +83,29 @@ checksum = "sha256:6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f
 url = "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_windows_amd64.zip"
 provenance = "github-attestations"
 
+[[tools.bats]]
+version = "1.13.0"
+backend = "aqua:bats-core/bats-core"
+
+[tools.bats."platforms.linux-arm64"]
+url = "https://github.com/bats-core/bats-core/archive/refs/tags/v1.13.0.tar.gz"
+
+[tools.bats."platforms.linux-arm64-musl"]
+url = "https://github.com/bats-core/bats-core/archive/refs/tags/v1.13.0.tar.gz"
+
+[tools.bats."platforms.linux-x64"]
+url = "https://github.com/bats-core/bats-core/archive/refs/tags/v1.13.0.tar.gz"
+
+[tools.bats."platforms.linux-x64-musl"]
+url = "https://github.com/bats-core/bats-core/archive/refs/tags/v1.13.0.tar.gz"
+
+[tools.bats."platforms.macos-arm64"]
+checksum = "blake3:d34af9fd0f9101d5309b2de31f3d1699e56a574d7d4b5e6380580a9e758a9744"
+url = "https://github.com/bats-core/bats-core/archive/refs/tags/v1.13.0.tar.gz"
+
+[tools.bats."platforms.macos-x64"]
+url = "https://github.com/bats-core/bats-core/archive/refs/tags/v1.13.0.tar.gz"
+
 [[tools.gitleaks]]
 version = "8.30.1"
 backend = "aqua:gitleaks/gitleaks"
@@ -305,42 +328,42 @@ checksum = "sha256:ea8a0c84902e48c1875558f2f362ed8476773aa5fc8c16c5d8f2acc2a2830
 url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.0/pre-commit-4.6.0.pyz"
 
 [[tools.python]]
-version = "3.12.13"
+version = "3.14.6"
 backend = "core:python"
 
 [tools.python."platforms.linux-arm64"]
-checksum = "sha256:eb85c6903552b1cb40b183a119681a9326fa97e31cf0e4b8c78bf26735ff1552"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.12.13+20260610-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:9124d5c41739d78a446f1f29c1953bf41071abcbf18e6daec201a27608648195"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.14.6+20260610-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-arm64-musl"]
-checksum = "sha256:f9153de0832a08a98cde89f7f5f2cc376544813c05bd2737279a1c8e3cb97913"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.12.13+20260610-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
+checksum = "sha256:5c75bea22f425ebc94912c618518a5aa4753eedeea6b5da5939f027d3a9c0fec"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.14.6+20260610-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64"]
-checksum = "sha256:6682afef6b510037a0ad84e61150e5121af2e2785c9ca27b047e029270a840fe"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.12.13+20260610-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:0881fbde2c78605720fb2e240d1a6df38652a896e40a5fce2e10908dbee5f5b7"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.14.6+20260610-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64-musl"]
-checksum = "sha256:cca04a9f21a8efb43f1da1f4d1b55da04e9af23e8ce6259f58c94b4ef1fa48a6"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.12.13+20260610-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
+checksum = "sha256:54eca143d09ed3c596ecad5e3bfcb7724387818f8f984f44f3d8c0e9f36681d3"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.14.6+20260610-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-arm64"]
-checksum = "sha256:f0a7fa7decc75df2b1a789329a44f657c4a15c0a683f197ce46a5cb621bc6ef4"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.12.13+20260610-aarch64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "blake3:0677b851c7d6b3f89667b4ac7a49a48b960eba913a74c34724a2decc3c56367a"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.14.6+20260610-aarch64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-x64"]
-checksum = "sha256:c56c2dfe3fb5569430f4eabcff1fc1334c66db708bf17c103eef3dd237f3e3ab"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.12.13+20260610-x86_64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:6f85cbb2a0fef4b90fc63aadcfe383c22db5eb7933066ca6ea384828a6b3f2d2"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.14.6+20260610-x86_64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.windows-x64"]
-checksum = "sha256:99dce0b23bf3c3b28d350cdd7bfe3cd3be51cc4f285faae7c0df110d106d1a8d"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.12.13+20260610-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+checksum = "sha256:49f0c7e8d1c2eaba70c5516ca6c01b6b766f6ff473f1209a76fd01783e7c75ae"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260610/cpython-3.14.6+20260610-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [[tools.shellcheck]]
@@ -440,68 +463,68 @@ checksum = "sha256:afc02cbdf63726d3e5fb26a077ca1f24acd4820d7e44c21b03a3e030f9266
 url = "https://github.com/terraform-docs/terraform-docs/releases/download/v0.24.0/terraform-docs-v0.24.0-windows-amd64.zip"
 
 [[tools.tflint]]
-version = "0.62.1"
+version = "0.63.1"
 backend = "aqua:terraform-linters/tflint"
 
 [tools.tflint."platforms.linux-arm64"]
-checksum = "sha256:9f3bce43f7f58f05ddcf193f0bf1f7e7a9c7a79d7f46f72dd38e97f96fcaf14c"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_linux_arm64.zip"
+checksum = "sha256:6d858ca7f11858c3fe3c5e29cc746823abccb55e2d2e2da130fa7ad7ea4eecb8"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_linux_arm64.zip"
 
 [tools.tflint."platforms.linux-arm64-musl"]
-checksum = "sha256:9f3bce43f7f58f05ddcf193f0bf1f7e7a9c7a79d7f46f72dd38e97f96fcaf14c"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_linux_arm64.zip"
+checksum = "sha256:6d858ca7f11858c3fe3c5e29cc746823abccb55e2d2e2da130fa7ad7ea4eecb8"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_linux_arm64.zip"
 
 [tools.tflint."platforms.linux-x64"]
-checksum = "sha256:c004ec45ade3caf87cd4089feb1d2af9f7df57b13140a36df8a63c0a8cc69f14"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_linux_amd64.zip"
+checksum = "sha256:8441a7d97df20431f19c9b9d27ff4c63e308c964e86660bc7cc0cf7bbe0725e8"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_linux_amd64.zip"
 
 [tools.tflint."platforms.linux-x64-musl"]
-checksum = "sha256:c004ec45ade3caf87cd4089feb1d2af9f7df57b13140a36df8a63c0a8cc69f14"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_linux_amd64.zip"
+checksum = "sha256:8441a7d97df20431f19c9b9d27ff4c63e308c964e86660bc7cc0cf7bbe0725e8"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_linux_amd64.zip"
 
 [tools.tflint."platforms.macos-arm64"]
-checksum = "sha256:927866fef68382138b8fed038721a03c0928ce9486e1616b18bd3dd11e7cdacb"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_darwin_arm64.zip"
+checksum = "sha256:6aab157b22367dcab1635b370e98d6e791d9b40b021d4f9baef010d88f53e16b"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_darwin_arm64.zip"
 
 [tools.tflint."platforms.macos-x64"]
-checksum = "sha256:7f55df3a25deb610c267f600eb4247657e3ff776d0322916ceecd7b58142a73a"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_darwin_amd64.zip"
+checksum = "sha256:1a22782473e4a01f0dd23edc649bed4420655a9e3459ffc06951e698eed7ad01"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_darwin_amd64.zip"
 
 [tools.tflint."platforms.windows-x64"]
-checksum = "sha256:bef472fd62dcbdb616bbdf67800f1bcf8db64598529c09610154686555180edd"
-url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_windows_amd64.zip"
+checksum = "sha256:5fbfb643b83c4ad489bde15a0e0d46e53dc9aa8dfa76d25da3c4bd2698a41a19"
+url = "https://github.com/terraform-linters/tflint/releases/download/v0.63.1/tflint_windows_amd64.zip"
 
 [[tools.vale]]
-version = "3.6.0"
+version = "3.15.1"
 backend = "aqua:vale-cli/vale"
 
 [tools.vale."platforms.linux-arm64"]
-checksum = "sha256:45295ab07fd99c87a9cac20dce5d230d7b63ffec1394b38c8d5d4496347a069b"
-url = "https://github.com/vale-cli/vale/releases/download/v3.6.0/vale_3.6.0_Linux_arm64.tar.gz"
+checksum = "sha256:281a419e140da11a408935356bab7a4ef770fed047a9d7bd1765c76acd647d01"
+url = "https://github.com/vale-cli/vale/releases/download/v3.15.1/vale_3.15.1_Linux_arm64.tar.gz"
 
 [tools.vale."platforms.linux-arm64-musl"]
-checksum = "sha256:45295ab07fd99c87a9cac20dce5d230d7b63ffec1394b38c8d5d4496347a069b"
-url = "https://github.com/vale-cli/vale/releases/download/v3.6.0/vale_3.6.0_Linux_arm64.tar.gz"
+checksum = "sha256:281a419e140da11a408935356bab7a4ef770fed047a9d7bd1765c76acd647d01"
+url = "https://github.com/vale-cli/vale/releases/download/v3.15.1/vale_3.15.1_Linux_arm64.tar.gz"
 
 [tools.vale."platforms.linux-x64"]
-checksum = "sha256:d27cd03f920202a7be5bba3fd9e784a22fe8b33f838911853588ce3ce594a25d"
-url = "https://github.com/vale-cli/vale/releases/download/v3.6.0/vale_3.6.0_Linux_64-bit.tar.gz"
+checksum = "sha256:c024d9c157874fb043d4f24a055d60050d1bb18755251f590593eed5bace1857"
+url = "https://github.com/vale-cli/vale/releases/download/v3.15.1/vale_3.15.1_Linux_64-bit.tar.gz"
 
 [tools.vale."platforms.linux-x64-musl"]
-checksum = "sha256:d27cd03f920202a7be5bba3fd9e784a22fe8b33f838911853588ce3ce594a25d"
-url = "https://github.com/vale-cli/vale/releases/download/v3.6.0/vale_3.6.0_Linux_64-bit.tar.gz"
+checksum = "sha256:c024d9c157874fb043d4f24a055d60050d1bb18755251f590593eed5bace1857"
+url = "https://github.com/vale-cli/vale/releases/download/v3.15.1/vale_3.15.1_Linux_64-bit.tar.gz"
 
 [tools.vale."platforms.macos-arm64"]
-checksum = "sha256:df71e5fcbefca9413479737fa946e105249ec73e2a328ef1784e5558d92414b0"
-url = "https://github.com/vale-cli/vale/releases/download/v3.6.0/vale_3.6.0_macOS_arm64.tar.gz"
+checksum = "sha256:968c6d8bf2052bc97aa24274234cc466dbcc249b55ace33dd382c2cdfa93b08c"
+url = "https://github.com/vale-cli/vale/releases/download/v3.15.1/vale_3.15.1_macOS_arm64.tar.gz"
 
 [tools.vale."platforms.macos-x64"]
-checksum = "sha256:4d1df61fc3b1e4109bd965b478dad6cb8998e2ca7836100b936c16c331c8c9f2"
-url = "https://github.com/vale-cli/vale/releases/download/v3.6.0/vale_3.6.0_macOS_64-bit.tar.gz"
+checksum = "sha256:9268383c9e244332c4483cb359e52bd4cb030542873e2cafc48e3bbfff6a989a"
+url = "https://github.com/vale-cli/vale/releases/download/v3.15.1/vale_3.15.1_macOS_64-bit.tar.gz"
 
 [tools.vale."platforms.windows-x64"]
-checksum = "sha256:6b205cd9ee4df016d42287cd0b2b8f234acb45900fc371cda97a5c49bc69b350"
-url = "https://github.com/vale-cli/vale/releases/download/v3.6.0/vale_3.6.0_Windows_64-bit.zip"
+checksum = "sha256:3395fca0ddfb10a9b6caa28e091d5df709b1d6b6579afb7dece852cad89b94f3"
+url = "https://github.com/vale-cli/vale/releases/download/v3.15.1/vale_3.15.1_Windows_64-bit.zip"
 
 [[tools.yq]]
 version = "4.53.3"

@@ -140,7 +140,12 @@ if [[ "$UPGRADE_LEVEL" == "all" ]]; then
   mise upgrade --local --bump
 else
   outdated_json="$(mise outdated --local --bump --json)"
-  mapfile -t filtered_upgrade_rows < <(collect_filtered_upgrades_tsv "$UPGRADE_LEVEL" "$outdated_json")
+
+  filtered_upgrade_rows=()
+  while IFS= read -r row; do
+    [[ -n "$row" ]] && filtered_upgrade_rows+=("$row")
+  done < <(collect_filtered_upgrades_tsv "$UPGRADE_LEVEL" "$outdated_json")
+
   tools_to_upgrade=()
 
   for row in "${filtered_upgrade_rows[@]}"; do
@@ -185,13 +190,14 @@ sync_tool_versions_from_toml() {
     exit 1
   fi
 
-  declare -gA toml_versions=()
+  # Use a temp file as a portable key-value store (tab-separated)
+  TOML_VERSIONS_FILE="$(mktemp)"
+  TOML_METADATA_FILE="$(mktemp)"
   local in_tools=false
   local line key value
   local quoted_key_re='^[[:space:]]*"([^"]+)"[[:space:]]*=[[:space:]]*"([^"]+)"'
   local plain_key_re='^[[:space:]]*([A-Za-z0-9._:-]+)[[:space:]]*=[[:space:]]*"([^"]+)"'
-
-  toml_versions=()
+  local pending_meta=""
 
   while IFS= read -r line; do
     if [[ "$line" =~ ^\[tools\]$ ]]; then
@@ -207,6 +213,13 @@ sync_tool_versions_from_toml() {
       continue
     fi
 
+    # Capture @name/@url/@purpose/@prefix annotations from comments
+    if [[ "$line" =~ ^[[:space:]]*#.*@name= ]]; then
+      pending_meta="$line"
+      continue
+    fi
+
+    # Skip plain comments without annotations
     if [[ "$line" =~ ^[[:space:]]*# ]]; then
       continue
     fi
@@ -214,14 +227,22 @@ sync_tool_versions_from_toml() {
     if [[ $line =~ $quoted_key_re ]]; then
       key="${BASH_REMATCH[1]}"
       value="${BASH_REMATCH[2]}"
-      toml_versions["$key"]="$value"
+      printf '%s\t%s\n' "$key" "$value" >> "$TOML_VERSIONS_FILE"
+      if [[ -n "$pending_meta" ]]; then
+        printf '%s\t%s\n' "$key" "$pending_meta" >> "$TOML_METADATA_FILE"
+      fi
+      pending_meta=""
       continue
     fi
 
     if [[ $line =~ $plain_key_re ]]; then
       key="${BASH_REMATCH[1]}"
       value="${BASH_REMATCH[2]}"
-      toml_versions["$key"]="$value"
+      printf '%s\t%s\n' "$key" "$value" >> "$TOML_VERSIONS_FILE"
+      if [[ -n "$pending_meta" ]]; then
+        printf '%s\t%s\n' "$key" "$pending_meta" >> "$TOML_METADATA_FILE"
+      fi
+      pending_meta=""
     fi
   done < "$toml_file"
 
@@ -234,8 +255,9 @@ sync_tool_versions_from_toml() {
     fi
 
     key="${line%%[[:space:]]*}"
-    if [[ -n "${toml_versions[$key]:-}" ]]; then
-      printf '%s %s\n' "$key" "${toml_versions[$key]}" >> "$tmp_file"
+    value="$(toml_version_of "$key")"
+    if [[ -n "$value" ]]; then
+      printf '%s %s\n' "$key" "$value" >> "$tmp_file"
     else
       printf '%s\n' "$line" >> "$tmp_file"
     fi
@@ -244,42 +266,106 @@ sync_tool_versions_from_toml() {
   mv "$tmp_file" "$asdf_file"
 }
 
+# Look up a tool version from the parsed TOML key-value file.
+toml_version_of() {
+  local needle="$1"
+  grep -F "$(printf '%s\t' "$needle")" "$TOML_VERSIONS_FILE" 2>/dev/null | head -1 | cut -f2
+}
+
+toml_tool_keys() {
+  cut -f1 "$TOML_VERSIONS_FILE" | sort -f
+}
+
+# Look up metadata from structured comments parsed during TOML reading.
+# Returns: display_name|url|purpose|version_prefix (pipe-separated)
+# Falls back to the tool key name with empty fields if no entry exists.
+lookup_tool_metadata() {
+  local tool_key="$1"
+  local meta_line meta_comment
+  local name="" url="" purpose="" prefix=""
+
+  meta_line="$(grep -F "$(printf '%s\t' "$tool_key")" "$TOML_METADATA_FILE" 2>/dev/null | head -1)"
+  if [[ -n "$meta_line" ]]; then
+    meta_comment="$(printf '%s' "$meta_line" | cut -f2-)"
+
+    # Extract @key=value fields (value runs until next @key= or end of line)
+    if [[ "$meta_comment" =~ @name=([^@]*) ]]; then
+      name="${BASH_REMATCH[1]}"
+      name="${name%"${name##*[![:space:]]}"}"
+    fi
+    if [[ "$meta_comment" =~ @url=([^@]*) ]]; then
+      url="${BASH_REMATCH[1]}"
+      url="${url%"${url##*[![:space:]]}"}"
+    fi
+    if [[ "$meta_comment" =~ @purpose=([^@]*) ]]; then
+      purpose="${BASH_REMATCH[1]}"
+      purpose="${purpose%"${purpose##*[![:space:]]}"}"
+    fi
+    if [[ "$meta_comment" =~ @prefix=([^@]*) ]]; then
+      prefix="${BASH_REMATCH[1]}"
+    fi
+  fi
+
+  # Fallback: use tool key as display name
+  [[ -z "$name" ]] && name="$tool_key"
+  [[ -z "$purpose" ]] && purpose="Tool managed by mise"
+
+  printf '%s|%s|%s|%s' "$name" "$url" "$purpose" "$prefix"
+}
+
 sync_readme_prerequisites_from_toml() {
   local readme_file="README.md"
   local tmp_file
   local line
+  local in_block=false
 
   if [[ ! -f "$readme_file" ]]; then
     echo "Expected file README.md was not found" >&2
     exit 1
   fi
 
+  # Build the table rows for every parsed tool key, applying metadata
+  # from structured comments in mise.toml, with a generic fallback otherwise.
+  local rows_file
+  rows_file="$(mktemp)"
+  local key display_name url purpose version_prefix version tool_cell sort_key
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    version="$(toml_version_of "$key")"
+    [[ -z "$version" ]] && continue
+
+    IFS='|' read -r display_name url purpose version_prefix <<< "$(lookup_tool_metadata "$key")"
+
+    if [[ -n "$url" ]]; then
+      tool_cell="[$display_name]($url)"
+    else
+      tool_cell="$display_name"
+    fi
+
+    sort_key="$(printf '%s' "$display_name" | tr '[:upper:]' '[:lower:]')"
+    printf '%s\t| %s | %s%s | %s |\n' "$sort_key" "$tool_cell" "$version_prefix" "$version" "$purpose" >> "$rows_file"
+  done < <(toml_tool_keys)
+
   tmp_file="$(mktemp)"
 
   while IFS= read -r line; do
     if [[ "$line" == "<!-- BEGIN_AUTOGENERATED_PREREQUISITES -->" ]]; then
+      in_block=true
       printf '%s\n' "$line" >> "$tmp_file"
-      cat <<EOF >> "$tmp_file"
-| Tool | Version | Purpose |
-| --- | --- | --- |
-| [Terraform](https://www.terraform.io/) | >= ${toml_versions[terraform]} | Infrastructure as code |
-| [tflint](https://github.com/terraform-linters/tflint) | ${toml_versions[tflint]} | Terraform linter |
-| [terraform-docs](https://terraform-docs.io/) | ${toml_versions[terraform-docs]} | Auto-generate module documentation |
-| [terraform-config-inspect](https://github.com/hashicorp/terraform-config-inspect) | ${toml_versions[go:github.com/hashicorp/terraform-config-inspect]} | Generate aliased providers for validation |
-| [pre-commit](https://pre-commit.com/) | ${toml_versions[pre-commit]} | Git hook framework |
-| [Vale](https://vale.sh/) | ${toml_versions[vale]} | English prose linter |
-| [Gitleaks](https://github.com/gitleaks/gitleaks) | ${toml_versions[gitleaks]} | Secret scanning |
-| [yq](https://github.com/mikefarah/yq) | ${toml_versions[yq]} | YAML processor (Go implementation) |
-| [jq](https://jqlang.github.io/jq/) | ${toml_versions[jq]} | JSON processor |
-| [actionlint](https://github.com/rhysd/actionlint) | ${toml_versions[actionlint]} | GitHub Actions linter |
-| [shellcheck](https://www.shellcheck.net/) | ${toml_versions[shellcheck]} | Shell script linter |
-| [GNU make](https://www.gnu.org/software/make/) | >= ${toml_versions[make]} | Task runner |
-EOF
+      printf '%s\n' "| Tool | Version | Purpose |" >> "$tmp_file"
+      printf '%s\n' "| --- | --- | --- |" >> "$tmp_file"
+      cut -f2- "$rows_file" >> "$tmp_file"
       continue
     fi
 
     if [[ "$line" == "<!-- END_AUTOGENERATED_PREREQUISITES -->" ]]; then
+      in_block=false
       printf '%s\n' "$line" >> "$tmp_file"
+      continue
+    fi
+
+    # Skip old content between the markers
+    if [[ "$in_block" == "true" ]]; then
       continue
     fi
 
@@ -287,6 +373,7 @@ EOF
   done < "$readme_file"
 
   mv "$tmp_file" "$readme_file"
+  rm -f "$rows_file"
 }
 
 sync_tool_versions_from_toml

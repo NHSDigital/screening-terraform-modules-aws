@@ -68,16 +68,10 @@ module "<resource>" {
 When AWS provider versions change or community modules receive updates:
 
 1. Use the upgrade helper to refresh a single module:
-
-   ```bash
-   ./scripts/terraform/upgrade-module.sh infrastructure/modules/vpc
-   ```
+  `mise run terraform-upgrade-module -- infrastructure/modules/vpc`
 
 2. Or refresh all modules at once:
-
-   ```bash
-   ./scripts/terraform/upgrade-module.sh update-all
-   ```
+  `mise run terraform-upgrade-module -- update-all`
 
 The helper automates three steps:
 
@@ -218,16 +212,14 @@ READMEs that do not include a `## Usage` section are incomplete and must be upda
 ### When Adding or Modifying a Module
 
 1. **Run the upgrade helper** to regenerate module documentation.
-
-   ```bash
-   ./scripts/terraform/upgrade-module.sh infrastructure/modules/<name>
-   ```
+  `mise run terraform-upgrade-module -- infrastructure/modules/<name>`
 
    This automatically updates the module's `README.md` via `terraform-docs`.
 
 1. **Update the root README.md** if you've added a new module, changed Dependabot automation behaviour, or changed module sourcing/upgrade procedures.
 
 1. **Update relevant user guides** in `docs/user-guides/`.
+
 If you've added/changed a pre-commit hook, update `Pre_commit_hooks_reference.md`. If you've changed upgrade procedures or tooling, update the related guides.
 
 1. **Update `infrastructure/AGENTS.md`** if you've introduced a new pattern/tool, changed naming conventions, or changed quality expectations/validation rules.

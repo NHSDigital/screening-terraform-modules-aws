@@ -224,7 +224,7 @@ Missing platform: darwin_amd64
 Option 1: Use the upgrade helper (recommended)
 
 ```bash
-./scripts/terraform/upgrade-module.sh infrastructure/modules/s3-bucket
+mise run terraform-upgrade-module -- infrastructure/modules/s3-bucket
 ```
 
 Option 2: Manual regeneration
@@ -322,7 +322,7 @@ updates:
 If the hook is skipped or fails silently, run manually:
 
 ```bash
-bash scripts/generate-dependabot-config.sh .github/dependabot.yaml
+mise run generate-dependabot-config -- .github/dependabot.yaml
 ```
 
 To verify the configuration is valid:
@@ -648,7 +648,7 @@ git commit --amend
 | --- | --- |
 | Terraform formatting | `terraform fmt -recursive infrastructure/modules/` |
 | Module docs out of sync | `pre-commit run terraform_docs --all-files` |
-| Provider locks missing platforms | `./scripts/terraform/upgrade-module.sh infrastructure/modules/<name>` |
+| Provider locks missing platforms | `mise run terraform-upgrade-module -- infrastructure/modules/<name>` |
 | Dependabot config out of date | Commit the regenerated `.github/dependabot.yaml` |
 | Shell script errors | Fix the issue; re-run `pre-commit run shellcheck` |
 | Trailing whitespace | `pre-commit run --all-files` (auto-fixed) |

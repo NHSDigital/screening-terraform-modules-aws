@@ -11,13 +11,13 @@ Use this prompt when AWS provider versions change, community modules receive upd
 To refresh a single module with the latest provider versions and update its README:
 
 ```bash
-./scripts/terraform/upgrade-module.sh infrastructure/modules/<module-name>
+mise run terraform-upgrade-module -- infrastructure/modules/<module-name>
 ```
 
 **Example:**
 
 ```bash
-./scripts/terraform/upgrade-module.sh infrastructure/modules/s3-bucket
+mise run terraform-upgrade-module -- infrastructure/modules/s3-bucket
 ```
 
 The script will:
@@ -31,7 +31,7 @@ The script will:
 To refresh every module at once:
 
 ```bash
-./scripts/terraform/upgrade-module.sh update-all
+mise run terraform-upgrade-module -- update-all
 ```
 
 The script will warn before starting and then iterate through all modules under `infrastructure/modules/`, updating each in sequence.
@@ -64,5 +64,5 @@ If the script fails:
 
 1. Ensure `terraform`, `terraform-docs`, and `pre-commit` are installed and on PATH
 2. Check that you're in the repository root directory
-3. Verify that `scripts/terraform/upgrade-module.sh` is executable: `chmod +x scripts/terraform/upgrade-module.sh`
-4. Run with `bash -x` for detailed debugging: `bash -x ./scripts/terraform/upgrade-module.sh infrastructure/modules/vpc`
+3. Verify that the mise task exists: `mise tasks ls | grep terraform-upgrade-module`
+4. Run with shell tracing for detailed debugging: `MISE_TASK_OUTPUT=1 mise run terraform-upgrade-module -- infrastructure/modules/vpc`

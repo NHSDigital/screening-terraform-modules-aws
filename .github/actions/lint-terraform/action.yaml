@@ -10,7 +10,7 @@ runs:
     - name: "Check Terraform format"
       shell: bash
       run: |
-        check_only=true scripts/githooks/check-terraform-format.sh
+        check_only=true mise run githooks-check-terraform-format
     - name: "Validate Terraform"
       shell: bash
       run: |

@@ -31,8 +31,8 @@ repos:
       - id: generate-terraform-providers
         name: generate-terraform-providers
         require_serial: true
-        entry: ./scripts/githooks/generate-terraform-providers.sh
-        language: script
+        entry: mise run githooks-generate-terraform-providers
+        language: system
         files: \.tf(vars)?$
         pass_filenames: false
 
@@ -51,8 +51,8 @@ repos:
       - id: regenerate-dependabot-config
         name: regenerate-dependabot-config
         require_serial: true
-        entry: ./scripts/githooks/check-dependabot-config.sh
-        language: script
+        entry: mise run githooks-check-dependabot-config
+        language: system
         files: infrastructure/modules/.*/versions\.tf$
         pass_filenames: false
 
@@ -139,7 +139,7 @@ repos:
     hooks:
       - id: shellcheck
         name: shellcheck
-        entry: bash -c 'for f in "$@"; do SHELLCHECK_OPTS="--severity=warning" file="$f" bash scripts/shellscript-linter.sh || exit 1; done' --
+        entry: bash -c 'for f in "$@"; do SHELLCHECK_OPTS="--severity=warning" file="$f" mise run shellscript-linter || exit 1; done' --
         language: system
         types: [shell]
         require_serial: true
@@ -155,34 +155,34 @@ repos:
     hooks:
       - id: check-file-format
         name: check-file-format
-        entry: bash -c 'check=all ./scripts/githooks/check-file-format.sh'
+        entry: bash -c 'check=all mise run githooks-check-file-format'
         language: system
         pass_filenames: false
 
       - id: check-markdown-format
         name: check-markdown-format
-        entry: bash -c 'check=all ./scripts/githooks/check-markdown-format.sh'
+        entry: bash -c 'check=all mise run githooks-check-markdown-format'
         language: system
         files: \.md$
         pass_filenames: false
 
       - id: check-english-usage
         name: check-english-usage
-        entry: bash -c 'check=all ./scripts/githooks/check-english-usage.sh'
+        entry: bash -c 'check=all mise run githooks-check-english-usage'
         language: system
         files: \.md$
         pass_filenames: false
 
       - id: check-terraform-format
         name: check-terraform-format
-        entry: bash -c 'check_only=true ./scripts/githooks/check-terraform-format.sh'
+        entry: bash -c 'check_only=true mise run githooks-check-terraform-format'
         language: system
         files: \.tf(vars)?$
         pass_filenames: false
 
       - id: scan-secrets
         name: scan-secrets
-        entry: bash -c 'check=whole-history ./scripts/githooks/scan-secrets.sh'
+        entry: bash -c 'check=whole-history mise run githooks-scan-secrets'
         language: system
         pass_filenames: false
 

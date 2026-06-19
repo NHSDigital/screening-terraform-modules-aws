@@ -21,7 +21,7 @@ Module maintenance ensures that Terraform wrapper modules stay current, secure, 
 ### Single Module Upgrade
 
 ```bash
-./scripts/terraform/upgrade-module.sh infrastructure/modules/<name>
+mise run terraform-upgrade-module -- infrastructure/modules/<name>
 ```
 
 This executes:
@@ -37,7 +37,7 @@ This executes:
 ### Repository-Wide Upgrade
 
 ```bash
-./scripts/terraform/upgrade-module.sh update-all
+mise run terraform-upgrade-module -- update-all
 ```
 
 Prompts for confirmation, then upgrades all modules under `infrastructure/modules/` in sequence. Useful for bulk provider version bumps (e.g., AWS provider 6.42 → 6.50).
@@ -141,7 +141,7 @@ If `.terraform.lock.hcl` shows provider version conflicts:
 ```bash
 # Delete and regenerate
 rm infrastructure/modules/*/. terraform.lock.hcl
-./scripts/terraform/upgrade-module.sh update-all
+mise run terraform-upgrade-module -- update-all
 ```
 
 ### Documentation Doesn't Regenerate
@@ -169,7 +169,7 @@ The `.terraform.lock.hcl` file ensures Terraform downloads the correct version f
 
 ## Checklist: Completing a Module Upgrade
 
-- [ ] Run `./scripts/terraform/upgrade-module.sh <module>`
+- [ ] Run `mise run terraform-upgrade-module -- <module>`
 - [ ] Review `git diff` for unexpected changes
 - [ ] Check for upstream breaking changes in release notes
 - [ ] Validate security baseline controls are still enforced

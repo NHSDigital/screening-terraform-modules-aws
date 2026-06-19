@@ -32,7 +32,7 @@ You can run and test static analysis locally on a developer's workstation using 
 export SONAR_ORGANISATION_KEY=nhs-england-tools # Replace with your organisation key
 export SONAR_PROJECT_KEY=repository-template # Replace with your project key
 export SONAR_TOKEN=[replace-with-your-sonar-token]
-./scripts/reports/perform-static-analysis.sh
+mise run reports-perform-static-analysis
 ```
 
 ## Configuration checklist

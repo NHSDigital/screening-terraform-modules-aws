@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# DEPRECATED: This test file has been replaced by test-workflow-security.bats
+# which uses the bats-core test framework. Run: bats tests/test-workflow-security.bats
+#
 # Test suite for verifying GitHub Actions workflow security pinning
 #
 # Validates that workflow files use immutable action references (commit SHAs)
@@ -83,7 +86,7 @@ check_file_exists ".github/workflows/dependency-tools-mise-upgrade.yml"
 test_action_pinned ".github/workflows/dependency-tools-mise-upgrade.yml" "actions/checkout"
 test_action_pinned ".github/workflows/dependency-tools-mise-upgrade.yml" "jdx/mise-action"
 test_action_pinned ".github/workflows/dependency-tools-mise-upgrade.yml" "peter-evans/create-pull-request"
-test_pattern_exists ".github/workflows/dependency-tools-mise-upgrade.yml" "scripts/mise/update-tool-versions.sh" "Shared tool-version update helper is used"
+test_pattern_exists ".github/workflows/dependency-tools-mise-upgrade.yml" "mise run update-tool-versions" "Shared tool-version update helper task is used"
 echo ""
 
 # Check pre-commit configuration
@@ -93,8 +96,8 @@ check_file_exists ".pre-commit-config.yaml"
 test_pattern_exists ".pre-commit-config.yaml" "rev:.*[0-9a-f]\\{40\\}" "Repos pinned to commit SHAs"
 test_pattern_exists ".pre-commit-config.yaml" "#.*v[0-9]" "Version comments for readability"
 test_pattern_exists ".pre-commit-config.yaml" "scripts/githooks/validate-conventional-commit.sh" "Local conventional commit validator"
-test_pattern_exists ".pre-commit-config.yaml" "scripts/githooks/generate-terraform-providers.sh" "Local provider generator"
-test_pattern_exists ".pre-commit-config.yaml" "scripts/shellscript-linter.sh" "Shellcheck hook uses wrapper script"
+test_pattern_exists ".pre-commit-config.yaml" "mise run githooks-generate-terraform-providers" "Local provider generator uses mise task"
+test_pattern_exists ".pre-commit-config.yaml" "mise run shellscript-linter" "Shellcheck hook uses wrapper task"
 test_pattern_exists "scripts/shellscript-linter.sh" "FORCE_USE_DOCKER" "Shellcheck wrapper supports Docker fallback override"
 echo ""
 

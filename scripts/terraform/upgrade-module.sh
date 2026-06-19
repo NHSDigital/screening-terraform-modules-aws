@@ -172,7 +172,10 @@ main() {
   if [[ "$1" == "update-all" ]]; then
     confirm_update_all
 
-    mapfile -t module_paths < <(discover_module_paths)
+    module_paths=()
+    while IFS= read -r _path; do
+      module_paths+=("$_path")
+    done < <(discover_module_paths)
 
     if [[ ${#module_paths[@]} -eq 0 ]]; then
       echo "ERROR: no Terraform modules were found under infrastructure/modules." >&2

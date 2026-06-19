@@ -2,42 +2,62 @@
 
 ## Overview
 
-This repository includes comprehensive test coverage for new features and configurations introduced on the `feature/BCSS-99999-fixup-workflows-actions-precommit` branch:
+This repository uses [bats-core](https://github.com/bats-core/bats-core) (Bash Automated Testing System) for all shell script tests. Tests are located in `tests/*.bats` with shared assertion helpers in `tests/test_helper/`.
+
+Test coverage includes:
 
 - **Conventional commit validation** — Native bash implementation replacing external dependency
 - **Workflow security** — GitHub Actions and pre-commit hook pinning verification
 - **Tool version synchronization** — `.tool-versions` and `mise.toml` consistency
 - **Tool version upgrade automation** — Script and workflow logic for upgrading mise-managed tools
+- **Dependabot config generation** — Automatic Terraform module discovery
+- **mise task surface policy** — Referenced tasks remain active and commented-out tasks stay unreferenced
+
+## Prerequisites
+
+- `bats` 1.13.0+ (managed via mise; run `mise install` to set up)
 
 ## Running Tests
 
 ### Run All Tests
 
 ```bash
-bash tests/run-all-tests.sh
-bash tests/run-all-tests.sh verbose  # Show message examples
+bash tests/run-all-tests.sh          # Pretty output (default for terminals)
+bash tests/run-all-tests.sh --tap    # TAP output (for CI)
+bats tests/*.bats                    # Direct bats invocation
 ```
 
 ### Run Individual Test Suites
 
-#### Conventional Commit Validation Tests
+```bash
+bats tests/test-conventional-commit.bats
+bats tests/test-workflow-security.bats
+bats tests/test-module-upgrade.bats
+bats tests/test-tool-version-upgrade.bats
+bats tests/test-generate-dependabot-config.bats
+bats tests/test-mise-task-surface.bats
+```
+
+### Run a Single Test by Name
+
+```bash
+bats tests/test-conventional-commit.bats --filter "feat with scope"
+```
+
+## Test Suites
+
+### Conventional Commit Validation
 
 Tests the native bash validation script that replaces the external `compilerla/conventional-pre-commit` dependency.
 
-```bash
-bash tests/test-conventional-commit.sh
-bash tests/test-conventional-commit.sh verbose  # Show detailed output
-```
+**Coverage:**
 
-**Test Coverage:**
+- Valid commits with scope: `feat(scope): description`
+- Valid commits without scope: `feat: description`
+- Invalid format detection (missing colons, empty descriptions)
+- Invalid type detection (allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`)
 
-- ✓ Valid commits with scope: `feat(scope): description`
-- ✓ Valid commits without scope: `feat: description`
-- ✓ Invalid format detection (missing colons, empty descriptions)
-- ✓ Invalid type detection (allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`)
-- 22 total test cases
-
-#### Workflow Security Pinning Tests
+### Workflow Security Pinning
 
 Validates that GitHub Actions and pre-commit hooks use immutable references (commit SHAs) with version comments.
 
@@ -46,129 +66,129 @@ bash tests/test-workflow-security.sh
 bash tests/test-workflow-security.sh verbose  # Show detailed output
 ```
 
-**Test Coverage:**
+**Coverage:**
 
-- ✓ GitHub Actions pinned to commit SHAs (actions/checkout, jdx/mise-action, actions/cache)
-- ✓ Environment variables configured (AWS_DEFAULT_REGION, TF_PLUGIN_CACHE_DIR)
-- ✓ shellcheck Docker fallback capability retained (FORCE_USE_DOCKER support in wrapper)
-- ✓ Pre-commit repos pinned to commit SHAs
-- ✓ Version comments present for human readability
-- ✓ Local custom hooks exist and are executable
-- ✓ Tool version files synchronized
-- 15 total test cases
+- GitHub Actions pinned to commit SHAs with version comments
+- Environment variables configured (AWS_DEFAULT_REGION, TF_PLUGIN_CACHE_DIR)
+- Pre-commit repos pinned to commit SHAs
+- Local custom hooks exist and are executable
+- Tool version files synchronised between `.tool-versions` and `mise.toml`
 
-#### Tool Version Upgrade Helper Tests
+### Terraform Module Upgrade Helper
+
+Tests the upgrade helper that refreshes provider locks and documentation.
+
+**Coverage:**
+
+- Single-module init with `-upgrade` flag
+- Provider lock across all target platforms
+- `terraform_docs` invocation against README
+- `update-all` mode processes modules sequentially
+
+### Tool Version Upgrade Helper
 
 Tests the shared bash helper used both locally and in CI to update `mise.toml`, sync `.tool-versions`, and regenerate `mise.lock`.
 
-```bash
-bash tests/test-tool-version-upgrade.sh
-```
+**Coverage:**
 
-**Test Coverage:**
+- Calls `mise install`, `mise upgrade --local --bump`, and `mise lock`
+- Synchronises `.tool-versions` values from upgraded `mise.toml`
+- Preserves alias-style tool keys (for example `go:...`)
+- Supports `--dry-run` without changing files
+- Supports all `--upgrade-level` modes (`patch`, `minor`, `major`, and `all`)
 
-- ✓ Calls `mise install`, `mise upgrade --local --bump`, and `mise lock`
-- ✓ Synchronizes `.tool-versions` values from upgraded `mise.toml`
-- ✓ Preserves alias-style tool keys (for example `go:...`)
-- ✓ Supports `--dry-run` without changing files
-- ✓ Supports all `--upgrade-level` modes (`patch`, `minor`, `major`, and `all`)
+### Dependabot Configuration Generation
 
-#### Dependabot Configuration Generation Tests
+Tests the Dependabot YAML configuration generator that maintains `.github/dependabot.yaml`.
 
-Tests the Dependabot YAML configuration generator that maintains `.github/dependabot.yaml` by automatically discovering all Terraform modules.
+**Coverage:**
 
-```bash
-bash tests/test-generate-dependabot-config.sh
-```
+- Script exists and is executable
+- Generated YAML is valid and parseable
+- All required ecosystem entries preserved (Docker, GitHub Actions)
+- All Terraform modules discovered and included
+- `.terraform/` cache directories excluded
+- Script output is idempotent
+- Template customisations outside markers are preserved
 
-**Test Coverage:**
+### mise Task Surface Policy
 
-- ✓ Script exists and is executable
-- ✓ Configuration generation succeeds
-- ✓ Generated YAML is valid and parseable
-- ✓ All required ecosystem entries preserved (docker, GitHub Actions, npm, pip)
-- ✓ All Terraform modules discovered and added (34 modules in infrastructure/modules/)
-- ✓ `.terraform/` cache directories excluded from configuration
-- ✓ Weekly update schedule configured for all entries
-- ✓ Script output is idempotent (running twice produces identical output)
-- ✓ All discovered modules accounted for in configuration
+Enforces task-surface consistency between `mise.toml` and current automation/docs references.
 
-## Test Results
+**Coverage:**
 
-All tests pass with the current configuration:
-
-```text
-✓ Conventional Commit Validation: 22 tests passed
-✓ Workflow Security Pinning: 15 tests passed
-✓ Tool Version Upgrade Helper: 5+ tests passed
-✓ Dependabot Configuration Generation: 9+ tests passed
-✓ Total: 50+ test cases across 4 test suites
-```
+- Every `mise run <task>` reference points to an active task
+- Every active task is either referenced or explicitly allowed as a maintained manual task
+- No commented-out task is referenced by automation/docs/tests
 
 ## Integration with CI/CD
 
-Tests are designed to run locally and in CI/CD pipelines:
+Tests produce TAP-compliant output for CI integration:
 
 ```yaml
 # Example GitHub Actions step
 - name: Run test suite
-  run: bash tests/run-all-tests.sh
+  run: bash tests/run-all-tests.sh --tap
 ```
 
 ## Adding New Tests
 
-To add new tests:
+1. Create a new `.bats` file in `tests/` (e.g., `tests/test-feature-name.bats`)
+2. Load shared helpers: `load test_helper/assertions`
+3. Tests are automatically picked up by `run-all-tests.sh`
 
-1. Create a new test file in `tests/` directory (e.g., `tests/test-feature-name.sh`)
-2. Make it executable: `chmod +x tests/test-feature-name.sh`
-3. Add a call to the test runner in `tests/run-all-tests.sh`
-
-### Test Script Template
+### Test File Template
 
 ```bash
-#!/usr/bin/env bash
+#!/usr/bin/env bats
 # Test suite for feature-name
-# Usage: bash tests/test-feature-name.sh
 
-FAILED=0
-PASSED=0
+load test_helper/assertions
 
-# Test helper
-test_case() {
-  local description="$1"
-  local command="$2"
-  printf "Testing: %-50s ... " "$description"
-
-  if eval "$command" >/dev/null 2>&1; then
-    PASSED=$((PASSED + 1))
-    echo "✓"
-  else
-    FAILED=$((FAILED + 1))
-    echo "✗"
-  fi
+setup_file() {
+  # Expensive one-time setup (fixtures, mock binaries)
+  export REPO_ROOT
+  REPO_ROOT="$(git rev-parse --show-toplevel)"
 }
 
-# Run tests
-test_case "Description" "command"
+teardown_file() {
+  # Clean up fixtures
+  :
+}
 
-# Summary
-if [ $FAILED -eq 0 ]; then
-  exit 0
-else
-  exit 1
-fi
+@test "description of expected behaviour" {
+  run some_command
+  [ "$status" -eq 0 ]
+  assert_contains "$output" "expected"
+}
+
+@test "file contains expected content" {
+  assert_file_contains "path/to/file" "expected string"
+}
 ```
+
+### Available Assertions
+
+Defined in `tests/test_helper/assertions.bash`:
+
+| Function | Purpose |
+| --- | --- |
+| `assert_file_contains <file> <needle>` | File contains fixed string |
+| `assert_file_not_contains <file> <needle>` | File does not contain string |
+| `assert_file_exists <path>` | File exists |
+| `assert_file_matches <file> <regex>` | File matches regex pattern |
+| `assert_line_order <file> <first> <second>` | First string appears before second |
+| `assert_contains <haystack> <needle>` | String contains substring |
+| `assert_not_contains <haystack> <needle>` | String does not contain substring |
 
 ## Debugging Test Failures
 
-### Verbose Output
-
-Run tests with verbose flag to see detailed information:
-
 ```bash
-bash tests/test-conventional-commit.sh verbose
-bash tests/test-workflow-security.sh verbose
-bash tests/run-all-tests.sh verbose
+# Run with verbose output
+bats tests/test-conventional-commit.bats --trace
+
+# Run a specific failing test
+bats tests/test-workflow-security.bats --filter "terraform version"
 ```
 
 ### Manual Testing
@@ -178,7 +198,7 @@ Test individual components manually:
 ```bash
 # Test conventional commit validator directly
 echo "feat(scope): test message" > /tmp/test-msg.txt
-bash scripts/githooks/validate-conventional-commit.sh /tmp/test-msg.txt
+mise run githooks-validate-conventional-commit -- /tmp/test-msg.txt
 echo "Exit code: $?"  # 0 = pass, 1 = fail
 
 # Check action pinning
@@ -192,4 +212,4 @@ grep "rev:" .pre-commit-config.yaml
 
 - [Run Git hooks on commit](../docs/user-guides/Run_Git_hooks_on_commit.md)
 - [Test GitHub Actions locally](../docs/user-guides/Test_GitHub_Actions_locally.md)
-- [Pre-commit configuration](.pre-commit-config.yaml)
+- [Pre-commit configuration](../.pre-commit-config.yaml)
