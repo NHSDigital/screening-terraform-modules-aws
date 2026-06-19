@@ -1,4 +1,8 @@
-# DAVEH
+# SSM Parameter
+
+NHS Screening wrapper around the community
+[`terraform-aws-modules/ssm-parameter/aws`](https://registry.terraform.io/modules/terraform-aws-modules/ssm-parameter/aws/latest)
+module that consumes the shared `context.tf` for naming and tagging.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
