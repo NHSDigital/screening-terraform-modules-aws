@@ -4,6 +4,41 @@ NHS Screening wrapper around the community
 [`terraform-aws-modules/ssm-parameter/aws`](https://registry.terraform.io/modules/terraform-aws-modules/ssm-parameter/aws/latest)
 module that consumes the shared `context.tf` for naming and tagging.
 
+## Usage
+
+### Standard string parameter
+
+```hcl
+module "app_config_parameter" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=main"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "development"
+  name        = "log-level"
+
+  type  = "String"
+  value = "INFO"
+}
+```
+
+### Secure parameter encrypted with KMS
+
+```hcl
+module "database_password_parameter" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=main"
+
+  service     = "bcss"
+  project     = "database"
+  environment = "prod"
+  name        = "db-password"
+
+  type   = "SecureString"
+  value  = var.db_password
+  key_id = module.kms.key_arn
+}
+```
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
