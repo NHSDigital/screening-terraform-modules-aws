@@ -190,7 +190,13 @@ fi
 # ============================================================================
 # Validate generated YAML
 # ============================================================================
-if command -v yq &>/dev/null; then
+if command -v mise &>/dev/null; then
+    if ! mise x -- yq eval '.' "${temp_config}" > /dev/null 2>&1; then
+        printf "${red}✗ Error: Generated YAML is invalid${nc}\n" >&2
+        cat "${temp_config}" >&2
+        exit 1
+    fi
+elif command -v yq &>/dev/null; then
     if ! yq eval '.' "${temp_config}" > /dev/null 2>&1; then
         printf "${red}✗ Error: Generated YAML is invalid${nc}\n" >&2
         cat "${temp_config}" >&2
