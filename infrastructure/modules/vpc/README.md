@@ -15,16 +15,27 @@ Consumers must review and update module calls before upgrading, including:
 
 Treat adoption of this module as a migration, not a drop-in swap.
 
-## subnet tiers
+## Subnet tiers
 
 | Tier | Prefix | Purpose |
 | --- | --- | --- |
 | Firewall | /28 | Network Firewall endpoints |
 | Public | /24 | Public-facing resources, NAT gateways |
-| Private | /23 | Private workloads with internet access via NAT |
-| Isolated | /23 | Fully isolated, no internet route |
+| Private | /23 | Private workloads with internet access via NAT Gateway |
+| Intra | /23 | Intra, no internet route via NAT Gateway |
 
-subnet CIDRs are auto-calculated from the VPC CIDR (assumes a /16) across all available AZs in the region. Explicit overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `isolated_subnets` variables.
+Subnet CIDRs are auto-calculated from the VPC CIDR across all available AZs in the region. The auto-calculation works with **any VPC prefix length** between /16 and /28 (AWS limits). Explicit overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `intra_subnets` variables.
+
+**Auto-calculation logic:** The module uses Terraform's `cidrsubnets()` function to carve non-overlapping subnets from the VPC CIDR, sizing each tier per the `*_subnet_prefix` variables. For example:
+
+- VPC CIDR `/20` with `firewall_subnet_prefix = 28` → /28 subnets (8 extra bits carved out)
+- VPC CIDR `/16` with `public_subnet_prefix = 24` → /24 subnets (8 extra bits carved out)
+
+**AWS sizing constraints** (automatically validated):
+
+- VPC CIDR block: `/16` to `/28` netmask
+- Subnet CIDR block: `/16` to `/28` netmask
+- Subnet prefix must be larger (numerically) than VPC prefix (so subnets can be carved from the VPC)
 
 ## Features
 
@@ -55,7 +66,7 @@ module "vpc" {
 
 | Variable | Description | Default |
 | --- | --- | --- |
-| `vpc_cidr` | VPC CIDR block (/16 for auto-calculation) | `10.0.0.0/16` |
+| `vpc_cidr` | VPC CIDR block (/16 to /28 per AWS limits); auto-calculation works with any prefix length | `10.0.0.0/16` |
 | `single_nat_gateway` | Use one shared NAT instead of per-AZ | `false` |
 | `enable_flow_log` | Enable VPC flow logs | `true` |
 | `flow_log_retention_in_days` | CloudWatch log retention | `365` |
@@ -70,7 +81,7 @@ module "vpc" {
 | `vpc_id` | The VPC ID |
 | `public_subnet_ids` | Public subnet IDs |
 | `private_subnet_ids` | Private (NAT-routed) subnet IDs |
-| `isolated_subnet_ids` | Isolated (no internet) subnet IDs |
+| `intra_subnet_ids` | Intra (no internet) subnet IDs |
 | `firewall_subnet_ids` | Firewall subnet IDs |
 | `nat_public_ips` | NAT gateway Elastic IPs |
 | `flow_log_id` | VPC Flow Log ID |
@@ -139,7 +150,7 @@ module "vpc" {
 | <a name="input_enable_network_firewall"></a> [enable\_network\_firewall](#input\_enable\_network\_firewall) | When true, the VPC module creates firewall subnets, takes over<br/>IGW management from the community module, and reconfigures<br/>routing for AWS Network Firewall inspection:<br/>  - Firewall subnets created as standalone resources<br/>  - IGW created as a standalone resource (community module's create\_igw = false)<br/>  - Firewall subnets get a default route (0.0.0.0/0) to the IGW<br/>  - Public subnet default route is NOT created (callers must<br/>    inject 0.0.0.0/0 → firewall VPCE at the stack level)<br/>When false (default), no firewall subnets are created, the<br/>community module creates the IGW and public → IGW route as<br/>normal — no Network Firewall in the path. | `bool` | `false` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used to indicate role, e.g. 'prd', 'dev', 'test', 'preprod', 'prod', 'uat' | `string` | `null` | no |
-| <a name="input_firewall_subnet_prefix"></a> [firewall\_subnet\_prefix](#input\_firewall\_subnet\_prefix) | Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). | `number` | `28` | no |
+| <a name="input_firewall_subnet_prefix"></a> [firewall\_subnet\_prefix](#input\_firewall\_subnet\_prefix) | Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc\_cidr prefix. It is highly recommended to use /28 for firewall subnets to minimize wasted IPs. | `number` | `28` | no |
 | <a name="input_firewall_subnet_tags"></a> [firewall\_subnet\_tags](#input\_firewall\_subnet\_tags) | Additional tags for the firewall subnets. | `map(string)` | `{}` | no |
 | <a name="input_firewall_subnets"></a> [firewall\_subnets](#input\_firewall\_subnets) | Explicit CIDR blocks for firewall subnets (one per AZ). Leave empty to auto-calculate. | `list(string)` | `[]` | no |
 | <a name="input_flow_log_kms_key_id"></a> [flow\_log\_kms\_key\_id](#input\_flow\_log\_kms\_key\_id) | ARN of a KMS key to encrypt the CloudWatch log group. Leave null for no encryption. | `string` | `null` | no |
@@ -149,7 +160,7 @@ module "vpc" {
 | <a name="input_flow_log_traffic_type"></a> [flow\_log\_traffic\_type](#input\_flow\_log\_traffic\_type) | The type of traffic to capture. Valid values: ACCEPT, REJECT, ALL. | `string` | `"ALL"` | no |
 | <a name="input_iam_role_tags"></a> [iam\_role\_tags](#input\_iam\_role\_tags) | Additional tags for the IAM role used by the VPC flow log. | `map(string)` | `{}` | no |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br/>Set to `0` for unlimited length.<br/>Set to `null` for keep the existing setting, which defaults to `0`.<br/>Does not affect `id_full`. | `number` | `null` | no |
-| <a name="input_intra_subnet_prefix"></a> [intra\_subnet\_prefix](#input\_intra\_subnet\_prefix) | Prefix length for intra subnets with no internet route (e.g. 23 = /23, 512 IPs each). | `number` | `23` | no |
+| <a name="input_intra_subnet_prefix"></a> [intra\_subnet\_prefix](#input\_intra\_subnet\_prefix) | Prefix length for intra subnets with no internet route (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc\_cidr prefix. | `number` | `23` | no |
 | <a name="input_intra_subnet_tags"></a> [intra\_subnet\_tags](#input\_intra\_subnet\_tags) | Additional tags for the intra (no-internet) subnets. | `map(string)` | `{}` | no |
 | <a name="input_intra_subnets"></a> [intra\_subnets](#input\_intra\_subnets) | Explicit CIDR blocks for intra subnets with no internet route (one per AZ). Leave empty to auto-calculate. | `list(string)` | `[]` | no |
 | <a name="input_label_key_case"></a> [label\_key\_case](#input\_label\_key\_case) | Controls the letter case of the `tags` keys (label names) for tags generated by this module.<br/>Does not affect keys of tags passed in via the `tags` input.<br/>Possible values: `lower`, `title`, `upper`.<br/>Default value: `title`. | `string` | `null` | no |
@@ -162,12 +173,12 @@ module "vpc" {
 | <a name="input_name"></a> [name](#input\_name) | ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.<br/>This is the only ID element not also included as a `tag`.<br/>The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input. | `string` | `null` | no |
 | <a name="input_on_off_pattern"></a> [on\_off\_pattern](#input\_on\_off\_pattern) | Used to turn resources on and off based on a time pattern | `string` | `"n/a"` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | The name and or NHS.net email address of the service owner | `string` | `"None"` | no |
-| <a name="input_private_subnet_prefix"></a> [private\_subnet\_prefix](#input\_private\_subnet\_prefix) | Prefix length for private subnets with NAT (e.g. 23 = /23, 512 IPs each). | `number` | `23` | no |
+| <a name="input_private_subnet_prefix"></a> [private\_subnet\_prefix](#input\_private\_subnet\_prefix) | Prefix length for private subnets with NAT (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc\_cidr prefix. | `number` | `23` | no |
 | <a name="input_private_subnet_tags"></a> [private\_subnet\_tags](#input\_private\_subnet\_tags) | Additional tags for the private (NAT-routed) subnets. | `map(string)` | `{}` | no |
 | <a name="input_private_subnets"></a> [private\_subnets](#input\_private\_subnets) | Explicit CIDR blocks for private subnets with NAT (one per AZ). Leave empty to auto-calculate. | `list(string)` | `[]` | no |
 | <a name="input_project"></a> [project](#input\_project) | ID element. A project identifier, indicating the name or role of the project the resource is for, such as `website` or `api` | `string` | `null` | no |
 | <a name="input_public_facing"></a> [public\_facing](#input\_public\_facing) | Whether this resource is public facing | `bool` | `false` | no |
-| <a name="input_public_subnet_prefix"></a> [public\_subnet\_prefix](#input\_public\_subnet\_prefix) | Prefix length for public subnets (e.g. 24 = /24, 256 IPs each). | `number` | `24` | no |
+| <a name="input_public_subnet_prefix"></a> [public\_subnet\_prefix](#input\_public\_subnet\_prefix) | Prefix length for public subnets (e.g. 24 = /24, 256 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc\_cidr prefix. | `number` | `24` | no |
 | <a name="input_public_subnet_tags"></a> [public\_subnet\_tags](#input\_public\_subnet\_tags) | Additional tags for the public subnets. | `map(string)` | `{}` | no |
 | <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | Explicit CIDR blocks for public subnets (one per AZ). Leave empty to auto-calculate. | `list(string)` | `[]` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br/>Characters matching the regex will be removed from the ID elements.<br/>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
@@ -180,7 +191,7 @@ module "vpc" {
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The IPv4 CIDR block for the VPC. Works with any prefix length – subnet sizes are controlled by the *\_subnet\_prefix variables. | `string` | n/a | yes |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The IPv4 CIDR block for the VPC (AWS allows /16 to /28 netmask). Subnet CIDR blocks are auto-calculated from this VPC CIDR using the *\_subnet\_prefix variables. | `string` | n/a | yes |
 | <a name="input_vpc_endpoints"></a> [vpc\_endpoints](#input\_vpc\_endpoints) | Map of VPC endpoints to create. Each key is a logical name,<br/>each value is passed through to the upstream vpc-endpoints<br/>submodule.<br/><br/>Interface endpoints are placed in intra subnets by default.<br/>Security groups must be created at the stack level and passed<br/>per-endpoint via `security_group_ids`.<br/><br/>Gateway endpoints require `service_type = "Gateway"` and<br/>`route_table_ids`.<br/><br/>Supported per-endpoint attributes:<br/>  service             - AWS service name (e.g. "s3", "ecr.api")<br/>  service\_type        - "Interface" (default) or "Gateway"<br/>  policy              - JSON endpoint policy document<br/>  subnet\_ids          - Override default intra subnets<br/>  security\_group\_ids  - Security group IDs for this endpoint<br/>  private\_dns\_enabled - Enable private DNS (Interface only)<br/>  route\_table\_ids     - Route table IDs (Gateway only)<br/>  tags                - Per-endpoint tags | `any` | `{}` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 

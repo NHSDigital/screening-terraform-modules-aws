@@ -73,6 +73,28 @@ module "vpc" {
   tags = { for k, v in module.this.tags : k => v if k != "Name" }
 }
 
+check "subnet_prefix_vs_vpc_prefix" {
+  assert {
+    condition     = var.firewall_subnet_prefix > local.vpc_prefix_length
+    error_message = "firewall_subnet_prefix (/${var.firewall_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
+  }
+
+  assert {
+    condition     = var.public_subnet_prefix > local.vpc_prefix_length
+    error_message = "public_subnet_prefix (/${var.public_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
+  }
+
+  assert {
+    condition     = var.private_subnet_prefix > local.vpc_prefix_length
+    error_message = "private_subnet_prefix (/${var.private_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
+  }
+
+  assert {
+    condition     = var.intra_subnet_prefix > local.vpc_prefix_length
+    error_message = "intra_subnet_prefix (/${var.intra_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
+  }
+}
+
 ################################################################
 # Firewall subnets
 #

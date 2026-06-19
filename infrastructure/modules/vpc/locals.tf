@@ -1,22 +1,23 @@
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 locals {
   azs      = data.aws_availability_zones.available.names
   az_count = length(local.azs)
 
   # ─────────────────────────────────────────────────────────────
-  # Subnet CIDR allocation
+  # VPC CIDR prefix validation
   #
-  # Uses cidrsubnets() to carve non-overlapping ranges from the
-  # VPC CIDR regardless of its prefix length.  The target subnet
-  # sizes are controlled by var.firewall_subnet_prefix, etc.
-  #
-  # newbits = target_prefix - vpc_prefix
+  # Extract the VPC prefix and validate cross-variable constraints.
   # ─────────────────────────────────────────────────────────────
   vpc_prefix_length = tonumber(split("/", var.vpc_cidr)[1])
 
+  # ─────────────────────────────────────────────────────────────
+  # Subnet CIDR allocation
+  #
+  # Uses cidrsubnets() to carve non-overlapping ranges from the
+  # VPC CIDR.  The target subnet sizes are controlled by
+  # var.firewall_subnet_prefix, etc.
+  #
+  # newbits = target_prefix - vpc_prefix
+  # ─────────────────────────────────────────────────────────────
   firewall_newbits = var.firewall_subnet_prefix - local.vpc_prefix_length
   public_newbits   = var.public_subnet_prefix - local.vpc_prefix_length
   private_newbits  = var.private_subnet_prefix - local.vpc_prefix_length
