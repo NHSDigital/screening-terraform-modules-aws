@@ -17,10 +17,13 @@ permissions:
   pull-requests: read
 
 jobs:
+  # Workflow design note:
+  # - Non-Dependabot PRs run standard quality gates directly.
+  # - Dependabot PRs may receive an auto-fix commit first (locks/docs/dependabot config),
+  #   then quality gates run on the refreshed commit in the next workflow run.
   # Dependabot PRs should run core validation checks (metadata, coding standards, validation tests).
   # Only advisory commit-message style checks remain human-focused.
   metadata:
-    if: github.event.pull_request.draft == false
     name: "Set Metadata"
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -56,6 +59,8 @@ jobs:
   dependabot-auto-fix-terraform:
     name: "Dependabot auto-fix Terraform docs/locks"
     needs: [metadata]
+    # Restrict auto-fix writes to Dependabot branches in the same repository.
+    # Fork PRs are excluded to avoid unsafe write operations.
     if: >-
       github.event.pull_request.draft == false &&
       github.actor == 'dependabot[bot]' &&
@@ -85,11 +90,13 @@ jobs:
       - name: "Upgrade Terraform locks and run regeneration hooks"
         shell: bash
         run: |
+          # Compare PR head against base to find modules with provider constraint changes.
           base_sha="${{ github.event.pull_request.base.sha }}"
 
           mapfile -t modules_to_upgrade < <(
             git diff --name-only "$base_sha...HEAD" \
               | grep '^infrastructure/modules/.*/versions\.tf$' \
+              # -r avoids calling dirname with empty stdin when grep finds no matches.
               | xargs -r -n1 dirname \
               | sort -u
           )
@@ -97,6 +104,7 @@ jobs:
           if [[ ${#modules_to_upgrade[@]} -gt 0 ]]; then
             for module_path in "${modules_to_upgrade[@]}"; do
               echo "Upgrading Terraform lock file for $module_path"
+              # init -upgrade refreshes provider selection; providers lock writes platform hashes.
               terraform -chdir="$module_path" init -upgrade -no-color
               terraform -chdir="$module_path" providers lock \
                 -platform=linux_arm64 \
@@ -109,6 +117,8 @@ jobs:
             echo "No module versions.tf changes detected; skipping explicit lock upgrade loop."
           fi
 
+          # terraform_docs intentionally exits non-zero when it rewrites docs.
+          # Keep running so changes can be detected and committed in this job.
           mise x -- pre-commit run --all-files generate-terraform-providers
           mise x -- pre-commit run --all-files terraform_providers_lock
           mise x -- pre-commit run --all-files terraform_docs || true
@@ -118,6 +128,7 @@ jobs:
         id: detect
         shell: bash
         run: |
+          # Expose whether any auto-fix output changed tracked files.
           if git diff --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
@@ -125,6 +136,7 @@ jobs:
           fi
 
       - name: "Commit and push auto-fixes"
+        # Push an auto-fix commit so the next PR workflow run validates the refreshed content.
         if: steps.detect.outputs.changed == 'true'
         shell: bash
         run: |
@@ -184,7 +196,21 @@ jobs:
   coding-standards: # Recommended maximum execution time is 5 minutes
     name: "Enforce Coding Standards"
     needs: [metadata, dependabot-auto-fix-terraform]
-    if: github.event.pull_request.draft == false && needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+    # Condition intent:
+    # - Always require successful metadata.
+    # - For non-Dependabot PRs: run normally.
+    # - For Dependabot PRs: run only when auto-fix ran successfully and produced no new commit
+    #   (if it produced changes, this run is skipped and the next run validates the new commit).
+    if: >-
+      always() &&
+      needs.metadata.result == 'success' &&
+      (
+        github.actor != 'dependabot[bot]' ||
+        (
+          needs.dependabot-auto-fix-terraform.result == 'success' &&
+          needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+        )
+      )
     uses: ./.github/workflows/stage-1-coding-standards.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -199,7 +225,7 @@ jobs:
   conventional-commit-advisory:
     name: "Conventional Commit Advisory"
     # Bot PR commit formats are tool-generated and non-blocking by design.
-    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -259,7 +285,17 @@ jobs:
   validation-tests:
     name: "Validation Tests"
     needs: [metadata, dependabot-auto-fix-terraform]
-    if: github.event.pull_request.draft == false && needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+    # Mirrors coding-standards gating to avoid validating stale pre-auto-fix content.
+    if: >-
+      always() &&
+      needs.metadata.result == 'success' &&
+      (
+        github.actor != 'dependabot[bot]' ||
+        (
+          needs.dependabot-auto-fix-terraform.result == 'success' &&
+          needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
