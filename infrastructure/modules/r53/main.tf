@@ -137,7 +137,7 @@ module "resolver_endpoints" {
 # only for rules that do NOT supply `firewall_domain_list_id`:
 #
 #   1. Remove the `firewall_domain_rules` and
-#      `firewall_external_rules` locals below.
+#      `firewall_external_rules` locals in `locals.tf`.
 #   2. Remove the `aws_route53_resolver_firewall_rule.external`
 #      resource block.
 #   3. Change `module.resolver_firewall_rule_groups` to pass
@@ -146,24 +146,6 @@ module "resolver_endpoints" {
 #   4. Run `terraform plan` to confirm the external rules are
 #      adopted by the community module with no diff.
 ################################################################
-
-locals {
-  # Rules that create their own domain list (passed to community module)
-  firewall_domain_rules = {
-    for gk, g in var.resolver_firewall_rule_groups : gk => {
-      for rk, r in g.rules : rk => r
-      if r.firewall_domain_list_id == null
-    }
-  }
-
-  # Rules that reference an existing domain list (standalone resources)
-  firewall_external_rules = merge([
-    for gk, g in var.resolver_firewall_rule_groups : {
-      for rk, r in g.rules : "${gk}/${rk}" => merge(r, { group_key = gk })
-      if r.firewall_domain_list_id != null
-    }
-  ]...)
-}
 
 module "resolver_firewall_rule_groups" {
   source  = "terraform-aws-modules/route53/aws//modules/resolver-firewall-rule-group"
@@ -205,19 +187,6 @@ resource "aws_route53_resolver_firewall_rule" "external" {
 # The community module does not create VPC associations, so we
 # create them here.
 ################################################################
-
-locals {
-  firewall_vpc_associations = merge([
-    for group_key, group in var.resolver_firewall_rule_groups : {
-      for vpc_key, vpc_id in group.vpc_ids :
-      "${group_key}-${vpc_key}" => {
-        group_key = group_key
-        vpc_id    = vpc_id
-        priority  = group.priority
-      }
-    }
-  ]...)
-}
 
 resource "aws_route53_resolver_firewall_rule_group_association" "this" {
   for_each = module.this.enabled ? local.firewall_vpc_associations : {}
