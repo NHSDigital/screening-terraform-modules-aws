@@ -340,6 +340,7 @@ The reusable workflows `stage-1-coding-standards.yaml` and `stage-1-commit.yaml`
 
 The PR workflow `cicd-1-pull-request.yaml` also includes:
 
+- core validation checks (metadata, coding standards, validation tests, and Conventional Commit advisory) for both draft and ready-for-review PRs
 - a non-blocking Conventional Commit advisory check for all commit messages in the PR
 - a final `all-checks-complete` aggregation job suitable for branch protection
 

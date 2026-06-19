@@ -24,7 +24,6 @@ jobs:
   # Dependabot PRs should run core validation checks (metadata, coding standards, validation tests).
   # Only advisory commit-message style checks remain human-focused.
   metadata:
-    if: github.event.pull_request.draft == false
     name: "Set Metadata"
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -274,7 +273,6 @@ jobs:
     #   (if it produced changes, this run is skipped and the next run validates the new commit).
     if: >-
       always() &&
-      github.event.pull_request.draft == false &&
       needs.metadata.result == 'success' &&
       (
         github.actor != 'dependabot[bot]' ||
@@ -297,7 +295,7 @@ jobs:
   conventional-commit-advisory:
     name: "Conventional Commit Advisory"
     # Bot PR commit formats are tool-generated and non-blocking by design.
-    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -360,7 +358,6 @@ jobs:
     # Mirrors coding-standards gating to avoid validating stale pre-auto-fix content.
     if: >-
       always() &&
-      github.event.pull_request.draft == false &&
       needs.metadata.result == 'success' &&
       (
         github.actor != 'dependabot[bot]' ||
