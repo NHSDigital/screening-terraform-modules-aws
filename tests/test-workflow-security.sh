@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# DEPRECATED: This test file has been replaced by test-workflow-security.bats
+# which uses the bats-core test framework. Run: bats tests/test-workflow-security.bats
+#
 # Test suite for verifying GitHub Actions workflow security pinning
 #
 # Validates that workflow files use immutable action references (commit SHAs)

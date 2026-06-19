@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# DEPRECATED: This test file has been replaced by test-mise-task-surface.bats
+# which uses the bats-core test framework. Run: bats tests/test-mise-task-surface.bats
 
 set -euo pipefail
 
@@ -54,8 +56,8 @@ if [[ ! -f "$MiseFile" ]]; then
   exit 1
 fi
 
-mapfile -t active_tasks < <(rg '^\[tasks\.([^\]]+)\]$' "$MiseFile" -or '$1' | sort -u)
-mapfile -t commented_tasks < <(rg '^# \[tasks\.([^\]]+)\]$' "$MiseFile" -or '$1' | sort -u)
+mapfile -t active_tasks < <(grep -E '^\[tasks\.[^]]+\]$' "$MiseFile" | sed -E 's/^\[tasks\.([^]]+)\]$/\1/' | sort -u)
+mapfile -t commented_tasks < <(grep -E '^# \[tasks\.[^]]+\]$' "$MiseFile" | sed -E 's/^# \[tasks\.([^]]+)\]$/\1/' | sort -u)
 
 if [[ "${#active_tasks[@]}" -eq 0 ]]; then
   echo "No active tasks were found in $MiseFile" >&2
@@ -63,12 +65,13 @@ if [[ "${#active_tasks[@]}" -eq 0 ]]; then
 fi
 
 mapfile -t referenced_tasks < <(
-  rg -n 'mise run [A-Za-z0-9._-]+' \
+  grep -rEhn 'mise run [A-Za-z0-9._-]+' \
     .github/workflows \
     .github/actions \
     .pre-commit-config.yaml \
     README.md \
     tests \
+    | grep -v 'test-mise-task-surface' \
     | sed -E 's/.*mise run ([A-Za-z0-9._-]+).*/\1/' \
     | sort -u
 )

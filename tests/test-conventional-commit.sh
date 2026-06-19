@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# DEPRECATED: This test file has been replaced by test-conventional-commit.bats
+# which uses the bats-core test framework. Run: bats tests/test-conventional-commit.bats
+#
 # Test suite for scripts/githooks/validate-conventional-commit.sh
 #
 # Tests the bash-based conventional commit message validator.

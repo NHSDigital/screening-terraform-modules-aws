@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# DEPRECATED: This test file has been replaced by test-tool-version-upgrade.bats
+# which uses the bats-core test framework. Run: bats tests/test-tool-version-upgrade.bats
 
 set -euo pipefail
 
@@ -32,27 +34,37 @@ write_fixture_files() {
 lockfile = true
 
 [tools]
-terraform = "1.13.2"
-tflint = "0.62.1"
-terraform-docs = "0.24.0"
+actionlint = "1.7.12"
+gitleaks = "8.30.1"
+jq = "1.8.1"
+make = "4.4.1"
+node = "20.11.0"
 pre-commit = "4.6.0"
 python = "3.12.0"
-vale = "3.6.0"
-gitleaks = "8.30.1"
 shellcheck = "0.11.0"
-actionlint = "1.7.12"
-jq = "1.8.1"
+terraform = "1.13.2"
+terraform-docs = "0.24.0"
+tflint = "0.62.1"
+vale = "3.6.0"
 yq = "4.53.3"
-node = "20.11.0"
-make = "4.4.1"
 "go:github.com/hashicorp/terraform-config-inspect" = "latest"
 EOF
 
   cat > "$fixture_root/.tool-versions" <<'EOF'
-terraform 1.13.2
-python 3.12.0
-node 20.11.0
+actionlint 1.7.12
+gitleaks 8.30.1
 go:github.com/hashicorp/terraform-config-inspect latest
+jq 1.8.1
+make 4.4.1
+node 20.11.0
+pre-commit 4.6.0
+python 3.12.0
+shellcheck 0.11.0
+terraform 1.13.2
+terraform-docs 0.24.0
+tflint 0.62.1
+vale 3.6.0
+yq 4.53.3
 EOF
 
   cat > "$fixture_root/mise.lock" <<'EOF'

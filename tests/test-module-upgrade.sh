@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# DEPRECATED: This test file has been replaced by test-module-upgrade.bats
+# which uses the bats-core test framework. Run: bats tests/test-module-upgrade.bats
 
 set -euo pipefail
 

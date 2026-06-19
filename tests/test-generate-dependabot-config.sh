@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# DEPRECATED: This test file has been replaced by test-generate-dependabot-config.bats
+# which uses the bats-core test framework. Run: bats tests/test-generate-dependabot-config.bats
 ################################################################################
 # Test suite for scripts/generate-dependabot-config.sh
 #
