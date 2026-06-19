@@ -56,15 +56,25 @@ if [[ ! -f "$MiseFile" ]]; then
   exit 1
 fi
 
-mapfile -t active_tasks < <(grep -E '^\[tasks\.[^]]+\]$' "$MiseFile" | sed -E 's/^\[tasks\.([^]]+)\]$/\1/' | sort -u)
-mapfile -t commented_tasks < <(grep -E '^# \[tasks\.[^]]+\]$' "$MiseFile" | sed -E 's/^# \[tasks\.([^]]+)\]$/\1/' | sort -u)
+active_tasks=()
+while IFS= read -r _line; do
+  active_tasks+=("$_line")
+done < <(grep -E '^\[tasks\.[^]]+\]$' "$MiseFile" | sed -E 's/^\[tasks\.([^]]+)\]$/\1/' | sort -u)
+
+commented_tasks=()
+while IFS= read -r _line; do
+  commented_tasks+=("$_line")
+done < <(grep -E '^# \[tasks\.[^]]+\]$' "$MiseFile" | sed -E 's/^# \[tasks\.([^]]+)\]$/\1/' | sort -u)
 
 if [[ "${#active_tasks[@]}" -eq 0 ]]; then
   echo "No active tasks were found in $MiseFile" >&2
   exit 1
 fi
 
-mapfile -t referenced_tasks < <(
+referenced_tasks=()
+while IFS= read -r _line; do
+  [[ -n "$_line" ]] && referenced_tasks+=("$_line")
+done < <(
   grep -rEhn 'mise run [A-Za-z0-9._-]+' \
     .github/workflows \
     .github/actions \

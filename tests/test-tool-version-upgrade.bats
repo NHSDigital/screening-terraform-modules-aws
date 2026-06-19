@@ -91,6 +91,7 @@ node = "20.11.0"
 pre-commit = "4.6.0"
 python = "3.12.0"
 shellcheck = "0.11.0"
+# @name=Terraform @url=https://www.terraform.io/ @purpose=Infrastructure as code @prefix=>=
 terraform = "1.13.2"
 terraform-docs = "0.24.0"
 tflint = "0.62.1"
@@ -184,6 +185,16 @@ run_helper() {
 @test "default: rewrites mise.lock" {
   run_helper
   assert_file_contains "$FIXTURE_ROOT/mise.lock" "# regenerated lock"
+}
+
+@test "default: README prerequisites include generic fallback tool rows" {
+  run_helper
+  assert_file_contains "$FIXTURE_ROOT/README.md" "| node | 21.1.0 | Tool managed by mise |"
+}
+
+@test "default: README prerequisites include known metadata overrides" {
+  run_helper
+  assert_file_contains "$FIXTURE_ROOT/README.md" "| [Terraform](https://www.terraform.io/) | >= 1.13.3 | Infrastructure as code |"
 }
 
 # --- Dry-run ---

@@ -21,13 +21,22 @@ setup() {
   )
 
   # Discover active tasks (uncommented [tasks.xxx] blocks)
-  mapfile -t ACTIVE_TASKS < <(grep -E '^\[tasks\.[^]]+\]$' "$MISE_FILE" | sed -E 's/^\[tasks\.([^]]+)\]$/\1/' | sort -u)
+  ACTIVE_TASKS=()
+  while IFS= read -r _line; do
+    ACTIVE_TASKS+=("$_line")
+  done < <(grep -E '^\[tasks\.[^]]+\]$' "$MISE_FILE" | sed -E 's/^\[tasks\.([^]]+)\]$/\1/' | sort -u)
 
   # Discover commented-out tasks (# [tasks.xxx] blocks)
-  mapfile -t COMMENTED_TASKS < <(grep -E '^# \[tasks\.[^]]+\]$' "$MISE_FILE" | sed -E 's/^# \[tasks\.([^]]+)\]$/\1/' | sort -u)
+  COMMENTED_TASKS=()
+  while IFS= read -r _line; do
+    COMMENTED_TASKS+=("$_line")
+  done < <(grep -E '^# \[tasks\.[^]]+\]$' "$MISE_FILE" | sed -E 's/^# \[tasks\.([^]]+)\]$/\1/' | sort -u)
 
   # Discover all referenced tasks across automation, docs, and tests
-  mapfile -t REFERENCED_TASKS < <(
+  REFERENCED_TASKS=()
+  while IFS= read -r _line; do
+    [[ -n "$_line" ]] && REFERENCED_TASKS+=("$_line")
+  done < <(
     grep -rEhn 'mise run [A-Za-z0-9._-]+' \
       .github/workflows \
       .github/actions \

@@ -185,6 +185,8 @@ assert_contains_file "$fixture_root/.tool-versions" "node 21.1.0" "Syncs node ve
 assert_contains_file "$fixture_root/.tool-versions" "go:github.com/hashicorp/terraform-config-inspect latest" "Preserves tool aliases from mise.toml"
 assert_not_contains_file "$fixture_root/.tool-versions" "terraform 1.13.2" "Removes stale terraform version from .tool-versions"
 assert_contains_file "$fixture_root/mise.lock" "# regenerated lock" "Rewrites mise.lock"
+assert_contains_file "$fixture_root/README.md" "| node | 21.1.0 | Tool managed by mise |" "README includes generic fallback tool rows"
+assert_contains_file "$fixture_root/README.md" "| [Terraform](https://www.terraform.io/) | >= 1.13.3 | Infrastructure as code |" "README includes known metadata overrides"
 
 echo
 printf '%s\n' "" > "$log_file"
