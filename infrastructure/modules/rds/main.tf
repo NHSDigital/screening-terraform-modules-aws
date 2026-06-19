@@ -14,7 +14,12 @@ module "rds" {
   source  = "terraform-aws-modules/rds/aws"
   version = "7.2.0"
 
-  identifier = var.identifier
+  create_db_instance        = module.this.enabled
+  create_db_subnet_group    = module.this.enabled
+  create_db_parameter_group = module.this.enabled
+  create_db_option_group    = module.this.enabled
+
+  identifier = local.rds_identifier
 
   # Engine
   engine             = var.engine
@@ -46,8 +51,7 @@ module "rds" {
   vpc_security_group_ids = var.vpc_security_group_ids
 
   # Subnet group (always managed by this module)
-  create_db_subnet_group = true
-  subnet_ids             = var.subnet_ids
+  subnet_ids = var.subnet_ids
 
   # Parameter group
   family     = var.family
@@ -59,7 +63,7 @@ module "rds" {
 
   # Monitoring
   monitoring_interval    = var.monitoring_interval
-  create_monitoring_role = var.monitoring_interval > 0
+  create_monitoring_role = module.this.enabled && var.monitoring_interval > 0
 
   # Availability and backup
   multi_az                   = var.multi_az

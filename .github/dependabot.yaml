@@ -58,6 +58,7 @@ updates:
       - "infrastructure/modules/rds-gateway-ecs-task"
       - "infrastructure/modules/rds-instance"
       - "infrastructure/modules/rds-users"
+      - "infrastructure/modules/rds"
       - "infrastructure/modules/s3-bucket"
       - "infrastructure/modules/s3"
       - "infrastructure/modules/secrets-manager"
