@@ -7,6 +7,7 @@ This repository includes comprehensive test coverage for new features and config
 - **Conventional commit validation** — Native bash implementation replacing external dependency
 - **Workflow security** — GitHub Actions and pre-commit hook pinning verification
 - **Tool version synchronization** — `.tool-versions` and `mise.toml` consistency
+- **Tool version upgrade automation** — Script and workflow logic for upgrading mise-managed tools
 
 ## Running Tests
 
@@ -56,6 +57,42 @@ bash tests/test-workflow-security.sh verbose  # Show detailed output
 - ✓ Tool version files synchronized
 - 15 total test cases
 
+#### Tool Version Upgrade Helper Tests
+
+Tests the shared bash helper used both locally and in CI to update `mise.toml`, sync `.tool-versions`, and regenerate `mise.lock`.
+
+```bash
+bash tests/test-tool-version-upgrade.sh
+```
+
+**Test Coverage:**
+
+- ✓ Calls `mise install`, `mise upgrade --local --bump`, and `mise lock`
+- ✓ Synchronizes `.tool-versions` values from upgraded `mise.toml`
+- ✓ Preserves alias-style tool keys (for example `go:...`)
+- ✓ Supports `--dry-run` without changing files
+- ✓ Supports all `--upgrade-level` modes (`patch`, `minor`, `major`, and `all`)
+
+#### Dependabot Configuration Generation Tests
+
+Tests the Dependabot YAML configuration generator that maintains `.github/dependabot.yaml` by automatically discovering all Terraform modules.
+
+```bash
+bash tests/test-generate-dependabot-config.sh
+```
+
+**Test Coverage:**
+
+- ✓ Script exists and is executable
+- ✓ Configuration generation succeeds
+- ✓ Generated YAML is valid and parseable
+- ✓ All required ecosystem entries preserved (docker, GitHub Actions, npm, pip)
+- ✓ All Terraform modules discovered and added (34 modules in infrastructure/modules/)
+- ✓ `.terraform/` cache directories excluded from configuration
+- ✓ Weekly update schedule configured for all entries
+- ✓ Script output is idempotent (running twice produces identical output)
+- ✓ All discovered modules accounted for in configuration
+
 ## Test Results
 
 All tests pass with the current configuration:
@@ -63,7 +100,9 @@ All tests pass with the current configuration:
 ```text
 ✓ Conventional Commit Validation: 22 tests passed
 ✓ Workflow Security Pinning: 15 tests passed
-✓ Total: 37 tests passed
+✓ Tool Version Upgrade Helper: 5+ tests passed
+✓ Dependabot Configuration Generation: 9+ tests passed
+✓ Total: 50+ test cases across 4 test suites
 ```
 
 ## Integration with CI/CD
