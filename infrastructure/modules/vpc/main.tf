@@ -202,16 +202,16 @@ module "flow_log" {
   cloudwatch_log_group_kms_key_id        = var.flow_log_kms_key_id
 
   # IAM role (created by the submodule with scoped trust policy)
-  create_iam_role          = true
-  iam_role_name            = "${module.this.id}-flow-logs"
-  iam_role_use_name_prefix = false
+  create_iam_role           = true
+  iam_role_name             = "${module.this.id}-flow-logs"
+  iam_role_use_name_prefix  = false
 
   traffic_type             = var.flow_log_traffic_type
   max_aggregation_interval = var.flow_log_max_aggregation_interval
 
-  cloudwatch_log_group_tags = var.cloudwatch_log_group_tags
-  flow_log_tags             = var.flow_log_tags
-  iam_role_tags             = var.iam_role_tags
+  cloudwatch_log_group_tags  = var.cloudwatch_log_group_tags
+  flow_log_tags              = var.flow_log_tags
+  iam_role_tags              = var.iam_role_tags
 
   tags = module.this.tags
 }
