@@ -14,4 +14,8 @@ module "ecs_service" {
   autoscaling_scheduled_actions = var.autoscaling_scheduled_actions
   autoscaling_suspended_state   = var.autoscaling_suspended_state
   availability_zone_rebalancing = var.availability_zone_rebalancing
+  capacity_provider_strategy    = var.capacity_provider_strategy
+  cluster_arn                   = var.cluster_arn
+  container_definitions         = var.container_definitions
+  cpu                           = var.cpu
 }
