@@ -919,3 +919,122 @@ variable "subnet_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "task_definition_arn" {
+  description = "Existing task definition ARN. Required when `create_task_definition` is `false`"
+  type        = string
+  default     = null
+}
+
+variable "task_definition_placement_constraints" {
+  description = "Configuration block for rules that are taken into consideration during task placement (up to max of 10). This is set at the task definition, see `placement_constraints` for setting at the service"
+  type = map(object({
+    expression = optional(string)
+    type       = string
+  }))
+  default = null
+}
+
+variable "task_exec_iam_policy_path" {
+  description = "Path for the iam role"
+  type        = string
+  default     = null
+}
+
+variable "task_exec_iam_role_arn" {
+  description = "Existing IAM role ARN"
+  type        = string
+  default     = null
+}
+
+variable "task_exec_iam_role_description" {
+  description = "Description of the role"
+  type        = string
+  default     = null
+}
+
+variable "task_exec_iam_role_max_session_duration" {
+  description = "Maximum session duration (in seconds) for ECS task execution role. Default is 3600."
+  type        = number
+  default     = null
+}
+
+variable "task_exec_iam_role_name" {
+  description = "Name to use on IAM role created"
+  type        = string
+  default     = null
+}
+
+variable "task_exec_iam_role_path" {
+  description = "IAM role path"
+  type        = string
+  default     = null
+}
+
+variable "task_exec_iam_role_permissions_boundary" {
+  description = "ARN of the policy that is used to set the permissions boundary for the IAM role"
+  type        = string
+  default     = null
+}
+
+variable "task_exec_iam_role_policies" {
+  description = "Map of IAM role policy ARNs to attach to the IAM role"
+  type        = map(string)
+  default     = null
+}
+
+variable "task_exec_iam_role_tags" {
+  description = "A map of additional tags to add to the IAM role created"
+  type        = map(string)
+  default     = {}
+}
+
+variable "task_exec_iam_role_use_name_prefix" {
+  description = "Determines whether the IAM role name (`task_exec_iam_role_name`) is used as a prefix"
+  type        = bool
+  default     = true
+}
+
+variable "task_exec_iam_statements" {
+  description = "A map of IAM policy statements <https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document#statement> for custom permission usage"
+  type = list(object({
+    sid           = optional(string)
+    actions       = optional(list(string))
+    not_actions   = optional(list(string))
+    effect        = optional(string)
+    resources     = optional(list(string))
+    not_resources = optional(list(string))
+    principals = optional(list(object({
+      type        = string
+      identifiers = list(string)
+    })))
+    not_principals = optional(list(object({
+      type        = string
+      identifiers = list(string)
+    })))
+    condition = optional(list(object({
+      test     = string
+      values   = list(string)
+      variable = string
+    })))
+  }))
+  default = null
+}
+
+variable "task_exec_secret_arns" {
+  description = "List of SecretsManager secret ARNs the task execution role will be permitted to get/read"
+  type        = list(string)
+  default     = []
+}
+
+variable "task_exec_ssm_param_arns" {
+  description = "List of SSM parameter ARNs the task execution role will be permitted to get/read"
+  type        = list(string)
+  default     = []
+}
+
+variable "task_tags" {
+  description = "A map of additional tags to add to the task definition/set created"
+  type        = map(string)
+  default     = {}
+}
