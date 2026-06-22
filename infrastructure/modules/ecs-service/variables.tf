@@ -538,3 +538,71 @@ variable "health_check_grace_period_seconds" {
   type        = number
   default     = null
 }
+
+variable "iam_role_arn" {
+  description = "Existing IAM role ARN"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_description" {
+  description = "Description of the role"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_name" {
+  description = "Name to use on IAM role created"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_path" {
+  description = "IAM role path"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_permissions_boundary" {
+  description = "ARN of the policy that is used to set the permissions boundary for the IAM role"
+  type        = string
+  default     = null
+}
+
+variable "iam_role_statements" {
+  description = "A map of IAM policy statements <https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document#statement> for custom permission usage"
+  type = list(object({
+    sid           = optional(string)
+    actions       = optional(list(string))
+    not_actions   = optional(list(string))
+    effect        = optional(string)
+    resources     = optional(list(string))
+    not_resources = optional(list(string))
+    principals = optional(list(object({
+      type        = string
+      identifiers = list(string)
+    })))
+    not_principals = optional(list(object({
+      type        = string
+      identifiers = list(string)
+    })))
+    condition = optional(list(object({
+      test     = string
+      values   = list(string)
+      variable = string
+    })))
+  }))
+  default = null
+}
+
+variable "iam_role_tags" {
+  description = "A map of additional tags to add to the IAM role created"
+  type        = map(string)
+  default     = {}
+}
+
+variable "iam_role_use_name_prefix" {
+  description = "Determines whether the IAM role name (`iam_role_name`) is used as a prefix"
+  type        = bool
+  default     = true
+}

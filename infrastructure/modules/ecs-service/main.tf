@@ -41,4 +41,12 @@ module "ecs_service" {
   force_delete                       = var.force_delete
   force_new_deployment               = var.force_new_deployment
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
+  iam_role_arn                       = var.iam_role_arn
+  iam_role_description               = var.iam_role_description
+  iam_role_name                      = var.iam_role_name
+  iam_role_path                      = var.iam_role_path
+  iam_role_permissions_boundary      = var.iam_role_permissions_boundary
+  iam_role_statements                = var.iam_role_statements
+  iam_role_tags                      = var.iam_role_tags
+  iam_role_use_name_prefix           = var.iam_role_use_name_prefix
 }
