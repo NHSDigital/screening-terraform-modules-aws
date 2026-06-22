@@ -111,6 +111,13 @@ terraform-docs markdown . > README.md
 
 Pre-commit hooks will validate that README.md is in sync with the module's variables/outputs on every commit.
 
+## Module File Structure Rules
+
+- `data.tf` is required only if the module uses data sources.
+- `locals.tf` is required only if the module defines `locals {}` blocks.
+- If these constructs are not used, the corresponding file should be omitted.
+- If used, centralise all data sources in `data.tf` and local values in `locals.tf`.
+
 ## Compliance & Security Review
 
 After upgrading a module:

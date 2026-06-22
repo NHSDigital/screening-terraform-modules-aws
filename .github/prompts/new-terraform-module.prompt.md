@@ -93,11 +93,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 6.42"
+      version = ">= {{ upstream_min_version }}"  # Use the upstream module's minimum; >= 6.42 is the platform baseline
     }
   }
 }
 ```
+
+> **Note:** Use whichever is higher — the upstream community module's stated minimum
+> provider version, or the platform baseline of `>= 6.42`. Do not blindly apply the
+> platform baseline if the upstream module works correctly at a lower version.
 
 ### 5. `context.tf`
 

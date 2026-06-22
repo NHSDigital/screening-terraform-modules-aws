@@ -117,15 +117,21 @@ See `.github/skills/pre-commit-hooks.skill.md` for detailed documentation on all
 
 Every module must contain:
 
-| File | Purpose |
-| --- | --- |
-| `main.tf` | Primary resource definitions with header comment block |
-| `variables.tf` | Input variables with types, descriptions, defaults, validations |
-| `outputs.tf` | Output values with descriptions |
-| `versions.tf` | `required_version` and `required_providers` |
-| `context.tf` | Tags context (copied from `tags/exports/context.tf`) |
-| `locals.tf` | Derived/computed values (naming, defaults) |
-| `README.md` | Usage documentation with examples |
+| File | Purpose | Mandatory |
+| --- | --- | --- |
+| `main.tf` | Primary resource definitions with header comment block | Yes |
+| `variables.tf` | Input variables with types, descriptions, defaults, validations | Yes |
+| `outputs.tf` | Output values with descriptions | Yes |
+| `versions.tf` | `required_version` and `required_providers` | Yes |
+| `context.tf` | Tags context (copied from `tags/exports/context.tf`) | Yes |
+| `data.tf` | Data sources (e.g., `data.aws_*`, `data.local_file`) | Only if data sources exist |
+| `locals.tf` | Derived/computed values (naming, defaults) | Only if `locals {}` blocks exist |
+| `README.md` | Usage documentation with examples | Yes |
+
+**Conditional file guidance:**
+
+- **`data.tf`**: Create this file if the module queries external data (e.g., `data.aws_availability_zones`, `data.aws_ami`). Store all data sources here for clarity.
+- **`locals.tf`**: Create this file only if the module defines `locals {}` blocks for computed values, naming logic, or CIDR calculations. If no locals are needed, omit the file entirely.
 
 For any newly created module, `context.tf` must come from `infrastructure/modules/tags/exports/context.tf`, and the copied file must reference `source = "../tags"`.
 
