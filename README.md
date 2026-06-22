@@ -307,7 +307,6 @@ Rules:
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `ecr` | — | ECR repository with security controls |
 | `ecs-cluster` | — | ECS Fargate cluster |
-| `ecs-service` | — | ECS service and task definition |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
 | `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
@@ -317,11 +316,8 @@ Rules:
 | `lambda` | terraform-aws-modules/lambda/aws | Lambda function with runtime and layers |
 | `lambda-layer` | — | Lambda layer for function libraries |
 | `license-manager` | — | License Manager configuration |
-| `network-firewall` | — | Network Firewall rules and policies |
 | `parameter_store` | — | SSM Parameter Store configuration |
-| `r53` | — | Route 53 DNS records (legacy) |
 | `r53-healthcheck` | — | Route 53 health checks |
-| `rds` | — | RDS database instance (legacy) |
 | `rds-database` | — | RDS database (logical) |
 | `rds-gateway-ecs-task` | — | RDS gateway ECS task definition |
 | `rds-instance` | — | RDS instance |

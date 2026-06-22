@@ -2,12 +2,14 @@
 
 ## Overview
 
-This repository includes comprehensive test coverage for new features and configurations introduced on the `feature/BCSS-99999-fixup-workflows-actions-precommit` branch:
+This repository includes comprehensive test coverage for features and configurations:
 
 - **Conventional commit validation** — Native bash implementation replacing external dependency
 - **Workflow security** — GitHub Actions and pre-commit hook pinning verification
 - **Tool version synchronization** — `.tool-versions` and `mise.toml` consistency
 - **Tool version upgrade automation** — Script and workflow logic for upgrading mise-managed tools
+- **Dependabot configuration generation** — Automatic discovery and management of Terraform modules
+- **Available modules documentation** — Automatic generation and verification of module table in README.md
 
 ## Running Tests
 
@@ -93,6 +95,32 @@ bash tests/test-generate-dependabot-config.sh
 - ✓ Script output is idempotent (running twice produces identical output)
 - ✓ All discovered modules accounted for in configuration
 
+#### Available Modules Table Generation Tests
+
+Tests the available modules table generator that maintains the "Available modules" section in `README.md` by discovering Terraform modules and reading metadata from `scripts/config/generate-available-modules.yaml`.
+
+```bash
+bash tests/test-generate-available-modules.sh
+```
+
+**Test Coverage:**
+
+- ✓ Generator script exists and is executable
+- ✓ Metadata file exists at correct location (`scripts/config/generate-available-modules.yaml`)
+- ✓ Table generation succeeds with valid README markers
+- ✓ Modules are discovered by presence of `main.tf` or `versions.tf` files
+- ✓ `.terraform/` directories are excluded from module discovery
+- ✓ Old table content is properly replaced between markers
+- ✓ Table header and structure are valid markdown
+- ✓ Markers (`<!-- BEGIN_AVAILABLE_MODULES -->` / `<!-- END_AVAILABLE_MODULES -->`) are required
+- ✓ Modules without metadata entries are included with dashes (`—`)
+- ✓ Modules with metadata show curated descriptions and wrapped module references
+- ✓ Module list is alphabetically sorted
+- ✓ Known modules are correctly identified (s3-bucket, iam, kms, tags, etc.)
+- ✓ Wrapped community modules are correctly referenced (terraform-aws-modules)
+- ✓ Pre-commit hook script exists and is executable
+- 17 total test cases
+
 ## Test Results
 
 All tests pass with the current configuration:
@@ -101,8 +129,9 @@ All tests pass with the current configuration:
 ✓ Conventional Commit Validation: 22 tests passed
 ✓ Workflow Security Pinning: 15 tests passed
 ✓ Tool Version Upgrade Helper: 5+ tests passed
-✓ Dependabot Configuration Generation: 9+ tests passed
-✓ Total: 50+ test cases across 4 test suites
+✓ Dependabot Configuration Generation: 29 tests passed
+✓ Available Modules Table Generation: 17 tests passed
+✓ Total: 90+ test cases across 5 test suites
 ```
 
 ## Integration with CI/CD

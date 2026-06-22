@@ -81,12 +81,34 @@ if ! grep -q "${end_marker}" "${readme_file}"; then
 fi
 
 # ============================================================================
+# Helper Functions
+# ============================================================================
+
+# Check if a directory name should be skipped entirely
+is_special_directory() {
+    local dir_name="$1"
+
+    # Skip empty names only
+    [ -z "${dir_name}" ] && return 0
+
+    return 1
+}
+
+# Check if a module is in the legacy directory
+is_legacy_module() {
+    local module_path="$1"
+    [[ "${module_path}" =~ _legacy ]] && return 0
+    return 1
+}
+
+# ============================================================================
 # Generate modules table from metadata
 # ============================================================================
 printf "Scanning modules and reading metadata...\n" >&2
 
 temp_table=$(mktemp)
-trap 'rm -f "${temp_table}"' EXIT
+temp_modules=$(mktemp)
+trap 'rm -f "${temp_table}" "${temp_modules}"' EXIT
 
 # Write table header (only the table, not the heading - that's already in README)
 cat > "${temp_table}" << 'TABLE_HEADER'
@@ -94,53 +116,87 @@ cat > "${temp_table}" << 'TABLE_HEADER'
 | --- | --- | --- |
 TABLE_HEADER
 
+# Find all actual modules by looking for main.tf or versions.tf files
+# Store relative paths so we can detect legacy modules
+# Exclude .terraform directories and collect unique module directories
+# Prepend sort key: 0 for regular modules, 1 for legacy (ensures legacy modules appear at end)
+find "${modules_dir}" -maxdepth 2 \( -name "main.tf" -o -name "versions.tf" \) ! -path "*/.terraform/*" -print | \
+    while read -r file; do
+        # Get relative path from modules_dir, then the parent directory
+        rel_dir=$(dirname "${file#${modules_dir}/}")
+        module_name=$(basename "${rel_dir}")
+        # Determine sort key: 0 for regular modules, 1 for legacy
+        if [[ "${rel_dir}" =~ _legacy ]]; then
+            sort_key=1
+        else
+            sort_key=0
+        fi
+        # Output sort_key|relative_path|module_name
+        echo "${sort_key}|${rel_dir}|${module_name}"
+    done | sort -t'|' -k1,1 -k3,3 -u > "${temp_modules}"
+
 module_count=0
 
-# Process each module that exists in infrastructure/modules
-while IFS= read -r module_dir; do
-    module_name=$(basename "${module_dir}")
-
+# Process each module found in the filesystem, with legacy modules at the end
+while IFS='|' read -r sort_key module_path module_name; do
     # Skip special directories
-    if [ "${module_name}" = "_legacy" ] || [ "${module_name}" = ".gitkeep" ]; then
+    if is_special_directory "${module_name}"; then
         continue
     fi
+
+    # Check if this module is in the legacy directory
+    legacy_indicator=""
+    if is_legacy_module "${module_path}"; then
+        legacy_indicator=" [LEGACY]"
+    fi
+
+    printf "  Processing: ${module_name}${legacy_indicator}\n" >&2
 
     # Check if module has metadata entry
-    if ! grep -q "^${module_name}:" "${metadata_file}"; then
-        printf "  ${yellow}⚠${nc}  No metadata for: ${module_name} (skipping)\n" >&2
-        continue
-    fi
+    if grep -q "^${module_name}:" "${metadata_file}"; then
+        # Extract description and wraps from metadata using simple grep/sed
+        # This approach works without requiring yq/jq
+        description=$(sed -n "/^${module_name}:/,/^[a-z]/p" "${metadata_file}" | \
+                      grep "description:" | \
+                      sed 's/.*description: *"//;s/".*//')
 
-    printf "  Processing: ${module_name}\n" >&2
+        # Get the wraps field
+        wraps=$(sed -n "/^${module_name}:/,/^[a-z]/p" "${metadata_file}" | \
+                grep "wraps:" | \
+                sed 's/.*wraps: *"//;s/".*//')
 
-    # Extract description and wraps from metadata using simple grep/sed
-    # This approach works without requiring yq/jq
-    description=$(sed -n "/^${module_name}:/,/^[a-z]/p" "${metadata_file}" | \
-                  grep "description:" | \
-                  sed 's/.*description: *"//;s/".*//')
+        # Fallback if extraction failed
+        if [ -z "${description}" ]; then
+            description="—"
+        fi
 
-    # Get the wraps field
-    wraps=$(sed -n "/^${module_name}:/,/^[a-z]/p" "${metadata_file}" | \
-            grep "wraps:" | \
-            sed 's/.*wraps: *"//;s/".*//')
-
-    # Fallback if extraction failed
-    if [ -z "${description}" ]; then
-        description="(no description)"
-    fi
-
-    if [ -z "${wraps}" ]; then
+        if [ -z "${wraps}" ]; then
+            wraps="—"
+        fi
+    else
+        # Module found but not in metadata - use dashes
+        printf "    ${yellow}⚠${nc}  No metadata entry (using dashes)\n" >&2
+        description="—"
         wraps="—"
     fi
 
+    # Append legacy indicator to description if applicable
+    if [ -n "${legacy_indicator}" ]; then
+        if [ "${description}" = "—" ]; then
+            description="[LEGACY]"
+        else
+            description="${description} [LEGACY]"
+        fi
+    fi
+
     # Write table row
-    printf "| \`%s\` | %s | %s |\n" "${module_name}" "${wraps}" "${description}" >> "${temp_table}"
+    printf "| \`%s\`${legacy_indicator} | %s | %s |\n" "${module_name}" "${wraps}" "${description}" >> "${temp_table}"
 
     ((module_count++))
-done < <(find "${modules_dir}" -maxdepth 1 -type d | grep -v "^\.$" | sort)
+done < "${temp_modules}"
 
 if [ ${module_count} -eq 0 ]; then
-    printf "${red}✗ Error: no modules with metadata found${nc}\n" >&2
+    printf "${red}✗ Error: no modules found (missing main.tf or versions.tf files)${nc}\n" >&2
     exit 1
 fi
 
@@ -150,7 +206,7 @@ printf "${green}✓${nc} Generated table for ${module_count} modules\n" >&2
 # Replace section in README
 # ============================================================================
 temp_readme=$(mktemp)
-trap 'rm -f "${temp_table}" "${temp_readme}"' EXIT
+trap 'rm -f "${temp_table}" "${temp_modules}" "${temp_readme}"' EXIT
 
 awk \
     -v begin="${begin_marker}" \

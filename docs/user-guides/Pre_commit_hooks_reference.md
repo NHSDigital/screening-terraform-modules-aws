@@ -336,7 +336,7 @@ yq eval '.' .github/dependabot.yaml
 
 #### `check-available-modules` — Update Available Modules Table in README
 
-**What it does:** Automatically regenerates the "Available modules" section in `README.md` by reading metadata from `scripts/generate-available-modules.yaml`. This ensures the module table stays in sync with the actual modules and their descriptions.
+**What it does:** Automatically regenerates the "Available modules" section in `README.md` by discovering all Terraform modules and reading their metadata from `scripts/config/generate-available-modules.yaml`. This ensures the module table stays in sync with actual modules in the codebase and their descriptions.
 
 **When it fails:**
 
@@ -350,9 +350,30 @@ Please review the updated Available modules section and commit it:
 
 **What triggers it:**
 
-- Adding or removing a module in `infrastructure/modules/`
-- Updating any module's `README.md`
-- Updating `scripts/config/generate-available-modules.yaml` metadata
+- Adding or removing a module (identified by presence of `main.tf` or `versions.tf`)
+- Changing module descriptions in `scripts/config/generate-available-modules.yaml`
+- Any changes to files that cause README to be regenerated
+
+**How it discovers modules:**
+
+The script scans `infrastructure/modules/` for actual Terraform module directories by looking for:
+- `main.tf` files, OR
+- `versions.tf` files
+
+It automatically **excludes `.terraform/` directories** (cached provider plugins), so only real modules are included.
+
+**Module metadata:**
+
+Modules are listed alphabetically. For each module found:
+
+- **If metadata exists** in `scripts/config/generate-available-modules.yaml`:
+  - Use the curated description and wrapped module reference
+  - Example: `s3-bucket` → "S3 bucket with full security baseline" | "terraform-aws-modules/s3-bucket/aws"
+
+- **If no metadata entry exists**:
+  - Module is still included (prevents gaps when new modules are added)
+  - Shows `—` (dash) for both Wraps and Description columns
+  - Example: `new-module` → "—" | "—"
 
 **Fix:**
 
@@ -369,36 +390,38 @@ git commit -m "docs: update Available modules section"
 
 **How it works:**
 
-1. Reads module metadata from `scripts/config/generate-available-modules.yaml`
-   - Module descriptions (human-curated)
-   - Wrapped community modules (e.g., `terraform-aws-modules/s3-bucket/aws`)
+1. **Scans `infrastructure/modules/`** for directories containing `main.tf` or `versions.tf` (excluding `.terraform/`)
 
-2. Scans `infrastructure/modules/` for actual modules
+2. **Looks up metadata** in `scripts/config/generate-available-modules.yaml` for each module found
+   - If found: uses curated description and wrapped module reference
+   - If missing: uses dashes (`—`) to indicate "add metadata if you want"
 
-3. Generates a markdown table between markers:
+3. **Generates markdown table** alphabetically sorted between markers:
    - `<!-- BEGIN_AVAILABLE_MODULES -->`
    - `<!-- END_AVAILABLE_MODULES -->`
 
-4. Replaces only the table, preserving all other README content
+4. **Replaces only the table**, preserving all other README content
 
 **Example table generated:**
 
 ```markdown
 | Module | Wraps | Description |
 | --- | --- | --- |
+| `new-module` | — | — |
 | `s3-bucket` | terraform-aws-modules/s3-bucket/aws | S3 bucket with full security baseline |
-| `iam` | terraform-aws-modules/iam/aws | IAM policies and roles |
 | `tags` | — | Foundation: naming and tagging context module |
 | `vpc` | — | VPC with subnets, routing, and gateways |
 ```
 
 **Maintenance:**
 
-To add or update a module's description:
+To add or update a module's metadata:
 
 1. Edit `scripts/config/generate-available-modules.yaml`
 2. Add or update the module entry with description and wraps info
 3. Run the hook (it will regenerate README.md automatically on next commit)
+
+If you've just added a new module and don't want to document it yet, no action is needed — it will appear in the table with dashes until you add metadata.
 
 Example metadata entry:
 
@@ -406,6 +429,10 @@ Example metadata entry:
 s3-bucket:
   description: "S3 bucket with full security baseline"
   wraps: "terraform-aws-modules/s3-bucket/aws"
+
+new-module:
+  description: "Description here"
+  wraps: "—"
 ```
 
 **Troubleshooting:**
@@ -424,6 +451,17 @@ To regenerate manually:
 
 ```bash
 bash scripts/generate-available-modules.sh
+```
+
+To add metadata for a module (converting dashes to real descriptions):
+
+```bash
+# Edit the metadata file
+vi scripts/config/generate-available-modules.yaml
+
+# Then commit - the hook will regenerate README.md
+git add scripts/config/generate-available-modules.yaml
+git commit -m "docs: add metadata for new-module"
 ```
 
 ---
