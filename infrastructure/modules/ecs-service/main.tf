@@ -85,4 +85,21 @@ module "ecs_service" {
   sigint_rollback                              = var.sigint_rollback
   skip_destroy                                 = var.skip_destroy
   subnet_ids                                   = var.subnet_ids
+  task_definition_arn                          = var.task_definition_arn
+  task_definition_placement_constraints        = var.task_definition_placement_constraints
+  task_exec_iam_policy_path                    = var.task_exec_iam_policy_path
+  task_exec_iam_role_arn                       = var.task_exec_iam_role_arn
+  task_exec_iam_role_description               = var.task_exec_iam_role_description
+  task_exec_iam_role_max_session_duration      = var.task_exec_iam_role_max_session_duration
+  task_exec_iam_role_name                      = var.task_exec_iam_role_name
+  task_exec_iam_role_path                      = var.task_exec_iam_role_path
+  task_exec_iam_role_permissions_boundary      = var.task_exec_iam_role_permissions_boundary
+  task_exec_iam_role_policies                  = var.task_exec_iam_role_policies
+  task_exec_iam_role_tags                      = var.task_exec_iam_role_tags
+  task_exec_iam_role_use_name_prefix           = var.task_exec_iam_role_use_name_prefix
+  task_exec_iam_statements                     = var.task_exec_iam_statements
+  task_exec_secret_arns                        = var.task_exec_secret_arns
+  task_exec_ssm_param_arns                     = var.task_exec_ssm_param_arns
+  task_tags                                    = var.task_tags
+
 }
