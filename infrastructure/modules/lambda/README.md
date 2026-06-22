@@ -1,5 +1,114 @@
 # Lambda
 
+NHS Screening wrapper around the community [`terraform-aws-modules/lambda/aws`](https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest) module that enforces the platform's baseline controls and consumes the shared `context.tf` for naming and tagging.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| IAM execution role | Automatically attaches AWS-managed policies for VPC access, CloudWatch Logs, and SQS execution |
+| Tagging and naming | Uses shared `context.tf` (`module.this`) for tags and naming |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+| Source path convention | Defaults to `../../lambdas/<handler_prefix>/` for consistent repo layout |
+
+## Usage
+
+### Minimal Lambda function
+
+```hcl
+module "lambda_processor" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/lambda?ref=<tag>"
+
+  service     = "bcss"
+  project     = "data"
+  environment = "prod"
+  name        = "processor"
+
+  handler_prefix       = "process_records"
+  function_description = "Process incoming data records from SQS"
+  python_version       = "python3.12"
+}
+```
+
+### Lambda with VPC and environment variables
+
+```hcl
+module "lambda_api" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/lambda?ref=<tag>"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "handler"
+
+  handler_prefix       = "api_handler"
+  function_description = "API Gateway Lambda handler"
+  python_version       = "python3.12"
+  timeout              = 30
+
+  vpc_subnet_ids         = module.vpc.private_subnet_ids
+  vpc_security_group_ids = [module.security_group.id]
+
+  environment_variables = {
+    DB_ENDPOINT = module.rds.endpoint
+    REGION      = "eu-west-2"
+    LOG_LEVEL   = "INFO"
+  }
+}
+```
+
+### Lambda with layers and custom source path
+
+```hcl
+module "lambda_with_layers" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/lambda?ref=<tag>"
+
+  service     = "bcss"
+  project     = "etl"
+  environment = "prod"
+  name        = "transformer"
+
+  handler_prefix       = "transform_data"
+  function_description = "Transform data using shared utility layers"
+  python_version       = "python3.12"
+  source_path          = "${path.module}/../../lambdas/custom/transform_data/"
+  timeout              = 120
+
+  layers = [
+    "arn:aws:lambda:eu-west-2:123456789012:layer:shared-utils:5",
+    "arn:aws:lambda:eu-west-2:123456789012:layer:pandas:2"
+  ]
+
+  environment_variables = {
+    BUCKET_NAME = module.s3.bucket_name
+  }
+}
+```
+
+## Conventions
+
+- `handler_prefix` is required and determines the Lambda handler entry point (`<handler_prefix>.lambda_handler`).
+- `function_description` is required for documentation and compliance.
+- `python_version` defaults to `python3.11`; explicitly set it to pin runtime version.
+- `source_path` defaults to `../../lambdas/<handler_prefix>/` relative to the module; override for custom layouts.
+- `timeout` defaults to `3` seconds; increase for long-running functions.
+- The module automatically attaches four AWS-managed IAM policies:
+  - `AWSLambdaVPCAccessExecutionRole` (VPC networking)
+  - `AWSLambdaBasicExecutionRole` (CloudWatch Logs)
+  - `AmazonAPIGatewayPushToCloudWatchLogs` (API Gateway integration)
+  - `AWSLambdaSQSQueueExecutionRole` (SQS polling)
+- Use the `layers` input to attach Lambda layers; provide full ARNs including version.
+- `vpc_subnet_ids` and `vpc_security_group_ids` are optional; omit for non-VPC functions.
+
+## What this module does NOT do
+
+- Create VPCs, subnets, or security groups; you must provide existing resource IDs.
+- Package Lambda code; use the `source_path` to point to pre-packaged code or let the upstream module handle packaging.
+- Create Lambda layers; you must create layers separately and provide ARNs.
+- Configure Lambda event sources (SQS, EventBridge, S3, etc.); use native `aws_lambda_event_source_mapping` or trigger resources in consumer stacks.
+- Manage Lambda function versions or aliases; use native `aws_lambda_alias` resources if needed.
+- Provide custom IAM policies beyond the four AWS-managed policies; use the `iam` module to create custom policies and attach them separately.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
