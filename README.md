@@ -295,6 +295,7 @@ Rules:
 
 ## Available modules
 
+<!-- BEGIN_AVAILABLE_MODULES -->
 | Module | Wraps | Description |
 | --- | --- | --- |
 | `acm` | terraform-aws-modules/acm/aws | AWS Certificate Manager (ACM) certificate management |
@@ -337,6 +338,7 @@ Rules:
 | `vpces` | — | VPC endpoints (multiple services) |
 | `waf` | — | WAF web ACL with rules |
 
+<!-- END_AVAILABLE_MODULES -->
 ## Pre-commit hooks
 
 This repository uses [pre-commit](https://pre-commit.com/) to run quality checks before code is committed locally, and in CI via the `stage-1-pre-commit.yml` GitHub Actions workflow.

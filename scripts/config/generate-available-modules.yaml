@@ -1,0 +1,166 @@
+# Module Metadata
+#
+# Maps module names to their descriptions and wrapped community modules.
+# Used by generate-available-modules.sh to produce the Available modules section.
+#
+# Format:
+#   module_name:
+#     description: "Human-readable description"
+#     wraps: "terraform-aws-modules/xyz/aws" or "—" or "Native resources"
+#
+
+acm:
+  description: "AWS Certificate Manager (ACM) certificate management"
+  wraps: "terraform-aws-modules/acm/aws"
+
+api-gateway:
+  description: "API Gateway configuration with custom domain and integration"
+  wraps: "—"
+
+aws-backup-destination:
+  description: "AWS Backup destination vault"
+  wraps: "—"
+
+aws-backup-source:
+  description: "AWS Backup source configuration"
+  wraps: "—"
+
+aws-scheduler:
+  description: "EventBridge Scheduler configuration"
+  wraps: "—"
+
+cognito:
+  description: "Cognito user and identity pools"
+  wraps: "—"
+
+cw-firehose-splunk:
+  description: "CloudWatch logs to Splunk via Firehose"
+  wraps: "—"
+
+ecr:
+  description: "ECR repository with security controls"
+  wraps: "—"
+
+ecs-cluster:
+  description: "ECS Fargate cluster"
+  wraps: "—"
+
+ecs-service:
+  description: "ECS service and task definition"
+  wraps: "—"
+
+elasticache:
+  description: "ElastiCache cluster (Redis/Memcached)"
+  wraps: "—"
+
+github-config:
+  description: "GitHub OIDC provider and runner configuration"
+  wraps: "—"
+
+guardduty:
+  description: "GuardDuty threat detection"
+  wraps: "—"
+
+iam:
+  description: "IAM policies and roles"
+  wraps: "terraform-aws-modules/iam/aws"
+
+inspector:
+  description: "Inspector vulnerability scanning"
+  wraps: "—"
+
+kms:
+  description: "KMS key with policy enforcement"
+  wraps: "terraform-aws-modules/kms/aws"
+
+lambda:
+  description: "Lambda function with runtime and layers"
+  wraps: "terraform-aws-modules/lambda/aws"
+
+lambda-layer:
+  description: "Lambda layer for function libraries"
+  wraps: "—"
+
+license-manager:
+  description: "License Manager configuration"
+  wraps: "—"
+
+network-firewall:
+  description: "Network Firewall rules and policies"
+  wraps: "—"
+
+parameter_store:
+  description: "SSM Parameter Store configuration"
+  wraps: "—"
+
+r53:
+  description: "Route 53 DNS records (legacy)"
+  wraps: "—"
+
+r53-healthcheck:
+  description: "Route 53 health checks"
+  wraps: "—"
+
+rds:
+  description: "RDS database instance (legacy)"
+  wraps: "—"
+
+rds-database:
+  description: "RDS database (logical)"
+  wraps: "—"
+
+rds-gateway-ecs-task:
+  description: "RDS gateway ECS task definition"
+  wraps: "—"
+
+rds-instance:
+  description: "RDS instance"
+  wraps: "—"
+
+rds-users:
+  description: "RDS user management"
+  wraps: "—"
+
+s3:
+  description: "S3 bucket (legacy)"
+  wraps: "—"
+
+s3-bucket:
+  description: "S3 bucket with full security baseline"
+  wraps: "terraform-aws-modules/s3-bucket/aws"
+
+secrets-manager:
+  description: "Secrets Manager for secure secret storage"
+  wraps: "terraform-aws-modules/secrets-manager/aws"
+
+security-hub:
+  description: "Security Hub for centralized security findings"
+  wraps: "—"
+
+sns:
+  description: "SNS topic with encryption and policies"
+  wraps: "terraform-aws-modules/sns/aws"
+
+sqs:
+  description: "SQS queue with encryption"
+  wraps: "—"
+
+tags:
+  description: "Foundation: naming and tagging context module"
+  wraps: "—"
+
+vpc:
+  description: "VPC with subnets, routing, and gateways"
+  wraps: "—"
+
+vpce:
+  description: "VPC endpoint (single service)"
+  wraps: "—"
+
+vpces:
+  description: "VPC endpoints (multiple services)"
+  wraps: "—"
+
+waf:
+  description: "WAF web ACL with rules"
+  wraps: "—"

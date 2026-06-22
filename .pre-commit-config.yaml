@@ -57,6 +57,27 @@ repos:
         pass_filenames: false
 
   # --------------------------------------------------------------------------
+  # Local: regenerate Available modules section in README.md
+  # --------------------------------------------------------------------------
+  # Automatically regenerates the Available modules table in README.md whenever
+  # modules are added/removed or module READMEs are updated. This ensures the
+  # documentation stays in sync with the actual modules available.
+  # Fails if the generated section differs from the committed version,
+  # forcing users to review and commit the updated documentation.
+  #
+  # Generates:
+  #   - README.md (Available modules table, between markers)
+  - repo: local
+    hooks:
+      - id: check-available-modules
+        name: check-available-modules
+        require_serial: true
+        entry: ./scripts/githooks/check-available-modules.sh
+        language: script
+        files: (infrastructure/modules/.*/README\.md|README\.md)$
+        pass_filenames: false
+
+  # --------------------------------------------------------------------------
   # Terraform hooks (format, lint, validate, docs, lock)
   # --------------------------------------------------------------------------
   - repo: https://github.com/antonbabenko/pre-commit-terraform
