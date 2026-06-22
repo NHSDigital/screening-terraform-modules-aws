@@ -17,7 +17,7 @@ NHS Screening module for AWS License Manager license configurations. Creates sel
 
 ```hcl
 module "license_manager" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=<ref>"
 
   service     = "bcss"
   project     = "platform"
@@ -34,7 +34,7 @@ module "license_manager" {
 
 ```hcl
 module "license_sql" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=<ref>"
 
   service     = "bcss"
   project     = "database"
@@ -57,7 +57,7 @@ module "license_sql" {
 
 ```hcl
 module "license_windows_with_amis" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=<ref>"
 
   service     = "bcss"
   project     = "compute"
