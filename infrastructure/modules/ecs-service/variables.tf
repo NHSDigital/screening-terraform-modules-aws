@@ -771,3 +771,151 @@ variable "scheduling_strategy" {
   type        = string
   default     = null
 }
+
+variable "security_group_description" {
+  description = "Description of the security group created"
+  type        = string
+  default     = null
+}
+
+variable "security_group_egress_rules" {
+  description = "Security group egress rules to add to the security group created"
+  type = map(object({
+    name                         = optional(string)
+    cidr_ipv4                    = optional(string)
+    cidr_ipv6                    = optional(string)
+    description                  = optional(string)
+    from_port                    = optional(string)
+    ip_protocol                  = optional(string, "tcp")
+    prefix_list_id               = optional(string)
+    referenced_security_group_id = optional(string)
+    tags                         = optional(map(string), {})
+    to_port                      = optional(string)
+  }))
+  default = {}
+}
+
+variable "security_group_ids" {
+  description = "List of security groups to associate with the task or service"
+  type        = list(string)
+  default     = []
+}
+
+variable "security_group_ingress_rules" {
+  description = "Security group ingress rules to add to the security group created"
+  type = map(object({
+    name                         = optional(string)
+    cidr_ipv4                    = optional(string)
+    cidr_ipv6                    = optional(string)
+    description                  = optional(string)
+    from_port                    = optional(string)
+    ip_protocol                  = optional(string, "tcp")
+    prefix_list_id               = optional(string)
+    referenced_security_group_id = optional(string)
+    tags                         = optional(map(string), {})
+    to_port                      = optional(string)
+  }))
+  default = {}
+}
+
+variable "security_group_name" {
+  description = "Name to use on security group created"
+  type        = string
+  default     = null
+}
+
+variable "security_group_tags" {
+  description = "A map of additional tags to add to the security group created"
+  type        = map(string)
+  default     = {}
+}
+
+variable "security_group_use_name_prefix" {
+  description = "Determines whether the security group name (`security_group_name`) is used as a prefix"
+  type        = bool
+  default     = true
+}
+
+variable "service_connect_configuration" {
+  description = "The ECS Service Connect configuration for this service to discover and connect to services, and be discovered by, and connected from, other services within a namespace"
+  type = object({
+    enabled = optional(bool, true)
+    access_log_configuration = optional(object({
+      format                   = string
+      include_query_parameters = optional(string)
+    }))
+    log_configuration = optional(object({
+      log_driver = string
+      options    = optional(map(string))
+      secret_option = optional(list(object({
+        name       = string
+        value_from = string
+      })))
+    }))
+    namespace = optional(string)
+    service = optional(list(object({
+      client_alias = optional(object({
+        dns_name = optional(string)
+        port     = number
+        test_traffic_rules = optional(list(object({
+          header = optional(object({
+            name = string
+            value = object({
+              exact = string
+            })
+          }))
+        })))
+      }))
+      discovery_name        = optional(string)
+      ingress_port_override = optional(number)
+      port_name             = string
+      timeout = optional(object({
+        idle_timeout_seconds        = optional(number)
+        per_request_timeout_seconds = optional(number)
+      }))
+      tls = optional(object({
+        issuer_cert_authority = object({
+          aws_pca_authority_arn = string
+        })
+        kms_key  = optional(string)
+        role_arn = optional(string)
+      }))
+    })))
+  })
+  default = null
+}
+
+variable "service_registries" {
+  description = "Service discovery registries for the service"
+  type = object({
+    container_name = optional(string)
+    container_port = optional(number)
+    port           = optional(number)
+    registry_arn   = string
+  })
+  default = null
+}
+
+variable "service_tags" {
+  description = "A map of additional tags to add to the service"
+  type        = map(string)
+  default     = {}
+}
+
+variable "sigint_rollback" {
+  description = "Whether to enable graceful termination of deployments using SIGINT signals. Only applicable when using ECS deployment controller and requires wait_for_steady_state = true. Default is false"
+  type        = bool
+  default     = null
+}
+
+variable "skip_destroy" {
+  description = "If true, the task is not deleted when the service is deleted"
+  type        = bool
+  default     = null
+}
+
+variable "subnet_ids" {
+  description = "List of subnets to associate with the task or service"
+  type        = list(string)
+  default     = []
+}

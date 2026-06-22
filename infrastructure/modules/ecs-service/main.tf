@@ -72,4 +72,17 @@ module "ecs_service" {
   runtime_platform                             = var.runtime_platform
   scale                                        = var.scale
   scheduling_strategy                          = var.scheduling_strategy
+  security_group_description                   = var.security_group_description
+  security_group_egress_rules                  = var.security_group_egress_rules
+  security_group_ids                           = var.security_group_ids
+  security_group_ingress_rules                 = var.security_group_ingress_rules
+  security_group_name                          = var.security_group_name
+  security_group_tags                          = var.security_group_tags
+  security_group_use_name_prefix               = var.security_group_use_name_prefix
+  service_connect_configuration                = var.service_connect_configuration
+  service_registries                           = var.service_registries
+  service_tags                                 = var.service_tags
+  sigint_rollback                              = var.sigint_rollback
+  skip_destroy                                 = var.skip_destroy
+  subnet_ids                                   = var.subnet_ids
 }
