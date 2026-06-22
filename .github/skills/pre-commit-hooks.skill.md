@@ -390,7 +390,7 @@ AWS credentials detected
 **Fix:** Never commit credentials. Use:
 
 - GitHub Secrets for CI/CD
-- AWS assume role or iam OIDC federation
+- AWS assume role or IAM OIDC federation
 - `~/.aws/credentials` for local development
 
 ---

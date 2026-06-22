@@ -125,7 +125,7 @@ After upgrading a module:
 1. **Check security baseline**: Verify that enforcement controls haven't been weakened.
 2. **Confirm encryption defaults**: Ensure encryption settings still use fixed values.
 3. **Confirm public access blocks**: Ensure public access blocks are still enabled.
-4. **Confirm iam permissions**: Keep iam policies minimal (no `*` actions).
+4. **Confirm IAM permissions**: Keep IAM policies minimal (no `*` actions).
 5. **Review upstream breaking changes**: Check community module release notes for incompatible API changes.
 6. **Validate outputs**: Ensure stable output names are preserved; consumers depend on them.
 7. **Test in context**: If possible, apply the module in a test stack to confirm integration.

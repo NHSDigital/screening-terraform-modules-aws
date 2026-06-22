@@ -7,7 +7,7 @@ account_id
 actionlint
 api_gateway_name
 api_path_part
-arn
+(ARN|[Aa]rn)
 backup_copy_vault_account_id
 backup_vault_name
 batch_id
@@ -42,8 +42,8 @@ handler_prefix
 healthcheck
 http_method
 idempotence
-iam
-itterate
+(IAM|[Ii]am)
+[Ii]ntra
 Jira
 jq
 jQuery
@@ -85,7 +85,7 @@ shortcode
 source_account_name
 stage_name
 start_time
-subnet
+[Ss]ubnet
 Syft
 [Mm]arkdownlint
 [Tt]eardown
@@ -101,5 +101,6 @@ URL
 url
 vault_lock_type
 vault_name
+(VPC|[Vv]pc)
 [Uu][Uu][Ii][Dd]
 yq

@@ -198,7 +198,7 @@ Every module must enforce:
 - Encryption at rest (KMS or service-managed) where applicable.
 - Encryption in transit (TLS required, deny insecure transport) where applicable.
 - No public access by default (block at all available toggles).
-- iam least-privilege (no `*` actions in managed policies).
+- IAM least-privilege (no `*` actions in managed policies).
 - Logging/audit enabled where the service supports it.
 - All resources tagged via `module.this.tags`.
 
@@ -308,3 +308,4 @@ When in doubt, look at these compliant modules for reference:
 - `infrastructure/modules/iam` — Multi-resource wrapper (policies + roles) with per-resource iteration and label modules.
 - `infrastructure/modules/secrets-manager` — Simple wrapper with hard-coded security and optional features.
 - `infrastructure/modules/kms` — KMS key wrapper with policy enforcement.
+- `infrastructure/modules/acm` — Simple wrapper with opinionated security defaults.

@@ -520,7 +520,7 @@ AWS credentials detected
 
 1. **Remove the credential immediately**
 2. Use GitHub Secrets for CI/CD.
-3. Use AWS iam assume role or OIDC federation.
+3. Use AWS IAM assume role or OIDC federation.
 4. Use `~/.aws/credentials` for local development (never commit).
 
 **Prevention:** Never paste real credentials anywhere.

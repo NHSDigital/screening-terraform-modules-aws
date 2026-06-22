@@ -201,7 +201,7 @@ Before finalising, verify the module enforces:
 - [ ] Encryption at rest (KMS or service-managed)
 - [ ] Encryption in transit (TLS required) where applicable
 - [ ] No public access by default
-- [ ] iam least-privilege (no `*` actions)
+- [ ] IAM least-privilege (no `*` actions)
 - [ ] Logging enabled where the service supports it
 - [ ] All resources tagged via `module.this.tags`
 - [ ] Creation gated by `module.this.enabled`
@@ -228,3 +228,4 @@ Reference these for patterns:
 - `infrastructure/modules/s3-bucket` — full wrapper with comprehensive security
 - `infrastructure/modules/iam` — multi-resource wrapper with per-resource iteration
 - `infrastructure/modules/secrets-manager` — simple wrapper with hard-coded security
+- `infrastructure/modules/acm` – simple wrapper with opinionated security defaults

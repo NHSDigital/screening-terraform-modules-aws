@@ -274,7 +274,7 @@ module "s3_bucket" {
 | Encryption at rest | KMS or service-managed; no unencrypted storage |
 | Encryption in transit | TLS required where applicable |
 | No public access | Blocked by default at all available toggles |
-| iam least-privilege | No `*` actions in policies |
+| IAM least-privilege | No `*` actions in policies |
 | Logging | Enabled where the service supports it |
 | Tagging | All resources via `module.this.tags` |
 
@@ -308,7 +308,7 @@ Rules:
 | `elasticache` | — | ElastiCache cluster |
 | `github-config` | — | GitHub OIDC and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
-| `iam` | `terraform-aws-modules/iam/aws` | iam policies and roles |
+| `iam` | `terraform-aws-modules/iam/aws` | IAM policies and roles |
 | `inspector` | — | Inspector vulnerability scanning |
 | `kms` | `terraform-aws-modules/kms/aws` | KMS key with policy enforcement |
 | `lambda` | — | Lambda function |
