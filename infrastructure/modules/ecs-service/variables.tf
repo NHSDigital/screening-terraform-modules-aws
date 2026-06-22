@@ -376,3 +376,51 @@ variable "cpu" {
   type        = number
   default     = 1024
 }
+
+variable "create_iam_role" {
+  description = "Determines whether the ECS service IAM role should be created"
+  type        = bool
+  default     = true
+}
+
+variable "create_infrastructure_iam_role" {
+  description = "Determines whether the ECS infrastructure IAM role should be created"
+  type        = bool
+  default     = true
+}
+
+variable "create_security_group" {
+  description = "Determines if a security group is created"
+  type        = bool
+  default     = true
+}
+
+variable "create_service" {
+  description = "Determines whether service resource will be created (set to `false` in case you want to create task definition only)"
+  type        = bool
+  default     = true
+}
+
+variable "create_task_definition" {
+  description = "Determines whether to create a task definition or use existing/provided"
+  type        = bool
+  default     = true
+}
+
+variable "create_task_exec_iam_role" {
+  description = "Determines whether the ECS task definition IAM role should be created"
+  type        = bool
+  default     = true
+}
+
+variable "create_task_exec_policy" {
+  description = "Determines whether the ECS task definition IAM policy should be created. This includes permissions included in AmazonECSTaskExecutionRolePolicy as well as access to secrets and SSM parameters"
+  type        = bool
+  default     = true
+}
+
+variable "create_tasks_iam_role" {
+  description = "Determines whether the ECS tasks IAM role should be created"
+  type        = bool
+  default     = true
+}
