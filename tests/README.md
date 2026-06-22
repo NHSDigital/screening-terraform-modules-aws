@@ -115,11 +115,14 @@ bash tests/test-generate-available-modules.sh
 - ✓ Markers (`<!-- BEGIN_AVAILABLE_MODULES -->` / `<!-- END_AVAILABLE_MODULES -->`) are required
 - ✓ Modules without metadata entries are included with dashes (`—`)
 - ✓ Modules with metadata show curated descriptions and wrapped module references
-- ✓ Module list is alphabetically sorted
+- ✓ Module list is alphabetically sorted (regular modules first, legacy modules at end)
+- ✓ Regular and legacy modules are both alphabetically sorted within their respective sections
+- ✓ Legacy modules (under `infrastructure/modules/_legacy/`) are marked with `[LEGACY]` annotation
+- ✓ Legacy modules appear at the end of the table after all regular modules
 - ✓ Known modules are correctly identified (s3-bucket, iam, kms, tags, etc.)
 - ✓ Wrapped community modules are correctly referenced (terraform-aws-modules)
 - ✓ Pre-commit hook script exists and is executable
-- 17 total test cases
+- 24 total test cases
 
 ## Test Results
 
@@ -130,8 +133,8 @@ All tests pass with the current configuration:
 ✓ Workflow Security Pinning: 15 tests passed
 ✓ Tool Version Upgrade Helper: 5+ tests passed
 ✓ Dependabot Configuration Generation: 29 tests passed
-✓ Available Modules Table Generation: 17 tests passed
-✓ Total: 90+ test cases across 5 test suites
+✓ Available Modules Table Generation: 24 tests passed
+✓ Total: 95+ test cases across 5 test suites
 ```
 
 ## Integration with CI/CD

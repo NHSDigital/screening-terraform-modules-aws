@@ -197,7 +197,10 @@ screening-terraform-modules-aws/
 │       ├── iam/           # Exemplar: iam policies & roles
 │       ├── secrets-manager/
 │       ├── kms/
-│       └── ...            # Additional modules
+│       ├── ...            # Additional modules
+│       └── _legacy/       # Older-format modules (pre-restructure, screening-specific variants)
+│           ├── old-module-1/
+│           └── old-module-2/
 ├── scripts/               # Helper scripts (linting, hooks, Docker)
 ├── docs/                  # ADRs, developer guides, diagrams
 ├── .pre-commit-config.yaml # Pre-commit hook definitions

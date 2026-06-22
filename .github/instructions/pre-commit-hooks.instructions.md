@@ -20,7 +20,7 @@ pre-commit install --hook-type commit-msg
 | Terraform format mismatch | `terraform fmt -recursive infrastructure/modules/` |
 | Documentation out of sync | `pre-commit run terraform_docs --all-files` |
 | Dependabot config out of sync | Commit the regenerated `.github/dependabot.yaml` (auto-generated) |
-| Available modules table out of sync | Commit the regenerated `README.md` Available modules section (auto-generated) |
+| Available modules table out of sync | Commit the regenerated `README.md` Available modules section (auto-generated). Includes all modules: regular modules alphabetically, then legacy modules (older format, in `_legacy/`) with `[LEGACY]` markers at the end. |
 | Shell script errors | Review output; fix syntax errors; re-run `pre-commit run shellcheck` |
 | English/spelling mistakes | Check `.vale.ini` rules; update text if needed |
 | Trailing whitespace/EOL | `pre-commit run --all-files` (auto-fixed) |
