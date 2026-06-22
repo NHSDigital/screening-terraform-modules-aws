@@ -101,5 +101,14 @@ module "ecs_service" {
   task_exec_secret_arns                        = var.task_exec_secret_arns
   task_exec_ssm_param_arns                     = var.task_exec_ssm_param_arns
   task_tags                                    = var.task_tags
-
+  tasks_iam_role_arn                           = var.tasks_iam_role_arn
+  tasks_iam_role_description                   = var.tasks_iam_role_description
+  tasks_iam_role_max_session_duration          = var.tasks_iam_role_max_session_duration
+  tasks_iam_role_name                          = var.tasks_iam_role_name
+  tasks_iam_role_path                          = var.tasks_iam_role_path
+  tasks_iam_role_permissions_boundary          = var.tasks_iam_role_permissions_boundary
+  tasks_iam_role_policies                      = var.tasks_iam_role_policies
+  tasks_iam_role_statements                    = var.tasks_iam_role_statements
+  tasks_iam_role_tags                          = var.tasks_iam_role_tags
+  tasks_iam_role_use_name_prefix               = var.tasks_iam_role_use_name_prefix
 }
