@@ -42,7 +42,8 @@ git commit -m "type(scope): description"
 
 - `detect-aws-credentials` — detects embedded secrets
 - `detect-private-key` — detects leaked private keys
-- `scan-secrets` — scans git history for secrets
+- `scan-secrets-staged-changes` — scans staged changes for secrets (runs on `git commit`)
+- `scan-secrets-whole-history` — scans entire git history for secrets (runs on `pre-commit run --all-files`)
 - `terraform_validate` — ensures modules are syntactically valid
 - `regenerate-dependabot-config` — ensures Dependabot watches all modules
 - `no-commit-to-branch` — enforces PR workflow
