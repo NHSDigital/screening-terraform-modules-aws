@@ -1,28 +1,102 @@
 
 # AWS KMS Terraform module
 
-Terraform module to provision a [KMS](https://aws.amazon.com/kms/) key with alias.
+Terraform module to provision a [KMS](https://aws.amazon.com/kms/) key with alias. Thin wrapper around the community [`terraform-aws-modules/kms/aws`](https://registry.terraform.io/modules/terraform-aws-modules/kms/aws/latest) module that enforces the platform's baseline controls and consumes the shared `context.tf` for naming and tagging.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| Key rotation | Automatic key rotation enabled by default (`enable_key_rotation = true`) |
+| Deletion protection | 14-day deletion window by default (`deletion_window_in_days = 14`) |
+| Tagging and naming | Uses shared `context.tf` (`module.this`) for tags and naming |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+| Symmetric encryption | Defaults to `SYMMETRIC_DEFAULT` key spec for encryption use cases |
 
 ## Usage
 
+### Minimal KMS key with default settings
+
 ```hcl
-    module "kms_key" {
-       source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms"
+module "kms_key" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=main"
 
-      service                   = "bcss"
-      project                   = "bcss"
-      environment               = "test"
-      stack                     = "bootstrap"
-      workspace                 = terraform.workspace
-      name                      = "terraform-state"
+  service     = "bcss"
+  project     = "data"
+  environment = "prod"
+  name        = "application-secrets"
 
-      label_order               = ["service", "environment", "stack", "workspace", "name", "attributes"]
-
-      description             = "KMS key for Terraform state bucket encryption"
-      deletion_window_in_days = 10
-      enable_key_rotation     = true
-    }
+  description = "KMS key for application secrets encryption"
+}
 ```
+
+### Production KMS key with custom policies
+
+```hcl
+module "kms_key" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=main"
+
+  service     = "bcss"
+  project     = "bcss"
+  environment = "prod"
+  stack       = "bootstrap"
+  name        = "terraform-state"
+
+  label_order = ["service", "environment", "stack", "workspace", "name", "attributes"]
+
+  description             = "KMS key for Terraform state bucket encryption"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+
+  key_administrators = [
+    "arn:aws:iam::123456789012:role/admin-role"
+  ]
+
+  key_users = [
+    "arn:aws:iam::123456789012:role/ecs-task-role",
+    "arn:aws:iam::123456789012:role/lambda-execution-role"
+  ]
+}
+```
+
+### Asymmetric key for signing
+
+```hcl
+module "kms_signing_key" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=main"
+
+  service     = "bcss"
+  project     = "signing"
+  environment = "prod"
+  name        = "code-signing"
+
+  description              = "KMS key for code signing"
+  customer_master_key_spec = "RSA_4096"
+  key_usage                = "SIGN_VERIFY"
+  enable_key_rotation      = false  # Not supported for asymmetric keys
+
+  key_users = [
+    "arn:aws:iam::123456789012:role/ci-cd-role"
+  ]
+}
+```
+
+## Conventions
+
+- `enable_key_rotation` defaults to `true` for symmetric keys; automatic rotation is not supported for asymmetric keys.
+- `deletion_window_in_days` defaults to `14`; increase to 30 for production keys to allow for recovery.
+- `customer_master_key_spec` defaults to `SYMMETRIC_DEFAULT`; use `RSA_*` or `ECC_*` specs for asymmetric encryption or signing.
+- `key_usage` defaults to `ENCRYPT_DECRYPT`; set to `SIGN_VERIFY` for signing keys.
+- `aliases` can be specified to create custom key aliases; if not provided, the alias is auto-generated from `module.this.id`.
+- `key_administrators`, `key_users`, and `key_service_users` are all optional IAM ARN lists that control key policy permissions.
+- `enable_default_policy` defaults to `true`; set to `false` only if providing a complete custom policy via `key_statements`.
+
+## What this module does NOT do
+
+- Create IAM roles or users; you must provide existing ARNs for key administrators/users.
+- Encrypt or decrypt data; the module creates the key, but encryption operations are performed by services/applications.
+- Support multi-region keys (currently uses single-region keys only).
+- Manage key grants (use `aws_kms_grant` resources directly in consumer stacks if needed).
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
