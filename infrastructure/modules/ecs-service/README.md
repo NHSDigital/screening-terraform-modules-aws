@@ -4,6 +4,112 @@ NHS Screening wrapper around the community
 [`terraform-aws-modules/ecs/aws//modules/service`](https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest/submodules/service)
 submodule that consumes the shared `context.tf` for naming and tagging.
 
+## Usage
+
+### Minimal Fargate service
+
+```hcl
+module "api_service" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=main"
+
+  service              = "bcss"
+  project              = "api"
+  environment          = "development"
+  name                 = "web-api"
+  cluster_arn          = module.ecs_cluster.arn
+  subnet_ids           = module.vpc.private_subnets
+
+  container_definitions = {
+    app = {
+      image      = "my-registry.dkr.ecr.eu-west-2.amazonaws.com/my-app:latest"
+      cpu        = 512
+      memory     = 1024
+      essential  = true
+    }
+  }
+}
+```
+
+### Fargate service with load balancer
+
+```hcl
+module "web_service" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=main"
+
+  service              = "bcss"
+  project              = "web"
+  environment          = "prod"
+  name                 = "frontend"
+  cluster_arn          = module.ecs_cluster.arn
+  subnet_ids           = module.vpc.private_subnets
+  assign_public_ip     = false
+
+  container_definitions = {
+    web = {
+      image      = "my-registry.dkr.ecr.eu-west-2.amazonaws.com/web-app:v1.2.3"
+      cpu        = 512
+      memory     = 1024
+      essential  = true
+      port_mappings = [{
+        container_port = 8080
+        host_port      = 8080
+      }]
+    }
+  }
+
+  load_balancer = {
+    web = {
+      container_name   = "web"
+      container_port   = 8080
+      target_group_arn = module.alb.target_group_arn
+    }
+  }
+
+  health_check_grace_period_seconds = 60
+}
+```
+
+### Fargate service with autoscaling
+
+```hcl
+module "worker_service" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=main"
+
+  service              = "bcss"
+  project              = "jobs"
+  environment          = "prod"
+  name                 = "background-worker"
+  cluster_arn          = module.ecs_cluster.arn
+  subnet_ids           = module.vpc.private_subnets
+
+  container_definitions = {
+    worker = {
+      image      = "my-registry.dkr.ecr.eu-west-2.amazonaws.com/worker:latest"
+      cpu        = 256
+      memory     = 512
+      essential  = true
+    }
+  }
+
+  desired_count              = 2
+  enable_autoscaling         = true
+  autoscaling_min_capacity   = 2
+  autoscaling_max_capacity   = 10
+
+  autoscaling_policies = {
+    cpu = {
+      policy_type = "TargetTrackingScaling"
+      target_tracking_scaling_policy_configuration = {
+        target_value       = 70.0
+        predefined_metric_specification = {
+          predefined_metric_type = "ECSServiceAverageCPUUtilization"
+        }
+      }
+    }
+  }
+}
+```
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
