@@ -180,8 +180,14 @@ repos:
         files: \.tf(vars)?$
         pass_filenames: false
 
-      - id: scan-secrets
-        name: scan-secrets
+      - id: scan-secrets-staged-changes
+        name: scan-secrets-staged-changes
+        entry: bash -c 'check=staged-changes ./scripts/githooks/scan-secrets.sh'
+        language: system
+        pass_filenames: false
+
+      - id: scan-secrets-whole-history
+        name: scan-secrets-whole-history
         entry: bash -c 'check=whole-history ./scripts/githooks/scan-secrets.sh'
         language: system
         pass_filenames: false

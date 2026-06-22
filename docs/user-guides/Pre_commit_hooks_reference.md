@@ -49,7 +49,7 @@ Pre-commit hooks are **automated quality checks** that run before every commit. 
 - Prevent secrets from being committed
 - Save CI/CD time by fixing issues early
 
-**This repository has 26 hooks** covering Terraform, shell scripts, file formatting, security scanning, and commit message validation.
+**This repository has 27 hooks** covering Terraform, shell scripts, file formatting, security scanning, and commit message validation.
 
 ---
 
@@ -535,15 +535,17 @@ AWS credentials detected
 
 ---
 
-#### `scan-secrets` — Gitleaks
+#### `scan-secrets-staged-changes` — Gitleaks (staged files only)
 
-**What it does:** Scans entire git history for embedded secrets (API keys, credentials, etc.).
+**What it does:** Scans only the staged changes for embedded secrets (API keys, credentials, etc.).
+
+**When to use:** During pre-commit (automatically runs on `git commit`). Catches secrets before they're committed.
 
 **When it fails:**
 
 ```text
 Leaks found: 1
-File: .env.example
+File: .env
 Secret: aws_secret_access_key = "AKIA..."
 ```
 
@@ -552,13 +554,59 @@ Secret: aws_secret_access_key = "AKIA..."
 If it's a **real secret** (CRITICAL):
 
 ```bash
+# Unstage the file
+git reset .env
+
+# Remove from working directory (or edit to remove the secret)
+rm .env  # or edit to remove secrets
+
+# Stage and commit the corrected version
+git add .env
+git commit -m "fix: remove secrets"
+```
+
+If it's a **false positive** (e.g., example credentials):
+
+```bash
+# Add to .gitleaksignore
+echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
+
+# Re-stage and commit
+git add .gitleaksignore
+git commit -m "chore: ignore false positive secret scan"
+```
+
+---
+
+#### `scan-secrets-whole-history` — Gitleaks (complete history)
+
+**What it does:** Scans entire git history for embedded secrets (API keys, credentials, etc.). Runs on `pre-commit run --all-files` or in CI/CD.
+
+**When to use:** Full repository scans (CI/CD, local validation, before pushing to remote).
+
+**When it fails:**
+
+```text
+Leaks found: 1
+File: config/old-backup.tf
+Secret: aws_access_key_id = "AKIAIOSFODNN7EXAMPLE"
+Commit: abc1234
+```
+
+**Fix:**
+
+If it's a **real secret** (CRITICAL — secret is in history):
+
+```bash
 # Use git filter-branch to remove from history
 git filter-branch --force --index-filter \
-  'git rm --cached --ignore-unmatch PATH_TO_FILE' \
+  'git rm --cached --ignore-unmatch config/old-backup.tf' \
   --prune-empty --tag-name-filter cat -- --all
 
 # Force push to remove from remote
 git push origin +main
+
+# Regenerate any AWS/API credentials that were exposed
 ```
 
 If it's a **false positive** (e.g., example credentials):
@@ -568,13 +616,17 @@ If it's a **false positive** (e.g., example credentials):
 echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
 
 # Re-run to verify
-pre-commit run scan-secrets --all-files
+pre-commit run scan-secrets-whole-history --all-files
 ```
 
-**Manual run:**
+**Manual runs:**
 
 ```bash
-gitleaks detect --verbose
+# Scan staged changes only
+check=staged-changes ./scripts/githooks/scan-secrets.sh
+
+# Scan entire history
+check=whole-history ./scripts/githooks/scan-secrets.sh
 ```
 
 ---
@@ -768,7 +820,8 @@ git commit --no-verify -m "..."
 
 - `detect-aws-credentials` — detects leaked credentials
 - `detect-private-key` — detects leaked private keys
-- `scan-secrets` — scans git history for secrets
+- `scan-secrets-staged-changes` — scans staged changes for secrets
+- `scan-secrets-whole-history` — scans entire git history for secrets
 
 If you use `--no-verify`, report the issue immediately.
 
