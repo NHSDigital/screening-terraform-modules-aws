@@ -8,6 +8,16 @@ by the central `tags` module via `context.tf` — so every team gets
 consistent `/<service>/<project>/` paths and the standard NHS tag set
 automatically.
 
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| IAM path namespacing | Policies and roles use `/<service>/<project>/` path derived from context |
+| Consistent naming | Names derived from `module.this.id` with per-resource attributes |
+| Tagging | All policies and roles tagged via `module.this.tags` |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+| Map-driven interface | Single module call produces multiple policies/roles with stable keys |
+
 ## Usage
 
 The module is map-driven — one invocation can produce many policies and
