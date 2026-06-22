@@ -1,4 +1,4 @@
-# iam
+# IAM
 
 Creates IAM customer-managed policies and (optionally) IAM roles for any
 team on the screening platform. Thin wrapper around the community
