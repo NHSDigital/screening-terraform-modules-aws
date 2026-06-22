@@ -68,4 +68,8 @@ module "ecs_service" {
   platform_version                             = var.platform_version
   propagate_tags                               = var.propagate_tags
   proxy_configuration                          = var.proxy_configuration
+  requires_compatibilities                     = var.requires_compatibilities
+  runtime_platform                             = var.runtime_platform
+  scale                                        = var.scale
+  scheduling_strategy                          = var.scheduling_strategy
 }

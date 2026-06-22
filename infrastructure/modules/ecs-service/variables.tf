@@ -741,3 +741,33 @@ variable "proxy_configuration" {
   })
   default = null
 }
+
+variable "requires_compatibilities" {
+  description = "Set of launch types required by the task. The valid values are `EC2`, `FARGATE`, `EXTERNAL`, and `MANAGED_INSTANCES`"
+  type        = list(string)
+  default     = ["FARGATE"]
+}
+
+variable "runtime_platform" {
+  description = "Configuration block for `runtime_platform` that containers in your task may use"
+  type = object({
+    cpu_architecture        = optional(string, "X86_64")
+    operating_system_family = optional(string, "LINUX")
+  })
+  default = {}
+}
+
+variable "scale" {
+  description = "A floating-point percentage of the desired number of tasks to place and keep running in the task set"
+  type = object({
+    unit  = optional(string)
+    value = optional(number)
+  })
+  default = null
+}
+
+variable "scheduling_strategy" {
+  description = "Scheduling strategy to use for the service. The valid values are `REPLICA` and `DAEMON`. Defaults to `REPLICA`"
+  type        = string
+  default     = null
+}
