@@ -37,6 +37,26 @@ repos:
         pass_filenames: false
 
   # --------------------------------------------------------------------------
+  # Local: regenerate Dependabot configuration for Terraform modules
+  # --------------------------------------------------------------------------
+  # Automatically regenerates .github/dependabot.yaml whenever modules are
+  # added/removed. This ensures Dependabot watches all Terraform modules.
+  # Fails if the generated config differs from the committed version,
+  # forcing users to update the config and commit the result.
+  #
+  # Generates:
+  #   - .github/dependabot.yaml (complete Dependabot configuration)
+  - repo: local
+    hooks:
+      - id: regenerate-dependabot-config
+        name: regenerate-dependabot-config
+        require_serial: true
+        entry: ./scripts/githooks/check-dependabot-config.sh
+        language: script
+        files: infrastructure/modules/.*/versions\.tf$
+        pass_filenames: false
+
+  # --------------------------------------------------------------------------
   # Terraform hooks (format, lint, validate, docs, lock)
   # --------------------------------------------------------------------------
   - repo: https://github.com/antonbabenko/pre-commit-terraform

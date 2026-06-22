@@ -4,6 +4,7 @@
 [Aa]utotest
 Adhoc
 account_id
+actionlint
 api_gateway_name
 api_path_part
 arn
@@ -56,6 +57,7 @@ mgmt
 name_prefix
 ni
 nonfemale
+npm
 OAuth
 Octokit
 onboarding
@@ -85,6 +87,7 @@ stage_name
 start_time
 subnet
 Syft
+[Mm]arkdownlint
 [Tt]eardown
 [Tt]erraform
 terraform-docs
@@ -99,3 +102,4 @@ url
 vault_lock_type
 vault_name
 [Uu][Uu][Ii][Dd]
+yq

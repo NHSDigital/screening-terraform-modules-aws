@@ -8,6 +8,7 @@ This is the comprehensive reference for all pre-commit hooks in the `screening-t
 - [What Are Pre-Commit Hooks?](#what-are-pre-commit-hooks)
 - [Hook Categories](#hook-categories)
   - [Terraform Tools](#terraform-tools)
+  - [Configuration Hooks](#configuration-hooks)
   - [File Hygiene](#file-hygiene)
   - [Shell Scripts](#shell-scripts)
   - [File Formatting](#file-formatting)
@@ -238,6 +239,98 @@ terraform -chdir="infrastructure/modules/s3-bucket" providers lock \
 ```
 
 **Why this matters:** Ensures all developers (macOS, Linux, Windows) and CI/CD systems get consistent provider versions.
+
+---
+
+### Configuration Hooks
+
+These hooks maintain critical configuration files and ensure they stay in sync with repository state.
+
+#### `regenerate-dependabot-config` — Update Dependabot Configuration
+
+**What it does:** Automatically regenerates `.github/dependabot.yaml` by scanning `infrastructure/modules/` for all modules with `versions.tf` files. This ensures Dependabot watches every Terraform module without manual maintenance.
+
+**When it fails:**
+
+```text
+✗ Failed
+⚠ Dependabot configuration is out of date
+  Regenerating: .github/dependabot.yaml
+
+Please review the updated configuration and commit it:
+  git add .github/dependabot.yaml
+  git commit -m 'chore: update Dependabot configuration'
+```
+
+**What triggers it:**
+
+- Adding a new module with `infrastructure/modules/<module-name>/versions.tf`
+- Removing or renaming a module
+- Any change to module `versions.tf` files
+
+**Fix:**
+
+The hook regenerates the file automatically. Simply review and commit it:
+
+```bash
+# Review the changes
+git diff .github/dependabot.yaml
+
+# Commit the regenerated configuration
+git add .github/dependabot.yaml
+git commit -m "chore: update Dependabot configuration"
+```
+
+**What gets generated:**
+
+- All non-Terraform ecosystems preserved (Docker, GitHub Actions, npm, pip)
+- One entry per module in `infrastructure/modules/`
+- Daily update schedule for all ecosystems
+- Nested modules supported (e.g., `infrastructure/modules/vpc/` counts as one entry)
+- `.terraform/` cache directories excluded automatically
+
+**Example output:**
+
+```yaml
+version: 2
+
+updates:
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "terraform"
+    directory: "infrastructure/modules/s3-bucket"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "terraform"
+    directory: "infrastructure/modules/kms"
+    schedule:
+      interval: "daily"
+  # ... (one entry per module)
+```
+
+**Troubleshooting:**
+
+If the hook is skipped or fails silently, run manually:
+
+```bash
+bash scripts/generate-dependabot-config.sh .github/dependabot.yaml
+```
+
+To verify the configuration is valid:
+
+```bash
+# Install yq if needed: mise install yq
+yq eval '.' .github/dependabot.yaml
+```
 
 ---
 
@@ -556,6 +649,7 @@ git commit --amend
 | Terraform formatting | `terraform fmt -recursive infrastructure/modules/` |
 | Module docs out of sync | `pre-commit run terraform_docs --all-files` |
 | Provider locks missing platforms | `./scripts/terraform/upgrade-module.sh infrastructure/modules/<name>` |
+| Dependabot config out of date | Commit the regenerated `.github/dependabot.yaml` |
 | Shell script errors | Fix the issue; re-run `pre-commit run shellcheck` |
 | Trailing whitespace | `pre-commit run --all-files` (auto-fixed) |
 | Commit message format | `git commit --amend` and reword the message |
