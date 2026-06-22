@@ -297,40 +297,45 @@ Rules:
 
 | Module | Wraps | Description |
 | --- | --- | --- |
-| `api-gateway` | — | API Gateway configuration |
+| `acm` | terraform-aws-modules/acm/aws | AWS Certificate Manager (ACM) certificate management |
+| `api-gateway` | — | API Gateway configuration with custom domain and integration |
 | `aws-backup-destination` | — | AWS Backup destination vault |
 | `aws-backup-source` | — | AWS Backup source configuration |
-| `aws-scheduler` | — | EventBridge Scheduler |
-| `cognito` | — | Cognito user/identity pools |
-| `cw-firehose-splunk` | — | CloudWatch to Splunk via Firehose |
-| `ecr` | — | ECR repository |
+| `aws-scheduler` | — | EventBridge Scheduler configuration |
+| `cognito` | — | Cognito user and identity pools |
+| `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
+| `ecr` | — | ECR repository with security controls |
 | `ecs-cluster` | — | ECS Fargate cluster |
-| `elasticache` | — | ElastiCache cluster |
-| `github-config` | — | GitHub OIDC and runner configuration |
+| `ecs-service` | — | ECS service and task definition |
+| `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
+| `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
-| `iam` | `terraform-aws-modules/iam/aws` | IAM policies and roles |
+| `iam` | terraform-aws-modules/iam/aws | IAM policies and roles |
 | `inspector` | — | Inspector vulnerability scanning |
-| `kms` | `terraform-aws-modules/kms/aws` | KMS key with policy enforcement |
-| `lambda` | — | Lambda function |
-| `lambda-layer` | — | Lambda layer |
+| `kms` | terraform-aws-modules/kms/aws | KMS key with policy enforcement |
+| `lambda` | terraform-aws-modules/lambda/aws | Lambda function with runtime and layers |
+| `lambda-layer` | — | Lambda layer for function libraries |
 | `license-manager` | — | License Manager configuration |
-| `parameter_store` | — | SSM Parameter Store |
+| `network-firewall` | — | Network Firewall rules and policies |
+| `parameter_store` | — | SSM Parameter Store configuration |
+| `r53` | — | Route 53 DNS records (legacy) |
 | `r53-healthcheck` | — | Route 53 health checks |
+| `rds` | — | RDS database instance (legacy) |
 | `rds-database` | — | RDS database (logical) |
 | `rds-gateway-ecs-task` | — | RDS gateway ECS task definition |
 | `rds-instance` | — | RDS instance |
 | `rds-users` | — | RDS user management |
-| `s3` | — | S3 (legacy) |
-| `s3-bucket` | `terraform-aws-modules/s3-bucket/aws` | S3 bucket with full security |
-| `secrets-manager` | `terraform-aws-modules/secrets-manager/aws` | Secrets Manager |
-| `security-hub` | — | Security Hub |
-| `sns` | Native resources | SNS topic with encryption |
-| `sqs` | — | SQS queue |
-| `tags` | — | Foundation: naming and tagging context |
-| `vpc` | — | VPC |
-| `vpce` | — | VPC endpoint (single) |
-| `vpces` | — | VPC endpoints (multiple) |
-| `waf` | — | WAF web ACL |
+| `s3` | — | S3 bucket (legacy) |
+| `s3-bucket` | terraform-aws-modules/s3-bucket/aws | S3 bucket with full security baseline |
+| `secrets-manager` | terraform-aws-modules/secrets-manager/aws | Secrets Manager for secure secret storage |
+| `security-hub` | — | Security Hub for centralized security findings |
+| `sns` | terraform-aws-modules/sns/aws | SNS topic with encryption and policies |
+| `sqs` | — | SQS queue with encryption |
+| `tags` | — | Foundation: naming and tagging context module |
+| `vpc` | — | VPC with subnets, routing, and gateways |
+| `vpce` | — | VPC endpoint (single service) |
+| `vpces` | — | VPC endpoints (multiple services) |
+| `waf` | — | WAF web ACL with rules |
 
 ## Pre-commit hooks
 
