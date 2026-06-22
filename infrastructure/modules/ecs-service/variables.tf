@@ -660,3 +660,84 @@ variable "ipc_mode" {
   type        = string
   default     = null
 }
+
+variable "launch_type" {
+  description = "Launch type on which to run your service. The valid values are `EC2`, `FARGATE`, and `EXTERNAL`. Defaults to `FARGATE`"
+  type        = string
+  default     = "FARGATE"
+}
+
+variable "load_balancer" {
+  description = "Configuration block for load balancers"
+  type = map(object({
+    container_name   = string
+    container_port   = number
+    elb_name         = optional(string)
+    target_group_arn = optional(string)
+    advanced_configuration = optional(object({
+      alternate_target_group_arn = string
+      production_listener_rule   = string # Should be optional but bug in provider
+      role_arn                   = optional(string)
+      test_listener_rule         = optional(string)
+    }))
+  }))
+  default = null
+}
+
+variable "memory" {
+  description = "Amount of memory (in MiB) used by the task. If the `requires_compatibilities` is `FARGATE` this field is required"
+  type        = number
+  default     = 2048
+}
+
+variable "network_mode" {
+  description = "Docker networking mode to use for the containers in the task. Valid values are `none`, `bridge`, `awsvpc`, and `host`"
+  type        = string
+  default     = "awsvpc"
+}
+
+variable "ordered_placement_strategy" {
+  description = "Service level strategy rules that are taken into consideration during task placement. List from top to bottom in order of precedence"
+  type = list(object({
+    field = optional(string)
+    type  = string
+  }))
+  default = null
+}
+
+variable "pid_mode" {
+  description = "Process namespace to use for the containers in the task. The valid values are `host` and `task`"
+  type        = string
+  default     = null
+}
+
+variable "placement_constraints" {
+  description = "Configuration block for rules that are taken into consideration during task placement (up to max of 10). This is set at the service, see `task_definition_placement_constraints` for setting at the task definition"
+  type = map(object({
+    expression = optional(string)
+    type       = string
+  }))
+  default = null
+}
+
+variable "platform_version" {
+  description = "Platform version on which to run your service. Only applicable for `launch_type` set to `FARGATE`. Defaults to `LATEST`"
+  type        = string
+  default     = null
+}
+
+variable "propagate_tags" {
+  description = "Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are `SERVICE` and `TASK_DEFINITION`"
+  type        = string
+  default     = null
+}
+
+variable "proxy_configuration" {
+  description = "Configuration block for the App Mesh proxy"
+  type = object({
+    container_name = string
+    properties     = optional(map(string))
+    type           = optional(string)
+  })
+  default = null
+}

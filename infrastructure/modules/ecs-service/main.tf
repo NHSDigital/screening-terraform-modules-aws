@@ -58,4 +58,14 @@ module "ecs_service" {
   infrastructure_iam_role_tags                 = var.infrastructure_iam_role_tags
   infrastructure_iam_role_use_name_prefix      = var.infrastructure_iam_role_use_name_prefix
   ipc_mode                                     = var.ipc_mode
+  launch_type                                  = var.launch_type
+  load_balancer                                = var.load_balancer
+  memory                                       = var.memory
+  network_mode                                 = var.network_mode
+  ordered_placement_strategy                   = var.ordered_placement_strategy
+  pid_mode                                     = var.pid_mode
+  placement_constraints                        = var.placement_constraints
+  platform_version                             = var.platform_version
+  propagate_tags                               = var.propagate_tags
+  proxy_configuration                          = var.proxy_configuration
 }
