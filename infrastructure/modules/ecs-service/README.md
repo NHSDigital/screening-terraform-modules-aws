@@ -178,7 +178,33 @@ No resources.
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_autoscaling_policies"></a> [autoscaling\_policies](#output\_autoscaling\_policies) | Map of autoscaling policies and their attributes |
+| <a name="output_autoscaling_scheduled_actions"></a> [autoscaling\_scheduled\_actions](#output\_autoscaling\_scheduled\_actions) | Map of autoscaling scheduled actions and their attributes |
+| <a name="output_container_definitions"></a> [container\_definitions](#output\_container\_definitions) | Container definitions |
+| <a name="output_ecs_service_id"></a> [ecs\_service\_id](#output\_ecs\_service\_id) | ARN that identifies the service |
+| <a name="output_ecs_service_name"></a> [ecs\_service\_name](#output\_ecs\_service\_name) | Name of the service |
+| <a name="output_iam_role_arn"></a> [iam\_role\_arn](#output\_iam\_role\_arn) | Service IAM role ARN |
+| <a name="output_iam_role_name"></a> [iam\_role\_name](#output\_iam\_role\_name) | Service IAM role name |
+| <a name="output_iam_role_unique_id"></a> [iam\_role\_unique\_id](#output\_iam\_role\_unique\_id) | Stable and unique string identifying the service IAM role |
+| <a name="output_infrastructure_iam_role_arn"></a> [infrastructure\_iam\_role\_arn](#output\_infrastructure\_iam\_role\_arn) | Infrastructure IAM role ARN |
+| <a name="output_infrastructure_iam_role_name"></a> [infrastructure\_iam\_role\_name](#output\_infrastructure\_iam\_role\_name) | Infrastructure IAM role name |
+| <a name="output_security_group_arn"></a> [security\_group\_arn](#output\_security\_group\_arn) | ARN of the security group |
+| <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | ID of the security group |
+| <a name="output_task_definition_arn"></a> [task\_definition\_arn](#output\_task\_definition\_arn) | Full ARN of the Task Definition (including both `family` and `revision`) |
+| <a name="output_task_definition_family"></a> [task\_definition\_family](#output\_task\_definition\_family) | The unique name of the task definition |
+| <a name="output_task_definition_revision"></a> [task\_definition\_revision](#output\_task\_definition\_revision) | Revision of the task in a particular family |
+| <a name="output_task_exec_iam_role_arn"></a> [task\_exec\_iam\_role\_arn](#output\_task\_exec\_iam\_role\_arn) | Task execution IAM role ARN |
+| <a name="output_task_exec_iam_role_name"></a> [task\_exec\_iam\_role\_name](#output\_task\_exec\_iam\_role\_name) | Task execution IAM role name |
+| <a name="output_task_exec_iam_role_unique_id"></a> [task\_exec\_iam\_role\_unique\_id](#output\_task\_exec\_iam\_role\_unique\_id) | Stable and unique string identifying the task execution IAM role |
+| <a name="output_task_set_arn"></a> [task\_set\_arn](#output\_task\_set\_arn) | The ARN that identifies the task set |
+| <a name="output_task_set_id"></a> [task\_set\_id](#output\_task\_set\_id) | The ID of the task set |
+| <a name="output_task_set_stability_status"></a> [task\_set\_stability\_status](#output\_task\_set\_stability\_status) | The stability status. This indicates whether the task set has reached a steady state |
+| <a name="output_task_set_status"></a> [task\_set\_status](#output\_task\_set\_status) | The status of the task set |
+| <a name="output_tasks_iam_role_arn"></a> [tasks\_iam\_role\_arn](#output\_tasks\_iam\_role\_arn) | Tasks IAM role ARN |
+| <a name="output_tasks_iam_role_name"></a> [tasks\_iam\_role\_name](#output\_tasks\_iam\_role\_name) | Tasks IAM role name |
+| <a name="output_tasks_iam_role_unique_id"></a> [tasks\_iam\_role\_unique\_id](#output\_tasks\_iam\_role\_unique\_id) | Stable and unique string identifying the tasks IAM role |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->
