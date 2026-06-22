@@ -48,6 +48,12 @@ EOF
   cat > "$fixture_root/mise.lock" <<'EOF'
 # old lock
 EOF
+
+  cat > "$fixture_root/README.md" <<'EOF'
+# Fixture README
+
+This test fixture only needs README.md to exist.
+EOF
 }
 
 write_fixture_files
