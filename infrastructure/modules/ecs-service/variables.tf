@@ -241,12 +241,11 @@ variable "container_definitions" {
       condition     = string
       containerName = string
     })))
-    disableNetworking     = optional(bool)
-    dnsSearchDomains      = optional(list(string))
-    dnsServers            = optional(list(string))
-    dockerLabels          = optional(map(string))
-    dockerSecurityOptions = optional(list(string))
-    # DAVEH: following line was comment to preceeding line
+    disableNetworking      = optional(bool)
+    dnsSearchDomains       = optional(list(string))
+    dnsServers             = optional(list(string))
+    dockerLabels           = optional(map(string))
+    dockerSecurityOptions  = optional(list(string))
     enable_execute_command = optional(bool, false) # Set in standalone variable
     entrypoint             = optional(list(string))
     environment = optional(list(object({
