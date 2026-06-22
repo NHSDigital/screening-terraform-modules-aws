@@ -32,4 +32,10 @@ module "ecs_service" {
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   desired_count                      = var.desired_count
+  enable_autoscaling                 = var.enable_autoscaling
+  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+  enable_execute_command             = var.enable_execute_command
+  enable_fault_injection             = var.enable_fault_injection
+  ephemeral_storage                  = var.ephemeral_storage
+  external_id                        = var.external_id
 }
