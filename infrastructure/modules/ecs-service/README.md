@@ -1,4 +1,8 @@
-# DAVEH
+# ECS-Service
+
+NHS Screening wrapper around the community
+[`terraform-aws-modules/ecs/aws//modules/service`](https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest/submodules/service)
+submodule that consumes the shared `context.tf` for naming and tagging.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
