@@ -21,8 +21,9 @@
 #
 
 module "this" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.6.0"
+  source = "../tags"
 
+  enabled             = var.enabled
   service             = var.service
   project             = var.project
   region              = var.region

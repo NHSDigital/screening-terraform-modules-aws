@@ -17,24 +17,37 @@ locals {
 
   # ----------------------------------------------------------------
   # Logging configuration
+  #
+  # Build the upstream module's logging_configuration_destination_config
+  # from the flexible `var.logging` map, filtering out disabled entries.
   # ----------------------------------------------------------------
-  alert_log_config = var.create_alert_log ? [{
-    log_destination = {
-      logGroup = aws_cloudwatch_log_group.alert[0].name
-    }
-    log_destination_type = "CloudWatchLogs"
-    log_type             = "ALERT"
-  }] : []
+  logging_config = [
+    for k, v in var.logging : {
+      log_destination      = v.log_destination
+      log_destination_type = v.log_destination_type
+      log_type             = v.log_type
+    } if v.enabled
+  ]
 
-  flow_log_config = var.flow_log_s3_bucket_name != null ? [{
-    log_destination = {
-      bucketName = var.flow_log_s3_bucket_name
-      prefix     = coalesce(var.flow_log_s3_prefix, module.this.id)
-    }
-    log_destination_type = "S3"
-    log_type             = "FLOW"
-  }] : []
+  create_logging = var.create_logging_configuration
 
-  logging_config = concat(local.alert_log_config, local.flow_log_config)
-  create_logging = length(local.logging_config) > 0
+  # ----------------------------------------------------------------
+  # Rule group references
+  #
+  # Merge module-created rule groups (from var.rule_groups) with
+  # any externally supplied references (from
+  # var.policy_stateful_rule_group_reference).
+  # ----------------------------------------------------------------
+  # TODO: below looks very complicated – can it be simplified with fewer merges and conditionals?
+  module_stateful_rule_group_references = {
+    for k, v in var.rule_groups : k => merge(
+      { resource_arn = module.rule_group[k].arn },
+      v.priority != null ? { priority = v.priority } : {}
+    ) if v.type == "STATEFUL"
+  }
+
+  merged_stateful_rule_group_references = length(local.module_stateful_rule_group_references) > 0 || var.policy_stateful_rule_group_reference != null ? merge(
+    local.module_stateful_rule_group_references,
+    coalesce(var.policy_stateful_rule_group_reference, {})
+  ) : null
 }

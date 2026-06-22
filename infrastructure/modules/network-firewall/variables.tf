@@ -64,39 +64,103 @@ variable "kms_key_arn" {
 }
 
 ################################################################
-# Logging — ALERT (CloudWatch)
+# Logging
+#
+# Flexible logging configuration supporting all combinations of:
+#   Log types:    FLOW, ALERT, TLS
+#   Destinations: S3, CloudWatchLogs, KinesisDataFirehose
+#
+# Each entry in the map creates one log_destination_config block
+# in the firewall logging configuration. AWS allows at most one
+# config per log type (max 3 total).
+#
+# Destination-specific keys in `log_destination`:
+#   S3:                  { bucketName = "...", prefix = "..." }
+#   CloudWatchLogs:      { logGroup = "..." }
+#   KinesisDataFirehose: { deliveryStream = "..." }
+#
+# If `enabled` is omitted it defaults to true. Use `enabled = false`
+# to temporarily disable a destination without removing it.
+#
+# Example:
+#   logging = {
+#     flow_s3 = {
+#       log_type             = "FLOW"
+#       log_destination_type = "S3"
+#       log_destination      = { bucketName = "my-bucket", prefix = "nwfw" }
+#     }
+#     alert_cloudwatch = {
+#       log_type             = "ALERT"
+#       log_destination_type = "CloudWatchLogs"
+#       log_destination      = { logGroup = "/aws/network-firewall/alerts" }
+#     }
+#   }
+#
+# TODO(logging): Add support for managed CloudWatch log group per
+#   log type (similar to create_alert_log_group) so callers don't
+#   need to create log groups externally when using CloudWatchLogs.
+# TODO(logging): Add support for managed Kinesis Firehose delivery
+#   stream if demand arises from consuming teams.
 ################################################################
 
-variable "create_alert_log" {
-  description = "Create a CloudWatch Log Group for ALERT logs."
-  type        = bool
-  default     = true
+variable "logging" {
+  description = "Map of logging destinations. Each key creates one log_destination_config block. See variable comments for shape and examples."
+  type = map(object({
+    enabled              = optional(bool, true)
+    log_type             = string      # FLOW, ALERT, or TLS
+    log_destination_type = string      # S3, CloudWatchLogs, or KinesisDataFirehose
+    log_destination      = map(string) # destination-specific keys (see comments above)
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for k, v in var.logging : contains(["FLOW", "ALERT", "TLS"], v.log_type)
+    ])
+    error_message = "Each logging entry's log_type must be one of: FLOW, ALERT, TLS."
+  }
+
+  validation {
+    condition = alltrue([
+      for k, v in var.logging : contains(["S3", "CloudWatchLogs", "KinesisDataFirehose"], v.log_destination_type)
+    ])
+    error_message = "Each logging entry's log_destination_type must be one of: S3, CloudWatchLogs, KinesisDataFirehose."
+  }
 }
 
-variable "alert_log_retention_in_days" {
-  description = "Number of days to retain alert logs in CloudWatch."
+variable "create_logging_configuration" {
+  description = "Master toggle for logging configuration. Must be plan-time-known. When true, the `logging` map is used to build destination configs."
+  type        = bool
+  default     = false
+}
+
+################################################################
+# Managed CloudWatch Log Group
+#
+# Convenience resource for callers who want this module to own
+# the CloudWatch log group lifecycle (retention, KMS encryption)
+# rather than creating it externally.
+#
+# When enabled, the log group name is automatically set to
+# `/aws/network-firewall/<module.this.id>` and can be referenced
+# in the `logging` map via:
+#   log_destination = { logGroup = module.nwfw.alert_log_group_name }
+################################################################
+
+variable "create_alert_log_group" {
+  description = "Create a managed CloudWatch Log Group for ALERT logs. The log group name is exposed via the alert_log_group_name output."
+  type        = bool
+  default     = false
+}
+
+variable "alert_log_group_retention_in_days" {
+  description = "Number of days to retain logs in the managed alert log group."
   type        = number
   default     = 365
 }
 
-variable "alert_log_kms_key_id" {
-  description = "ARN of a KMS key to encrypt the CloudWatch alert log group. Leave null for no encryption."
-  type        = string
-  default     = null
-}
-
-################################################################
-# Logging — FLOW (S3)
-################################################################
-
-variable "flow_log_s3_bucket_name" {
-  description = "Name of the S3 bucket for FLOW logs. Leave null to disable S3 flow logging."
-  type        = string
-  default     = null
-}
-
-variable "flow_log_s3_prefix" {
-  description = "S3 key prefix for flow logs. Defaults to the module ID."
+variable "alert_log_group_kms_key_id" {
+  description = "ARN of a KMS key to encrypt the managed CloudWatch alert log group. Leave null for no encryption."
   type        = string
   default     = null
 }
@@ -193,4 +257,58 @@ variable "policy_variables" {
     }))
   })
   default = null
+}
+
+################################################################
+# Rule groups
+#
+# Map of rule group definitions created alongside the firewall.
+# Each entry creates a rule group via the upstream rule-group
+# submodule and automatically wires it into the firewall policy.
+#
+# For Suricata-format rules (most common), use `rules` with a
+# heredoc string. For structured rules, use `rule_group`.
+#
+# Example:
+#   rule_groups = {
+#     block_legacy_tls = {
+#       description = "Reject TLS 1.0/1.1"
+#       type        = "STATEFUL"
+#       capacity    = 10
+#       priority    = 100
+#       rules       = "reject tls any any -> any any (msg:\"Block TLS 1.0/1.1\"; ssl_version:tls1.0,tls1.1; sid:100001;)"
+#       rule_group = {
+#         stateful_rule_options = { rule_order = "STRICT_ORDER" }
+#       }
+#     }
+#     deny_domains = {
+#       description = "Block known-bad domains"
+#       type        = "STATEFUL"
+#       capacity    = 100
+#       priority    = 500
+#       rule_group = {
+#         stateful_rule_options = { rule_order = "STRICT_ORDER" }
+#         rules_source = {
+#           rules_source_list = {
+#             generated_rules_type = "DENYLIST"
+#             target_types         = ["TLS_SNI", "HTTP_HOST"]
+#             targets              = ["evil.com", ".malware.net"]
+#           }
+#         }
+#       }
+#     }
+#   }
+################################################################
+
+variable "rule_groups" {
+  description = "Map of rule group definitions to create and attach to the firewall policy. See variable comments for shape and examples."
+  type = map(object({
+    description = optional(string)
+    type        = optional(string, "STATEFUL")
+    capacity    = optional(number, 100)
+    priority    = optional(number)
+    rules       = optional(string)
+    rule_group  = optional(any)
+  }))
+  default = {}
 }

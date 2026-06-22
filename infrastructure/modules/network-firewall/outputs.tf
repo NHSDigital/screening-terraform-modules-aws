@@ -59,3 +59,12 @@ output "policy_update_token" {
   description = "A string token used when updating the firewall policy."
   value       = try(module.network_firewall.policy_update_token, null)
 }
+
+################################################################
+# Rule Groups
+################################################################
+
+output "rule_group_arns" {
+  description = "Map of rule group keys to their ARNs."
+  value       = { for k, v in module.rule_group : k => v.arn }
+}
