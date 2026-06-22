@@ -1118,3 +1118,118 @@ variable "tasks_iam_role_use_name_prefix" {
   type        = bool
   default     = true
 }
+
+variable "timeouts" {
+  description = "Create, update, and delete timeout configurations for the service"
+  type = object({
+    create = optional(string)
+    delete = optional(string)
+    update = optional(string)
+  })
+  default = null
+}
+
+variable "track_latest" {
+  description = "Whether should track latest `ACTIVE` task definition on AWS or the one created with the resource stored in state. Useful in the event the task definition is modified outside of this resource"
+  type        = bool
+  default     = true
+}
+
+variable "triggers" {
+  description = "Map of arbitrary keys and values that, when changed, will trigger an in-place update (redeployment). Useful with `timestamp()`"
+  type        = map(string)
+  default     = null
+}
+
+variable "volume" {
+  description = "Configuration block for volumes that containers in your task may use"
+  type = map(object({
+    configure_at_launch = optional(bool)
+    docker_volume_configuration = optional(object({
+      autoprovision = optional(bool)
+      driver        = optional(string)
+      driver_opts   = optional(map(string))
+      labels        = optional(map(string))
+      scope         = optional(string)
+    }))
+    efs_volume_configuration = optional(object({
+      authorization_config = optional(object({
+        access_point_id = optional(string)
+        iam             = optional(string)
+      }))
+      file_system_id          = string
+      root_directory          = optional(string)
+      transit_encryption      = optional(string)
+      transit_encryption_port = optional(number)
+    }))
+    fsx_windows_file_server_volume_configuration = optional(object({
+      authorization_config = optional(object({
+        credentials_parameter = string
+        domain                = string
+      }))
+      file_system_id = string
+      root_directory = string
+    }))
+    host_path = optional(string)
+    name      = optional(string)
+  }))
+  default = null
+}
+
+variable "volume_configuration" {
+  description = "Configuration for a volume specified in the task definition as a volume that is configured at launch time"
+  type = object({
+    name = string
+    managed_ebs_volume = object({
+      encrypted        = optional(bool)
+      file_system_type = optional(string)
+      iops             = optional(number)
+      kms_key_id       = optional(string)
+      size_in_gb       = optional(number)
+      snapshot_id      = optional(string)
+      tag_specifications = optional(list(object({
+        propagate_tags = optional(string, "TASK_DEFINITION")
+        resource_type  = string
+        tags           = optional(map(string))
+      })))
+      throughput                 = optional(number)
+      volume_initialization_rate = optional(number)
+      volume_type                = optional(string)
+    })
+  })
+  default = null
+}
+
+variable "vpc_id" {
+  description = "The VPC ID where to deploy the task or service. If not provided, the VPC ID is derived from the subnets provided"
+  type        = string
+  default     = null
+}
+
+variable "vpc_lattice_configurations" {
+  description = "The VPC Lattice configuration for your service that allows Lattice to connect, secure, and monitor your service across multiple accounts and VPCs"
+  type = object({
+    role_arn         = string
+    target_group_arn = string
+    port_name        = string
+  })
+  default = null
+}
+
+variable "wait_for_steady_state" {
+  description = "If true, Terraform will wait for the service to reach a steady state before continuing. Default is `false`"
+  type        = bool
+  default     = null
+}
+
+variable "wait_until_stable" {
+  description = "Whether terraform should wait until the task set has reached `STEADY_STATE`"
+  type        = bool
+  default     = null
+}
+
+variable "wait_until_stable_timeout" {
+  description = "Wait timeout for task set to reach `STEADY_STATE`. Valid time units include `ns`, `us` (or µs), `ms`, `s`, `m`, and `h`. Default `10m`"
+  type        = string
+  default     = null
+}
