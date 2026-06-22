@@ -606,3 +606,57 @@ variable "iam_role_use_name_prefix" {
   type        = bool
   default     = true
 }
+
+variable "ignore_task_definition_changes" {
+  description = "Whether changes to service `task_definition` changes should be ignored"
+  type        = bool
+  default     = false
+}
+
+variable "infrastructure_iam_role_arn" {
+  description = "Existing IAM role ARN"
+  type        = string
+  default     = null
+}
+
+variable "infrastructure_iam_role_description" {
+  description = "Description of the role"
+  type        = string
+  default     = null
+}
+
+variable "infrastructure_iam_role_name" {
+  description = "Name to use on IAM role created"
+  type        = string
+  default     = null
+}
+
+variable "infrastructure_iam_role_path" {
+  description = "IAM role path"
+  type        = string
+  default     = null
+}
+
+variable "infrastructure_iam_role_permissions_boundary" {
+  description = "ARN of the policy that is used to set the permissions boundary for the IAM role"
+  type        = string
+  default     = null
+}
+
+variable "infrastructure_iam_role_tags" {
+  description = "A map of additional tags to add to the IAM role created"
+  type        = map(string)
+  default     = {}
+}
+
+variable "infrastructure_iam_role_use_name_prefix" {
+  description = "Determines whether the IAM role name (`iam_role_name`) is used as a prefix"
+  type        = bool
+  default     = true
+}
+
+variable "ipc_mode" {
+  description = "IPC resource namespace to be used for the containers in the task The valid values are `host`, `task`, and `none`"
+  type        = string
+  default     = null
+}
