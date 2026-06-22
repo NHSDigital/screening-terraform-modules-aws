@@ -46,12 +46,12 @@ module "network_firewall" {
   create_policy       = var.create_policy
   firewall_policy_arn = var.firewall_policy_arn
 
-  policy_name                               = module.this.id
-  policy_description                        = coalesce(var.description, "Firewall policy for ${module.this.id}")
-  policy_encryption_configuration           = local.encryption_configuration
-  policy_variables                          = var.policy_variables
-  policy_stateful_default_actions           = var.policy_stateful_default_actions
-  policy_stateful_engine_options            = var.policy_stateful_engine_options
+  policy_name                     = module.this.id
+  policy_description              = coalesce(var.description, "Firewall policy for ${module.this.id}")
+  policy_encryption_configuration = local.encryption_configuration
+  policy_variables                = var.policy_variables
+  policy_stateful_default_actions = var.policy_stateful_default_actions
+  policy_stateful_engine_options  = var.policy_stateful_engine_options
   # TODO: why was this changed?
   # policy_stateful_rule_group_reference      = var.policy_stateful_rule_group_reference
   policy_stateful_rule_group_reference      = local.merged_stateful_rule_group_references
@@ -71,7 +71,7 @@ module "network_firewall" {
 ################################################################
 
 module "rule_group" {
-  source   = "terraform-aws-modules/network-firewall/aws//modules/rule-group"
+  source  = "terraform-aws-modules/network-firewall/aws//modules/rule-group"
   version = "2.1.0"
 
   for_each = { for k, v in var.rule_groups : k => v if module.this.enabled }
