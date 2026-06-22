@@ -1,8 +1,20 @@
-# ECS-Service
+# ECS Service
 
 NHS Screening wrapper around the community
 [`terraform-aws-modules/ecs/aws//modules/service`](https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest/submodules/service)
-submodule that consumes the shared `context.tf` for naming and tagging.
+submodule that enforces the platform's baseline controls and consumes
+the shared `context.tf` for naming and tagging.
+
+## What this module enforces
+
+|Control|How it is enforced|
+|---|---|
+|No public IP|`assign_public_ip` defaults to `false`; tasks run on private subnets|
+|ECS-managed tags|`enable_ecs_managed_tags` defaults to `true`; AWS propagates resource tags to tasks|
+|Tag propagation|`propagate_tags` defaults to `TASK_DEFINITION` so tasks inherit service tags|
+|Creation gate|`create = module.this.enabled`; no resources are created when the module is disabled|
+|Consistent naming|Service name is sourced from `local.service_name` (context-derived or `var.service_name` override)|
+|Consistent tagging|All resources tagged via `module.this.tags`|
 
 ## Usage
 
@@ -10,7 +22,7 @@ submodule that consumes the shared `context.tf` for naming and tagging.
 
 ```hcl
 module "api_service" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=<tag>"
 
   service              = "bcss"
   project              = "api"
@@ -34,15 +46,16 @@ module "api_service" {
 
 ```hcl
 module "web_service" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=<tag>"
 
-  service              = "bcss"
-  project              = "web"
-  environment          = "prod"
-  name                 = "frontend"
-  cluster_arn          = module.ecs_cluster.arn
-  subnet_ids           = module.vpc.private_subnets
-  assign_public_ip     = false
+  service     = "bcss"
+  project     = "web"
+  environment = "prod"
+  name        = "frontend"
+
+  cluster_arn = module.ecs_cluster.arn
+  vpc_id      = module.vpc.vpc_id
+  subnet_ids  = module.vpc.private_subnets
 
   container_definitions = {
     web = {
@@ -73,14 +86,16 @@ module "web_service" {
 
 ```hcl
 module "worker_service" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=<tag>"
 
-  service              = "bcss"
-  project              = "jobs"
-  environment          = "prod"
-  name                 = "background-worker"
-  cluster_arn          = module.ecs_cluster.arn
-  subnet_ids           = module.vpc.private_subnets
+  service     = "bcss"
+  project     = "jobs"
+  environment = "prod"
+  name        = "background-worker"
+
+  cluster_arn = module.ecs_cluster.arn
+  vpc_id      = module.vpc.vpc_id
+  subnet_ids  = module.vpc.private_subnets
 
   container_definitions = {
     worker = {
@@ -110,6 +125,148 @@ module "worker_service" {
 }
 ```
 
+### Service reading secrets from Secrets Manager
+
+```hcl
+module "api_service" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=<tag>"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "web-api"
+
+  cluster_arn = module.ecs_cluster.arn
+  vpc_id      = module.vpc.vpc_id
+  subnet_ids  = module.vpc.private_subnets
+
+  # Grant the task execution role permission to read these secrets.
+  # The values are injected into the container at runtime via the
+  # secrets block in the container definition below.
+  task_exec_secret_arns = [
+    module.db_credentials.secret_arn,
+    module.api_key.secret_arn,
+  ]
+
+  container_definitions = {
+    app = {
+      image     = "my-registry.dkr.ecr.eu-west-2.amazonaws.com/my-app:latest"
+      cpu       = 512
+      memory    = 1024
+      essential = true
+
+      secrets = [
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = module.db_credentials.secret_arn
+        },
+        {
+          name      = "API_KEY"
+          valueFrom = module.api_key.secret_arn
+        },
+      ]
+    }
+  }
+}
+```
+
+### Blue/green deployment
+
+```hcl
+module "api_service" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=<tag>"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "web-api"
+
+  cluster_arn = module.ecs_cluster.arn
+  vpc_id      = module.vpc.vpc_id
+  subnet_ids  = module.vpc.private_subnets
+
+  deployment_configuration = {
+    strategy             = "BLUE_GREEN"
+    bake_time_in_minutes = 5
+  }
+
+  deployment_circuit_breaker = {
+    enable   = true
+    rollback = true
+  }
+
+  container_definitions = {
+    app = {
+      image     = "my-registry.dkr.ecr.eu-west-2.amazonaws.com/my-app:latest"
+      cpu       = 512
+      memory    = 1024
+      essential = true
+    }
+  }
+}
+```
+
+### Preserving an existing service name
+
+Use `service_name` when you wish to explicitly define a service name i.e. when the ECS service was previously created outside Terraform and the name must be kept stable:
+
+```hcl
+module "legacy_service" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ecs-service?ref=<tag>"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "web-api"
+
+  service_name = "bcss-legacy-worker" # overrides the context-derived name
+
+  cluster_arn = module.ecs_cluster.arn
+  vpc_id      = module.vpc.vpc_id
+  subnet_ids  = module.vpc.private_subnets
+
+  container_definitions = {
+    app = {
+      image     = "my-registry.dkr.ecr.eu-west-2.amazonaws.com/my-app:latest"
+      cpu       = 256
+      memory    = 512
+      essential = true
+    }
+  }
+}
+```
+
+## Conventions
+
+- Service name defaults to `module.this.name` (derived from `context.tf`). Supply
+  `service`, `project`, `environment`, and `name` inputs to control the generated
+  name. Set `service_name` to override the context-derived name with an explicit
+  value — useful when an existing ECS service name must be preserved.
+- `assign_public_ip` defaults to `false`. Only set it to `true` for public-facing
+  Fargate services that intentionally require direct internet access; this is rare
+  in the NHS Screening platform.
+- `enable_autoscaling` defaults to `true`. Set it to `false` for batch or
+  short-lived services that do not require auto-scaling.
+- `desired_count` defaults to `1`. Adjust to match your workload requirements.
+- The caller must supply the ECS cluster ARN (`cluster_arn`) and the VPC subnet
+  IDs (`subnet_ids`). These are not managed by this module.
+
+## What this module does NOT do
+
+- Create an ECS cluster. Use the `ecs-cluster` module and pass the ARN via
+  `cluster_arn`.
+- Create VPCs, subnets, or security groups. The caller is responsible for
+  networking; pass existing security group IDs via `security_group_ids` or let
+  the module create one via `create_security_group = true`.
+- Create load balancers or target groups. Configure these separately and pass
+  the target group ARN(s) via `load_balancer`.
+- Build or push container images. Use the `ecr` module for the registry.
+- Manage KMS encryption at the ECS service level. Task-level secrets encryption
+  is handled via the task execution IAM role and the `secrets-manager` or
+  `parameter_store` modules.
+- Create CloudWatch log groups. Define these in your container definitions or
+  provision them separately.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -128,7 +285,7 @@ No providers.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_ecs_service"></a> [ecs\_service](#module\_ecs\_service) | terraform-aws-modules/ecs/aws//modules/service | ~> 7.5.0 |
+| <a name="module_ecs_service"></a> [ecs\_service](#module\_ecs\_service) | terraform-aws-modules/ecs/aws//modules/service | 7.5.0 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
@@ -238,6 +395,7 @@ No resources.
 | <a name="input_service"></a> [service](#input\_service) | ID element. Usually an abbreviation of your service directorate name, e.g. 'bcss' or 'csms', to help ensure generated IDs are globally unique | `string` | `null` | no |
 | <a name="input_service_category"></a> [service\_category](#input\_service\_category) | The tag service\_category | `string` | `"n/a"` | no |
 | <a name="input_service_connect_configuration"></a> [service\_connect\_configuration](#input\_service\_connect\_configuration) | The ECS Service Connect configuration for this service to discover and connect to services, and be discovered by, and connected from, other services within a namespace | <pre>object({<br/>    enabled = optional(bool, true)<br/>    access_log_configuration = optional(object({<br/>      format                   = string<br/>      include_query_parameters = optional(string)<br/>    }))<br/>    log_configuration = optional(object({<br/>      log_driver = string<br/>      options    = optional(map(string))<br/>      secret_option = optional(list(object({<br/>        name       = string<br/>        value_from = string<br/>      })))<br/>    }))<br/>    namespace = optional(string)<br/>    service = optional(list(object({<br/>      client_alias = optional(object({<br/>        dns_name = optional(string)<br/>        port     = number<br/>        test_traffic_rules = optional(list(object({<br/>          header = optional(object({<br/>            name = string<br/>            value = object({<br/>              exact = string<br/>            })<br/>          }))<br/>        })))<br/>      }))<br/>      discovery_name        = optional(string)<br/>      ingress_port_override = optional(number)<br/>      port_name             = string<br/>      timeout = optional(object({<br/>        idle_timeout_seconds        = optional(number)<br/>        per_request_timeout_seconds = optional(number)<br/>      }))<br/>      tls = optional(object({<br/>        issuer_cert_authority = object({<br/>          aws_pca_authority_arn = string<br/>        })<br/>        kms_key  = optional(string)<br/>        role_arn = optional(string)<br/>      }))<br/>    })))<br/>  })</pre> | `null` | no |
+| <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Name of the service | `string` | `null` | no |
 | <a name="input_service_registries"></a> [service\_registries](#input\_service\_registries) | Service discovery registries for the service | <pre>object({<br/>    container_name = optional(string)<br/>    container_port = optional(number)<br/>    port           = optional(number)<br/>    registry_arn   = string<br/>  })</pre> | `null` | no |
 | <a name="input_service_tags"></a> [service\_tags](#input\_service\_tags) | A map of additional tags to add to the service | `map(string)` | `{}` | no |
 | <a name="input_sigint_rollback"></a> [sigint\_rollback](#input\_sigint\_rollback) | Whether to enable graceful termination of deployments using SIGINT signals. Only applicable when using ECS deployment controller and requires wait\_for\_steady\_state = true. Default is false | `bool` | `null` | no |
