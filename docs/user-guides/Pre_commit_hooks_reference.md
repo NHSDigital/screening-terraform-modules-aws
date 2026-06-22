@@ -334,6 +334,100 @@ yq eval '.' .github/dependabot.yaml
 
 ---
 
+#### `check-available-modules` — Update Available Modules Table in README
+
+**What it does:** Automatically regenerates the "Available modules" section in `README.md` by reading metadata from `scripts/generate-available-modules.yaml`. This ensures the module table stays in sync with the actual modules and their descriptions.
+
+**When it fails:**
+
+```text
+✗ Pre-commit check FAILED - README was regenerated
+
+Please review the updated Available modules section and commit it:
+  git add README.md
+  git commit -m 'docs: update Available modules section'
+```
+
+**What triggers it:**
+
+- Adding or removing a module in `infrastructure/modules/`
+- Updating any module's `README.md`
+- Updating `scripts/config/generate-available-modules.yaml` metadata
+
+**Fix:**
+
+The hook regenerates the table automatically. Simply review and commit it:
+
+```bash
+# Review the changes
+git diff README.md
+
+# Commit the regenerated table
+git add README.md
+git commit -m "docs: update Available modules section"
+```
+
+**How it works:**
+
+1. Reads module metadata from `scripts/config/generate-available-modules.yaml`
+   - Module descriptions (human-curated)
+   - Wrapped community modules (e.g., `terraform-aws-modules/s3-bucket/aws`)
+
+2. Scans `infrastructure/modules/` for actual modules
+
+3. Generates a markdown table between markers:
+   - `<!-- BEGIN_AVAILABLE_MODULES -->`
+   - `<!-- END_AVAILABLE_MODULES -->`
+
+4. Replaces only the table, preserving all other README content
+
+**Example table generated:**
+
+```markdown
+| Module | Wraps | Description |
+| --- | --- | --- |
+| `s3-bucket` | terraform-aws-modules/s3-bucket/aws | S3 bucket with full security baseline |
+| `iam` | terraform-aws-modules/iam/aws | IAM policies and roles |
+| `tags` | — | Foundation: naming and tagging context module |
+| `vpc` | — | VPC with subnets, routing, and gateways |
+```
+
+**Maintenance:**
+
+To add or update a module's description:
+
+1. Edit `scripts/config/generate-available-modules.yaml`
+2. Add or update the module entry with description and wraps info
+3. Run the hook (it will regenerate README.md automatically on next commit)
+
+Example metadata entry:
+
+```yaml
+s3-bucket:
+  description: "S3 bucket with full security baseline"
+  wraps: "terraform-aws-modules/s3-bucket/aws"
+```
+
+**Troubleshooting:**
+
+If markers are missing from README.md, add them:
+
+```markdown
+## Available modules
+
+<!-- BEGIN_AVAILABLE_MODULES -->
+(table will be inserted here)
+<!-- END_AVAILABLE_MODULES -->
+```
+
+To regenerate manually:
+
+```bash
+bash scripts/generate-available-modules.sh
+```
+
+---
+
 ### File Hygiene
 
 These hooks catch common Git mistakes and enforce best practices.

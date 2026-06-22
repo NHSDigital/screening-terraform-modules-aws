@@ -339,6 +339,7 @@ Rules:
 | `waf` | — | WAF web ACL with rules |
 
 <!-- END_AVAILABLE_MODULES -->
+
 ## Pre-commit hooks
 
 This repository uses [pre-commit](https://pre-commit.com/) to run quality checks before code is committed locally, and in CI via the `stage-1-pre-commit.yml` GitHub Actions workflow.
