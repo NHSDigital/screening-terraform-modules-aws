@@ -75,6 +75,15 @@ module "security_hub" {
 }
 ```
 
+## Conventions
+
+- `enable_default_standards` defaults to `true`, enabling AWS Foundational Security Best Practices (FSBP) and CIS AWS Foundations Benchmark.
+- `enabled_standards` is an optional list of additional standards to enable (e.g., `"standards/pci-dss/v/3.2.1"`).
+- `finding_aggregator_enabled` defaults to `false`; set to `true` to aggregate findings from multiple regions into the current region.
+- `create_sns_topic` is always `false` (the module does not create its own topic); provide `findings_notification_arn` to forward findings to an existing SNS topic.
+- GuardDuty findings are automatically ingested by Security Hub when both services are enabled in the same account/region; no additional configuration is required.
+- Context-based naming and tagging via `module.this.context` is forwarded to the upstream CloudPosse module.
+
 ## What this module does NOT do
 
 * Create the SNS topic that receives findings. That is owned by the alerting
