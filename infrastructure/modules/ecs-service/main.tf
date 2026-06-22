@@ -38,4 +38,7 @@ module "ecs_service" {
   enable_fault_injection             = var.enable_fault_injection
   ephemeral_storage                  = var.ephemeral_storage
   external_id                        = var.external_id
+  force_delete                       = var.force_delete
+  force_new_deployment               = var.force_new_deployment
+  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
 }
