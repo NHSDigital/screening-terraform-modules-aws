@@ -482,3 +482,41 @@ variable "desired_count" {
   type        = number
   default     = 1
 }
+
+variable "enable_autoscaling" {
+  description = "Determines whether to enable autoscaling for the service"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ecs_managed_tags" {
+  description = "Specifies whether to enable Amazon ECS managed tags for the tasks within the service"
+  type        = bool
+  default     = true
+}
+
+variable "enable_execute_command" {
+  description = "Specifies whether to enable Amazon ECS Exec for the tasks within the service"
+  type        = bool
+  default     = false
+}
+
+variable "enable_fault_injection" {
+  description = "Enables fault injection and allows for fault injection requests to be accepted from the task's containers. Default is `false`"
+  type        = bool
+  default     = null
+}
+
+variable "ephemeral_storage" {
+  description = "The amount of ephemeral storage to allocate for the task. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on AWS Fargate"
+  type = object({
+    size_in_gib = number
+  })
+  default = null
+}
+
+variable "external_id" {
+  description = "The external ID associated with the task set"
+  type        = string
+  default     = null
+}
