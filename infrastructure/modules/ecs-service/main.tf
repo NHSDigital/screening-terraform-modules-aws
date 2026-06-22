@@ -1,9 +1,25 @@
+################################################################
+# ECS Service
+#
+# Thin NHS wrapper around the community ECS service submodule
+# (terraform-aws-modules/ecs/aws//modules/service) that
+# enforces the screening platform's baseline controls:
+#
+#   * No public IP: assign_public_ip defaults to false
+#   * ECS-managed tags: enable_ecs_managed_tags defaults to true
+#   * Tag propagation: propagate_tags defaults to TASK_DEFINITION
+#   * Creation gated by module.this.enabled
+#
+# Naming: context.tf via module.this by default; caller may override
+# with var.service_name. Tagging is always via module.this.tags.
+################################################################
+
 module "ecs_service" {
   source  = "terraform-aws-modules/ecs/aws//modules/service"
-  version = "~> 7.5.0"
+  version = "7.5.0"
 
   create = module.this.enabled
-  name   = module.this.name
+  name   = local.service_name
   tags   = module.this.tags
 
   alarms                                       = var.alarms

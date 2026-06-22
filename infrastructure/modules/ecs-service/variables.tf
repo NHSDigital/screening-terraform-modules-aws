@@ -1,3 +1,10 @@
+################################################################
+# ECS Service-specific inputs.
+#
+# Naming, tagging and the master `enabled` switch come from
+# context.tf via `module.this`.
+################################################################
+
 variable "alarms" {
   description = "Information about the CloudWatch alarms"
   type = object({
@@ -882,6 +889,12 @@ variable "service_connect_configuration" {
     })))
   })
   default = null
+}
+
+variable "service_name" {
+  description = "Name of the service"
+  type        = string
+  default     = null
 }
 
 variable "service_registries" {
