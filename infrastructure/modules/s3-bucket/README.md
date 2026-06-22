@@ -24,7 +24,7 @@ the shared `context.tf` for naming and tagging.
 
 ```hcl
 module "data_bucket" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/s3?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/s3?ref=<ref>"
 
   service     = "bcss"
   project     = "ingest"
@@ -37,7 +37,7 @@ module "data_bucket" {
 
 ```hcl
 module "audit_bucket" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/s3?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/s3?ref=<ref>"
 
   service     = "bcss"
   project     = "audit"
@@ -57,7 +57,7 @@ module "audit_bucket" {
 
 ```hcl
 module "log_bucket" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/s3?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/s3?ref=<ref>"
 
   service     = "bcss"
   project     = "platform"
