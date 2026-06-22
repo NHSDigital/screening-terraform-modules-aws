@@ -32,7 +32,7 @@ shared SNS topic created by the separate alerting module via the
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -45,7 +45,7 @@ module "security_hub" {
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -64,7 +64,7 @@ module "security_hub" {
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"

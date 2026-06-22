@@ -290,7 +290,7 @@ module that enforces the platform's baseline controls.
 
 \```hcl
 module "example" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/<name>?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/<name>?ref=<tag>"
 
   service     = "bcss"
   environment = "test"

@@ -19,7 +19,7 @@ NHS Screening wrapper for AWS GuardDuty that enforces the platform's baseline co
 
 ```hcl
 module "guardduty" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=<tag>"
 
   service     = "bcss"
   project     = "security"
@@ -34,7 +34,7 @@ module "guardduty" {
 
 ```hcl
 module "guardduty" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=<tag>"
 
   service     = "bcss"
   project     = "security"
@@ -67,7 +67,7 @@ module "guardduty" {
 
 ```hcl
 module "guardduty_dev" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=<tag>"
 
   service     = "bcss"
   project     = "security"

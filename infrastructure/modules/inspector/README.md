@@ -23,7 +23,7 @@ build a separate module using the `aws_inspector2_*` resources.
 
 ```hcl
 module "inspector" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=<tag>"
 
   service     = "bcss"
   project     = "security"
@@ -38,7 +38,7 @@ module "inspector" {
 
 ```hcl
 module "inspector" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=<tag>"
 
   service     = "bcss"
   project     = "security"
@@ -87,7 +87,7 @@ resource "aws_iam_role_policy_attachment" "inspector" {
 }
 
 module "inspector" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=<tag>"
 
   service     = "bcss"
   project     = "security"

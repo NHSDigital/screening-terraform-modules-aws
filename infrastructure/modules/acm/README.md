@@ -21,7 +21,7 @@ the shared `context.tf` for naming and tagging.
 
 ```hcl
 module "acm" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=<tag>"
 
   service     = "bcss"
   project     = "portal"
@@ -37,7 +37,7 @@ module "acm" {
 
 ```hcl
 module "acm" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -61,7 +61,7 @@ module "acm" {
 
 ```hcl
 module "acm_private" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=<tag>"
 
   service     = "bcss"
   project     = "internal"
@@ -78,7 +78,7 @@ module "acm_private" {
 
 ```hcl
 module "acm_no_ct" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=<tag>"
 
   service     = "bcss"
   project     = "portal"
@@ -99,7 +99,7 @@ module "acm_no_ct" {
 
 ```hcl
 module "acm_validation_records" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/acm?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"

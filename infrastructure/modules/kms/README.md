@@ -19,7 +19,7 @@ Terraform module to provision a [KMS](https://aws.amazon.com/kms/) key with alia
 
 ```hcl
 module "kms_key" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=<tag>"
 
   service     = "bcss"
   project     = "data"
@@ -34,7 +34,7 @@ module "kms_key" {
 
 ```hcl
 module "kms_key" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=<tag>"
 
   service     = "bcss"
   project     = "bcss"
@@ -63,7 +63,7 @@ module "kms_key" {
 
 ```hcl
 module "kms_signing_key" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=<tag>"
 
   service     = "bcss"
   project     = "signing"
