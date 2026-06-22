@@ -424,3 +424,61 @@ variable "create_tasks_iam_role" {
   type        = bool
   default     = true
 }
+
+variable "deployment_circuit_breaker" {
+  description = "Configuration block for deployment circuit breaker"
+  type = object({
+    enable   = bool
+    rollback = bool
+  })
+  default = null
+}
+
+variable "deployment_configuration" {
+  description = "Configuration block for deployment settings"
+  type = object({
+    strategy             = optional(string)
+    bake_time_in_minutes = optional(string)
+    canary_configuration = optional(object({
+      canary_bake_time_in_minutes = optional(string)
+      canary_percent              = optional(string)
+    }))
+    linear_configuration = optional(object({
+      step_bake_time_in_minutes = optional(string)
+      step_percent              = optional(string)
+    }))
+    lifecycle_hook = optional(map(object({
+      hook_target_arn  = string
+      role_arn         = optional(string)
+      lifecycle_stages = list(string)
+      hook_details     = optional(string)
+    })))
+  })
+  default = null
+}
+
+variable "deployment_controller" {
+  description = "Configuration block for deployment controller configuration"
+  type = object({
+    type = optional(string)
+  })
+  default = null
+}
+
+variable "deployment_maximum_percent" {
+  description = "Upper limit (as a percentage of the service's `desired_count`) of the number of running tasks that can be running in a service during a deployment"
+  type        = number
+  default     = 200
+}
+
+variable "deployment_minimum_healthy_percent" {
+  description = "Lower limit (as a percentage of the service's `desired_count`) of the number of running tasks that must remain running and healthy in a service during a deployment"
+  type        = number
+  default     = 66
+}
+
+variable "desired_count" {
+  description = "Number of instances of the task definition to place and keep running"
+  type        = number
+  default     = 1
+}
