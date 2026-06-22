@@ -28,13 +28,16 @@ config:: # Configure development environment (main) @Configuration
 	# Install git hooks
 	pre-commit install --install-hooks --hook-type commit-msg
 
-test-validations: test-commit-validator test-workflow-pinning # Run validation tests for new features @Testing
+test-validations: test-commit-validator test-workflow-pinning test-tool-version-upgrade # Run validation tests for new features @Testing
 
 test-commit-validator: # Test conventional commit validator implementation @Testing
 	bash tests/test-conventional-commit.sh
 
 test-workflow-pinning: # Test workflow security pinning (immutable refs) @Testing
 	bash tests/test-workflow-security.sh
+
+test-tool-version-upgrade: # Test tool version upgrade helper @Testing
+	bash tests/test-tool-version-upgrade.sh
 
 # ==============================================================================
 
@@ -47,3 +50,4 @@ ${VERBOSE}.SILENT: \
 	test-validations \
 	test-commit-validator \
 	test-workflow-pinning
+	test-tool-version-upgrade

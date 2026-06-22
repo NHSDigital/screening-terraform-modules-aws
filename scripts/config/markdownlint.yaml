@@ -13,5 +13,15 @@ MD013: false
 MD024:
   siblings_only: true
 
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/md007.md
+MD007:
+  indent: 2
+
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/md031.md
+MD031: true
+
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/md032.md
+MD032: true
+
 # https://github.com/DavidAnson/markdownlint/blob/main/doc/md033.md
 MD033: false
