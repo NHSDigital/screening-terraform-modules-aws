@@ -14,7 +14,7 @@ Thin NHS wrapper around [terraform-aws-modules/secrets-manager/aws](https://regi
 
 ```hcl
 module "db_credentials" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<ref>"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
 
   context     = module.this.context
   stack       = "database"
@@ -36,7 +36,7 @@ module "db_credentials" {
 
 ```hcl
 module "api_key" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<ref>"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
 
   context = module.this.context
   stack   = "api"
@@ -65,7 +65,7 @@ module "api_key" {
 
 ```hcl
 module "rotated_password" {
-    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<ref>"
+    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
 
   context = module.this.context
   stack   = "database"
