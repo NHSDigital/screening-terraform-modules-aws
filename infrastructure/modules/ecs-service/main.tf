@@ -111,4 +111,14 @@ module "ecs_service" {
   tasks_iam_role_statements                    = var.tasks_iam_role_statements
   tasks_iam_role_tags                          = var.tasks_iam_role_tags
   tasks_iam_role_use_name_prefix               = var.tasks_iam_role_use_name_prefix
+  timeouts                                     = var.timeouts
+  track_latest                                 = var.track_latest
+  triggers                                     = var.triggers
+  volume                                       = var.volume
+  volume_configuration                         = var.volume_configuration
+  vpc_id                                       = var.vpc_id
+  vpc_lattice_configurations                   = var.vpc_lattice_configurations
+  wait_for_steady_state                        = var.wait_for_steady_state
+  wait_until_stable                            = var.wait_until_stable
+  wait_until_stable_timeout                    = var.wait_until_stable_timeout
 }
