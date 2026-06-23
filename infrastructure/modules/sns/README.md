@@ -1,5 +1,94 @@
 # SNS
 
+NHS Screening wrapper around the community [`terraform-aws-modules/sns/aws`](https://registry.terraform.io/modules/terraform-aws-modules/sns/aws/latest) module that enforces the platform's baseline controls and consumes the shared `context.tf` for naming and tagging.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| Service publish permissions | Pre-configured topic policy allows EventBridge, ElastiCache, Backup, and ECS services to publish |
+| Tagging and naming | Uses shared `context.tf` (`module.this`) for tags and naming |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+| Standard (non-FIFO) topics | FIFO topics are disabled (`fifo_topic = false`) |
+
+## Usage
+
+### Minimal SNS topic
+
+```hcl
+module "sns_alerts" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sns?ref=<tag>"
+
+  service        = "bcss"
+  project        = "platform"
+  environment    = "prod"
+  name           = "alerts"
+  aws_account_id = "123456789012"
+}
+```
+
+### SNS topic with email subscription
+
+```hcl
+module "sns_notifications" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sns?ref=<tag>"
+
+  service        = "bcss"
+  project        = "monitoring"
+  environment    = "prod"
+  name           = "notifications"
+  aws_account_id = "123456789012"
+
+  subscriptions = {
+    email_team = {
+      protocol = "email"
+      endpoint = "team@example.nhs.uk"
+    }
+  }
+}
+```
+
+### SNS topic with Lambda subscription and filter policy
+
+```hcl
+module "sns_events" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sns?ref=<tag>"
+
+  service        = "bcss"
+  project        = "events"
+  environment    = "prod"
+  name           = "processor"
+  aws_account_id = "123456789012"
+
+  subscriptions = {
+    lambda_processor = {
+      protocol = "lambda"
+      endpoint = module.lambda.function_arn
+      filter_policy = jsonencode({
+        eventType = ["order.created", "order.updated"]
+      })
+    }
+  }
+}
+```
+
+## Conventions
+
+- `aws_account_id` is required for topic policy conditions (retained for compatibility with legacy stacks).
+- `topic_name` can be used to override the context-derived name; when null, the name is derived from `module.this.id`.
+- `fifo_topic` is always `false` (FIFO topics are not supported by this wrapper).
+- `content_based_deduplication` is always `false` (relevant only for FIFO topics).
+- The module pre-configures a topic policy allowing EventBridge, ElastiCache, AWS Backup, and ECS services to publish; these defaults preserve legacy behaviour and may be refined in future versions.
+- `ecs_role_prefix` defaults to the topic name; set this explicitly if your ECS task roles use a different prefix.
+- `subscriptions` is a map where keys are stable identifiers (e.g., `email_team`, `lambda_processor`) and values are subscription configurations.
+
+## What this module does NOT do
+
+- Create Lambda functions, SQS queues, or other endpoints; you must create those separately and provide ARNs/endpoints for subscriptions.
+- Support FIFO topics (use native `aws_sns_topic` resources if FIFO is required).
+- Manage cross-account publish permissions beyond the pre-configured service principals; use additional topic policy statements if cross-account access is needed.
+- Automatically confirm email subscriptions; AWS sends a confirmation email that must be manually confirmed.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -64,7 +153,7 @@
 | <a name="input_subscriptions"></a> [subscriptions](#input\_subscriptions) | Map of SNS subscriptions to create (passed through to terraform-aws-modules/sns/aws). | <pre>map(object({<br/>    confirmation_timeout_in_minutes = optional(number)<br/>    delivery_policy                 = optional(string)<br/>    endpoint                        = string<br/>    endpoint_auto_confirms          = optional(bool)<br/>    filter_policy                   = optional(string)<br/>    filter_policy_scope             = optional(string)<br/>    protocol                        = string<br/>    raw_message_delivery            = optional(bool)<br/>    redrive_policy                  = optional(string)<br/>    replay_policy                   = optional(string)<br/>    subscription_role_arn           = optional(string)<br/>  }))</pre> | `{}` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
-| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_topic_name"></a> [topic\_name](#input\_topic\_name) | SNS topic name override. If null, the module derives a name from context (`module.this.id`). | `string` | `null` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |

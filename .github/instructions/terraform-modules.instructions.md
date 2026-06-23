@@ -117,15 +117,21 @@ See `.github/skills/pre-commit-hooks.skill.md` for detailed documentation on all
 
 Every module must contain:
 
-| File | Purpose |
-| --- | --- |
-| `main.tf` | Primary resource definitions with header comment block |
-| `variables.tf` | Input variables with types, descriptions, defaults, validations |
-| `outputs.tf` | Output values with descriptions |
-| `versions.tf` | `required_version` and `required_providers` |
-| `context.tf` | Tags context (copied from `tags/exports/context.tf`) |
-| `locals.tf` | Derived/computed values (naming, defaults) |
-| `README.md` | Usage documentation with examples |
+| File | Purpose | Mandatory |
+| --- | --- | --- |
+| `main.tf` | Primary resource definitions with header comment block | Yes |
+| `variables.tf` | Input variables with types, descriptions, defaults, validations | Yes |
+| `outputs.tf` | Output values with descriptions | Yes |
+| `versions.tf` | `required_version` and `required_providers` | Yes |
+| `context.tf` | Tags context (copied from `tags/exports/context.tf`) | Yes |
+| `data.tf` | Data sources (e.g., `data.aws_*`, `data.local_file`) | Only if data sources exist |
+| `locals.tf` | Derived/computed values (naming, defaults) | Only if `locals {}` blocks exist |
+| `README.md` | Usage documentation with examples | Yes |
+
+**Conditional file guidance:**
+
+- **`data.tf`**: Create this file if the module queries external data (e.g., `data.aws_availability_zones`, `data.aws_ami`). Store all data sources here for clarity.
+- **`locals.tf`**: Create this file only if the module defines `locals {}` blocks for computed values, naming logic, or CIDR calculations. If no locals are needed, omit the file entirely.
 
 For any newly created module, `context.tf` must come from `infrastructure/modules/tags/exports/context.tf`, and the copied file must reference `source = "../tags"`.
 
@@ -192,7 +198,7 @@ Every module must enforce:
 - Encryption at rest (KMS or service-managed) where applicable.
 - Encryption in transit (TLS required, deny insecure transport) where applicable.
 - No public access by default (block at all available toggles).
-- iam least-privilege (no `*` actions in managed policies).
+- IAM least-privilege (no `*` actions in managed policies).
 - Logging/audit enabled where the service supports it.
 - All resources tagged via `module.this.tags`.
 
@@ -302,3 +308,4 @@ When in doubt, look at these compliant modules for reference:
 - `infrastructure/modules/iam` — Multi-resource wrapper (policies + roles) with per-resource iteration and label modules.
 - `infrastructure/modules/secrets-manager` — Simple wrapper with hard-coded security and optional features.
 - `infrastructure/modules/kms` — KMS key wrapper with policy enforcement.
+- `infrastructure/modules/acm` — Simple wrapper with opinionated security defaults.

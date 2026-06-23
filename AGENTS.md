@@ -79,7 +79,7 @@ Agents **must not**:
 When proposing a change, agents should:
 
 - Keep code formatted and idiomatic (Terraform HCL, Bash, YAML).
-- Stick to existing patterns — look at compliant modules (`s3-bucket`, `iam`, `secrets-manager`, `kms`) as exemplars.
+- Stick to existing patterns — look at compliant modules (`s3-bucket`, `iam`, `secrets-manager`, `kms`, `acm`) as exemplars.
 - **Run all pre-commit hooks before committing**: `pre-commit run --all-files` (see `.github/skills/pre-commit-hooks.skill.md` for details on each hook).
 - Run `terraform fmt -recursive` before committing.
 - Run `terraform validate` in affected module directories.
@@ -94,7 +94,7 @@ Not all modules in this repository are currently compliant. The following tiers 
 
 | Tier | Description | Examples |
 | --- | --- | --- |
-| **Compliant** | Full wrapper pattern, `context.tf`, security baseline, proper variables/outputs/README | `s3-bucket`, `iam`, `secrets-manager`, `kms`, `sns` |
+| **Compliant** | Full wrapper pattern, `context.tf`, security baseline, proper variables/outputs/README | `s3-bucket`, `iam`, `secrets-manager`, `kms`, `acm` |
 | **Partially compliant** | Has `context.tf` but may be missing validation, README, or security hardening | `lambda`, `ecr`, `vpc` |
 | **Legacy** | Older modules that predate the current conventions; may lack `context.tf` entirely | Various older modules |
 
