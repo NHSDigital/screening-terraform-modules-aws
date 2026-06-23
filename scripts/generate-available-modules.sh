@@ -108,7 +108,8 @@ printf "Scanning modules and reading metadata...\n" >&2
 
 temp_table=$(mktemp)
 temp_modules=$(mktemp)
-trap 'rm -f "${temp_table}" "${temp_modules}"' EXIT
+temp_readme=$(mktemp)
+trap 'rm -f "${temp_table}" "${temp_modules}" "${temp_readme}"' EXIT
 
 # Write table header (only the table, not the heading - that's already in README)
 cat > "${temp_table}" << 'TABLE_HEADER'
@@ -205,8 +206,6 @@ printf "${green}✓${nc} Generated table for ${module_count} modules\n" >&2
 # ============================================================================
 # Replace section in README
 # ============================================================================
-temp_readme=$(mktemp)
-trap 'rm -f "${temp_table}" "${temp_modules}" "${temp_readme}"' EXIT
 
 awk \
     -v begin="${begin_marker}" \
