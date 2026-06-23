@@ -35,8 +35,8 @@ if [[ "${output_file}" = /* ]]; then
 else
     readme_file="${repo_root}/${output_file}"
 fi
-metadata_file="${repo_root}/scripts/config/generate-available-modules.yaml"
-modules_dir="${repo_root}/infrastructure/modules"
+metadata_file="${METADATA_FILE:-${repo_root}/scripts/config/generate-available-modules.yaml}"
+modules_dir="${MODULES_DIR:-${repo_root}/infrastructure/modules}"
 
 # Markers for the auto-generated section
 begin_marker="<!-- BEGIN_AVAILABLE_MODULES -->"
@@ -101,6 +101,29 @@ is_legacy_module() {
     return 1
 }
 
+# Extract a value from the module metadata YAML using yq when available,
+# falling back to the existing grep/sed approach if necessary.
+get_metadata_value() {
+    local module_name="$1"
+    local field_name="$2"
+    local value=""
+    local yq_query=".\"${module_name}\".${field_name} // \"\""
+
+    if command -v mise &>/dev/null; then
+        value=$(mise x -- yq eval -r "${yq_query}" "${metadata_file}" 2>/dev/null || true)
+    elif command -v yq &>/dev/null; then
+        value=$(yq eval -r "${yq_query}" "${metadata_file}" 2>/dev/null || true)
+    else
+        value=$(sed -n "/^${module_name}:/,/^[a-z]/p" "${metadata_file}" | \
+            grep "${field_name}:" | \
+            sed "s/.*${field_name}: *\"//;s/\".*//")
+    fi
+
+    value=$(printf '%s' "${value}" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g;s/^ //;s/ $//')
+
+    printf '%s' "${value}"
+}
+
 # ============================================================================
 # Generate modules table from metadata
 # ============================================================================
@@ -155,16 +178,8 @@ while IFS='|' read -r sort_key module_path module_name; do
 
     # Check if module has metadata entry
     if grep -q "^${module_name}:" "${metadata_file}"; then
-        # Extract description and wraps from metadata using simple grep/sed
-        # This approach works without requiring yq/jq
-        description=$(sed -n "/^${module_name}:/,/^[a-z]/p" "${metadata_file}" | \
-                      grep "description:" | \
-                      sed 's/.*description: *"//;s/".*//')
-
-        # Get the wraps field
-        wraps=$(sed -n "/^${module_name}:/,/^[a-z]/p" "${metadata_file}" | \
-                grep "wraps:" | \
-                sed 's/.*wraps: *"//;s/".*//')
+        description=$(get_metadata_value "${module_name}" "description")
+        wraps=$(get_metadata_value "${module_name}" "wraps")
 
         # Fallback if extraction failed
         if [ -z "${description}" ]; then

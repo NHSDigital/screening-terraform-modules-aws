@@ -110,6 +110,21 @@ assert_file_has_lines() {
     fi
 }
 
+assert_file_not_contains() {
+    local file="$1"
+    local needle="$2"
+    local description="$3"
+
+    if ! grep -F -q -- "${needle}" "${file}"; then
+        printf "${green}✓${nc} %s\n" "${description}"
+        ((passed++))
+    else
+        printf "${red}✗${nc} %s\n" "${description}"
+        printf "  Should NOT contain: %s\n" "${needle}"
+        ((failed++))
+    fi
+}
+
 # ============================================================================
 # Test Suite
 # ============================================================================
@@ -248,7 +263,56 @@ else
 fi
 echo ""
 
-# Test 6: Wrapped modules are correctly identified
+# Test 6: Multiline metadata values are flattened safely
+printf "${blue}Test: Multiline metadata values${nc}\n"
+multiline_metadata="${fixture_root}/multiline-metadata.yaml"
+multiline_readme="${fixture_root}/multiline-README.md"
+multiline_modules_dir="${fixture_root}/modules"
+mkdir -p "${multiline_modules_dir}/test-module"
+cat > "${multiline_metadata}" << 'EOF'
+test-module:
+    description: |
+        First line
+        Second line
+    wraps: |
+        terraform-aws-modules/example/aws
+        extra-context
+EOF
+
+cat > "${multiline_readme}" << 'EOF'
+# Test Project
+
+## Available modules
+
+<!-- BEGIN_AVAILABLE_MODULES -->
+| Module | Wraps | Description |
+| --- | --- | --- |
+| `old-module` | — | Old description |
+<!-- END_AVAILABLE_MODULES -->
+EOF
+
+cat > "${multiline_modules_dir}/test-module/main.tf" << 'EOF'
+terraform {}
+EOF
+
+if METADATA_FILE="${multiline_metadata}" MODULES_DIR="${multiline_modules_dir}" bash "${repo_root}/${script}" "${multiline_readme}" > /dev/null 2>&1; then
+        content=$(cat "${multiline_readme}")
+    assert_contains "${content}" "| \`test-module\` | terraform-aws-modules/example/aws extra-context | First line Second line |" "Multiline YAML values are flattened into a single table row"
+    if ! grep -Eq '^\| [^|]*\| [^|]*\| [[:space:]]*Second line[[:space:]]*\|$' "${multiline_readme}"; then
+        printf "${green}✓${nc} Multiline description does not break the table\n"
+        ((passed++))
+    else
+        printf "${red}✗${nc} Multiline description does not break the table\n"
+        printf "  Found an unflattened multiline table row in %s\n" "${multiline_readme}"
+        ((failed++))
+    fi
+else
+        printf "${red}✗${nc} Script failed with multiline metadata fixture\n"
+        ((failed++))
+fi
+echo ""
+
+# Test 7: Wrapped modules are correctly identified
 printf "${blue}Test: Wrapped module identification${nc}\n"
 if [ -f "${fresh_readme}" ]; then
     content=$(cat "${fresh_readme}")
