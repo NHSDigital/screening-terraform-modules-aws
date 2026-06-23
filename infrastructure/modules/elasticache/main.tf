@@ -1,107 +1,204 @@
-######################
-#  Elasticache
-######################
+################################################################
+# ElastiCache
+#
+# Thin NHS wrapper around the community
+# terraform-aws-modules/elasticache/aws module that enforces
+# the screening platform's baseline controls:
+#
+#   * Encryption in transit (TLS) — enforced
+#   * Encryption at rest — enforced for all engines
+#   * Multi-AZ with automatic failover — configurable
+#   * Authentication — AUTH token required for Redis/Valkey
+#   * VPC isolation — via security groups and subnet groups
+#   * Logging — engine logs and slow logs to CloudWatch
+#   * Backup and retention — configurable with sensible defaults
+#   * No public access — clusters are private by default
+#
+# Naming and tagging are derived from context.tf via module.this.
+#
+# Supported engines: Valkey (recommended), Redis (5.0+), Memcached
+# Deployment modes (var.deployment_mode):
+#   replication_group — HA replication group; default; production recommended
+#   cluster           — standalone single/multi-node cluster; lower cost dev/test
+#   serverless        — auto-scaling serverless cache (Valkey/Redis only)
+################################################################
 
-resource "aws_elasticache_replication_group" "elasticache_replication_group" {
-  replication_group_id       = local.replication_group_id
-  description                = var.replication_group_description
-  node_type                  = var.node_type
+module "elasticache" {
+  source  = "terraform-aws-modules/elasticache/aws"
+  version = "1.11.0"
+
+  # Not used for serverless; that mode is handled by the separate module block below.
+  create = module.this.enabled && !local.create_serverless_cache
+
+  # ----------------------------------------------------------------
+  # Control resource creation
+  # ---------------------------------------------------------------- (driven by var.deployment_mode)
+  create_cluster           = local.create_cluster
+  create_replication_group = local.create_replication_group
+
+  # ----------------------------------------------------------------
+  # Engine and cluster configuration
+  # ----------------------------------------------------------------
+  engine         = var.engine
+  engine_version = var.engine_version
+  node_type      = var.node_type
+
+  # Standalone cluster: simple primary (+ additional nodes for Memcached cross-az)
+  num_cache_nodes = var.num_cache_nodes
+  az_mode         = var.az_mode
+
+  # Replication group without cluster mode: total count (primary + replicas)
+  num_cache_clusters = local.create_replication_group && !var.cluster_mode_enabled ? var.num_cache_nodes : null
+
+  # Cluster mode: shared dataset with shards (all nodes store full dataset)
+  cluster_mode_enabled = var.cluster_mode_enabled
+
+  # Replicas per node group (for cluster mode)
+  replicas_per_node_group = var.cluster_mode_enabled ? var.replicas_per_node_group : null
+  num_node_groups         = var.cluster_mode_enabled ? var.num_node_groups : null
+
+  # ----------------------------------------------------------------
+  # Resource identifiers
+  # ----------------------------------------------------------------
+  replication_group_id = local.replication_group_id
+  cluster_id           = local.cluster_id
+  description          = local.replication_group_description
+
+  # ----------------------------------------------------------------
+  # Encryption: in transit (TLS) and at rest — ENFORCED
+  # ----------------------------------------------------------------
   transit_encryption_enabled = true
+  transit_encryption_mode    = var.tls_version
   at_rest_encryption_enabled = true
-  auth_token                 = var.redis_auth_token
-  port                       = var.elasticache_port
-  apply_immediately          = var.apply_immediately
-  parameter_group_name       = aws_elasticache_parameter_group.bss_param_group_redis7.name
-  automatic_failover_enabled = var.auto_failover_enabled
-  auto_minor_version_upgrade = true
-  maintenance_window         = "Mon:00:00-Mon:03:00"
-  snapshot_window            = "04:00-08:00"
-  notification_topic_arn     = var.notification_topic_arn
-  subnet_group_name          = aws_elasticache_subnet_group.cache_subnet_group.name
-  security_group_ids         = [aws_security_group.cache_sg.id]
-  engine_version             = var.engine_version
-  cluster_mode               = "enabled"
-  replicas_per_node_group    = var.replicas_per_node_group
-  num_node_groups            = var.number_of_shards
+  kms_key_arn                = var.kms_key_arn
 
-  log_delivery_configuration {
-    destination      = aws_cloudwatch_log_group.redis_engine_log.name
-    destination_type = "cloudwatch-logs"
-    log_format       = "text"
-    log_type         = "engine-log"
-  }
+  # Authentication: AUTH token for Redis/Valkey
+  auth_token                 = var.auth_token
+  auth_token_update_strategy = "ROTATE"
 
-  log_delivery_configuration {
-    destination      = aws_cloudwatch_log_group.redis_slow_log.name
-    destination_type = "cloudwatch-logs"
-    log_format       = "text"
-    log_type         = "slow-log"
-  }
-  depends_on = [aws_cloudwatch_log_group.redis_engine_log, aws_cloudwatch_log_group.redis_slow_log]
+  # ----------------------------------------------------------------
+  # Automatic failover and availability
+  # ----------------------------------------------------------------
+  automatic_failover_enabled = var.automatic_failover_enabled
+  multi_az_enabled           = var.multi_az_enabled
+  auto_minor_version_upgrade = var.auto_minor_version_upgrade
+
+  # ----------------------------------------------------------------
+  # Maintenance and backup
+  # ----------------------------------------------------------------
+  maintenance_window     = var.maintenance_window
+  notification_topic_arn = var.notification_topic_arn
+  apply_immediately      = var.apply_immediately
+
+  # Snapshots (for Redis/Valkey only; ignored for Memcached)
+  snapshot_window           = var.snapshot_window
+  snapshot_retention_limit  = var.snapshot_retention_days
+  final_snapshot_identifier = var.final_snapshot_identifier_prefix != null ? "${var.final_snapshot_identifier_prefix}-${local.final_snapshot_id}" : null
+
+  # Data tiering (for Redis 6.0+; requires r6gd instances)
+  data_tiering_enabled = var.data_tiering_enabled
+
+  # ----------------------------------------------------------------
+  # Networking
+  # ----------------------------------------------------------------
+  # Subnet group: created by upstream module using subnet_ids
+  create_subnet_group = true
+  subnet_ids          = var.subnet_ids
+  vpc_id              = var.vpc_id
+
+  # Security group:
+  # Option A — pass existing SG IDs from the security-group module
+  #            (feature/BCSS-23606-security-group-module):
+  #   create_security_group = false
+  #   security_group_ids    = [module.cache_sg.id]
+  # Option B — let the upstream module create one inline:
+  #   create_security_group = true
+  #   security_group_rules  = { ... }
+  create_security_group = var.create_security_group
+  security_group_ids    = var.security_group_ids
+  security_group_rules  = var.security_group_rules
+  security_group_tags   = module.this.tags
+
+  # Port configuration
+  port = var.port
+
+  # ----------------------------------------------------------------
+  # Logging: engine logs and slow logs to CloudWatch
+  # ----------------------------------------------------------------
+  # Delegated to upstream module built-in log group creation.
+  #
+  # TODO: <JIRA> Pre-create log groups via the cloudwatch module for stronger
+  # control over KMS key, retention class, and skip_destroy behaviour. Example
+  # using terraform-aws-modules/cloudwatch/aws//modules/log-group:
+  #
+  # module "cache_logs_slow" {
+  #   source            = "terraform-aws-modules/cloudwatch/aws//modules/log-group"
+  #   version           = "~> 5.0"
+  #   name              = "/aws/elasticache/${module.this.id}/slow-log"
+  #   retention_in_days = 365
+  #   kms_key_id        = var.kms_key_arn
+  #   skip_destroy      = true
+  #   tags              = module.this.tags
+  # }
+  # module "cache_logs_engine" {
+  #   source            = "terraform-aws-modules/cloudwatch/aws//modules/log-group"
+  #   version           = "~> 5.0"
+  #   name              = "/aws/elasticache/${module.this.id}/engine-log"
+  #   retention_in_days = 365
+  #   kms_key_id        = var.kms_key_arn
+  #   skip_destroy      = true
+  #   tags              = module.this.tags
+  # }
+  # Then reference them with create_cloudwatch_log_group = false:
+  # log_delivery_configuration = {
+  #   slow-log = {
+  #     destination_type            = "cloudwatch-logs"
+  #     log_format                  = "json"
+  #     create_cloudwatch_log_group = false
+  #     destination                 = module.cache_logs_slow.cloudwatch_log_group_name
+  #   }
+  #   engine-log = {
+  #     destination_type            = "cloudwatch-logs"
+  #     log_format                  = "json"
+  #     create_cloudwatch_log_group = false
+  #     destination                 = module.cache_logs_engine.cloudwatch_log_group_name
+  #   }
+  # }
+  log_delivery_configuration = var.log_delivery_configuration
+
+  tags = module.this.tags
+
 }
 
-resource "aws_iam_service_linked_role" "elasticache" {
-  count            = var.create_elasticache_service_role ? 1 : 0
-  aws_service_name = "elasticache.amazonaws.com"
-}
+# ================================================================
+# Serverless Cache (deployment_mode = "serverless")
+# ================================================================
+module "elasticache_serverless" {
+  source  = "terraform-aws-modules/elasticache/aws//modules/serverless-cache"
+  version = "1.11.0"
 
-# to allow referencing the existing service linked role if not created
-data "aws_iam_role" "elasticache" {
-  name       = "AWSServiceRoleForElastiCache"
-  depends_on = [aws_iam_service_linked_role.elasticache]
-}
+  create = module.this.enabled && local.create_serverless_cache
 
-resource "aws_elasticache_parameter_group" "bss_param_group_redis7" {
-  name   = "${local.parameter_group_name}-redis7"
-  family = "redis7"
+  cache_name           = local.replication_group_id
+  engine               = var.engine
+  major_engine_version = local.major_engine_version
+  description          = local.replication_group_description
 
-  parameter {
-    name  = "cluster-enabled"
-    value = "yes"
-  }
-  lifecycle {
-    create_before_destroy = true
-  }
-  depends_on = [data.aws_iam_role.elasticache]
-}
+  # Encryption at rest — ENFORCED; pass in from the kms module or null for AWS-managed
+  kms_key_id = var.kms_key_arn
 
-######################
-#  Networking
-######################
+  # Networking: pass security_group_ids from the security-group module.
+  # create_security_group above does not affect the serverless module.
+  security_group_ids = var.security_group_ids
+  subnet_ids         = var.subnet_ids
 
-resource "aws_elasticache_subnet_group" "cache_subnet_group" {
-  name        = local.subnet_group
-  description = "Subnet group for Elasticache"
-  subnet_ids  = var.subnet_ids
-  depends_on  = [data.aws_iam_role.elasticache]
-}
+  # Backup (Redis only; ignored for Valkey)
+  snapshot_retention_limit = var.snapshot_retention_days
+  daily_snapshot_time      = local.serverless_snapshot_time
 
-resource "aws_security_group" "cache_sg" {
-  name        = local.sg_name
-  description = "Allow connection by appointed cache clients"
-  vpc_id      = var.vpc_id
-}
+  # Optional capacity limits (data_storage and ecpu_per_second).
+  # Leave as {} for on-demand auto-scaling with no hard limits.
+  cache_usage_limits = var.serverless_cache_usage_limits
 
-resource "aws_vpc_security_group_ingress_rule" "ecs_inbound" {
-  description                  = "Allows inbound connection from ECS cluster"
-  security_group_id            = aws_security_group.cache_sg.id
-  referenced_security_group_id = var.ecs_sg_id
-  from_port                    = 6379
-  to_port                      = 6379
-  ip_protocol                  = "tcp"
-  tags = {
-    "Name" : "${var.name_prefix}-ecs"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "redis_engine_log" {
-  name = local.cw_redis_engine_log
-  #kms_key_id        = data.aws_kms_key.kms_key.arn
-  retention_in_days = 365
-}
-
-resource "aws_cloudwatch_log_group" "redis_slow_log" {
-  name = local.cw_redis_slow_log
-  #kms_key_id        = data.aws_kms_key.kms_key.arn
-  retention_in_days = 365
+  tags = module.this.tags
 }
