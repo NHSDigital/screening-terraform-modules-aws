@@ -197,6 +197,14 @@ if bash "${repo_root}/${script}" "${test_readme}" > /dev/null 2>&1; then
 
     # Verify table structure
     assert_contains "${content}" "| Module | Wraps | Description |" "Table header is present"
+
+    # Verify content before the table is preserved
+    assert_contains "${content}" "# Test Project" "Content before table is preserved"
+    assert_contains "${content}" "Some introduction." "Introduction text is preserved"
+
+    # Verify content after the table is preserved
+    assert_contains "${content}" "## Other section" "Section after table is preserved"
+    assert_contains "${content}" "Some other content." "Content after table is preserved"
 else
     printf "${red}✗${nc} Script failed to execute\n"
     ((failed++))
