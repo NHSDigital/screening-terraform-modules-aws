@@ -96,11 +96,11 @@ variable "kms_key_arn" {
 #     }
 #   }
 #
-# TODO(logging): Add support for managed CloudWatch log group per
-#   log type (similar to create_alert_log_group) so callers don't
-#   need to create log groups externally when using CloudWatchLogs.
-# TODO(logging): Add support for managed Kinesis Firehose delivery
-#   stream if demand arises from consuming teams.
+# Managed destination creation is intentionally limited to the
+# ALERT CloudWatch log group convenience resource exposed by this
+# module. Other CloudWatch log groups and any Kinesis Data Firehose
+# delivery streams must be created externally and supplied via
+# the `logging` map.
 ################################################################
 
 variable "logging" {
@@ -173,6 +173,16 @@ variable "create_policy" {
   description = "Create the firewall policy. Set to false and supply firewall_policy_arn to use an externally managed policy."
   type        = bool
   default     = true
+
+  validation {
+    condition     = var.create_policy || trimspace(var.firewall_policy_arn) != ""
+    error_message = "firewall_policy_arn must be set when create_policy is false."
+  }
+
+  validation {
+    condition     = !var.create_policy || trimspace(var.firewall_policy_arn) == ""
+    error_message = "firewall_policy_arn must be empty when create_policy is true."
+  }
 }
 
 variable "firewall_policy_arn" {

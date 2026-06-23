@@ -22,7 +22,7 @@ Deploys an AWS Network Firewall into dedicated firewall subnets created by the V
 
 ```hcl
 module "network_firewall" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/network-firewall?ref=v2.1.0"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/network-firewall?ref=<tag>"
 
   service             = "bcss"
   project             = "bcss"
@@ -40,9 +40,11 @@ module "network_firewall" {
 ```hcl
 # Production deployment with customer-managed KMS, comprehensive logging,
 # and protection against accidental modifications.
+# This example assumes the companion modules below are declared in the
+# same stack.
 
 module "network_firewall" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/network-firewall?ref=v2.1.0"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/network-firewall?ref=<tag>"
 
   service             = "bcss"
   project             = "bcss"
@@ -53,24 +55,15 @@ module "network_firewall" {
   vpc_id              = module.vpc.vpc_id
   firewall_subnet_ids = module.vpc.firewall_subnet_ids
 
-  # ========================================================================
-  # Encryption at rest — customer-managed KMS (recommended for prod)
-  # ========================================================================
   kms_key_arn                = module.nwfw_kms.key_arn
   alert_log_group_kms_key_id = module.nwfw_kms.key_arn
 
-  # ========================================================================
-  # Logging — comprehensive multi-destination setup
-  # ========================================================================
-  # FLOW logs → S3 (long-term archive, analysis)
-  # ALERT logs → CloudWatch (real-time alerting, metric filters)
-  # TLS logs → S3 (compliance, SSL/TLS inspection audit trail)
   create_logging_configuration = true
   logging = {
     flow_s3 = {
       log_type             = "FLOW"
       log_destination_type = "S3"
-      log_destination      = { bucketName = module.logs_bucket.id, prefix = "nwfw/flow-logs" }
+      log_destination      = { bucketName = module.logs_bucket.bucket_id, prefix = "nwfw/flow-logs" }
       enabled              = true
     }
     alert_cloudwatch = {
@@ -82,109 +75,55 @@ module "network_firewall" {
     tls_s3 = {
       log_type             = "TLS"
       log_destination_type = "S3"
-      log_destination      = { bucketName = module.logs_bucket.id, prefix = "nwfw/tls-logs" }
+      log_destination      = { bucketName = module.logs_bucket.bucket_id, prefix = "nwfw/tls-logs" }
       enabled              = true
     }
   }
 
-  # Managed CloudWatch log group with retention and encryption
   create_alert_log_group            = true
-  alert_log_group_retention_in_days = 90  # Compliance requirement
+  alert_log_group_retention_in_days = 90
 
-  # ========================================================================
-  # Protection against accidental changes
-  # ========================================================================
-  delete_protection                 = true   # Enforced by module default
-  subnet_change_protection          = true   # Enforced by module default
-  firewall_policy_change_protection = true   # Recommended for prod
-
-  # ========================================================================
-  # Threat detection and metrics
-  # ========================================================================
-  enabled_analysis_types = ["TLS_SNI", "HTTP_HOST"]
-
-  tags = merge(
-    module.this.tags,
-    {
-      Compliance  = "NHS-Baseline"
-      CostCenter  = "Network-Operations"
-      Environment = "Production"
-    }
-  )
+  delete_protection                 = true # Enforced by module default
+  subnet_change_protection          = true # Enforced by module default
+  firewall_policy_change_protection = true # Recommended for production environments
+  enabled_analysis_types            = ["TLS_SNI", "HTTP_HOST"]
 }
-
-# KMS key for encrypting firewall and logs
-module "nwfw_kms" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=v2.1.0"
-
-  service     = var.service
-  project     = var.project
-  environment = var.environment
-  stack       = var.stack
-  name        = "nwfw"
-
-  description = "KMS key for Network Firewall encryption (firewall, policy, CloudWatch logs)"
-  key_usage   = "ENCRYPT_DECRYPT"
-
-  # Allow firewall and logs services to use the key
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "AllowNetworkFirewallEncryption"
-        Effect = "Allow"
-        Principal = {
-          Service = "network-firewall.amazonaws.com"
-        }
-        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
-        Resource = "*"
-      },
-      {
-        Sid    = "AllowCloudWatchLogsEncryption"
-        Effect = "Allow"
-        Principal = {
-          Service = "logs.${data.aws_region.current.name}.amazonaws.com"
-        }
-        Action   = ["kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:CreateGrant", "kms:DescribeKey"]
-        Resource = "*"
-      }
-    ]
-  })
-
-  tags = module.this.tags
-}
-
-# S3 bucket for firewall logs with versioning and encryption
-module "logs_bucket" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/s3-bucket?ref=v2.1.0"
-
-  service     = var.service
-  project     = var.project
-  environment = var.environment
-  stack       = var.stack
-  name        = "nwfw-logs"
-
-  versioning_enabled       = true
-  server_side_encryption   = "aws:kms"
-  kms_master_key_id        = module.nwfw_kms.key_id
-  block_public_access      = true
-  enforce_ssl              = true
-  lifecycle_rule_id        = "archive-old-logs"
-  lifecycle_rule_prefix    = "nwfw/"
-  lifecycle_transition_days = 90
-
-  tags = module.this.tags
-}
-
-data "aws_region" "current" {}
-data "aws_caller_identity" "current" {}
 ```
 
-### Advanced (multi-AZ with custom rule groups)
+Companion modules for the production example above:
+
+```hcl
+module "nwfw_kms" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/kms?ref=<tag>"
+
+  service     = "bcss"
+  project     = "bcss"
+  environment = "prod"
+  stack       = "shared-resources"
+  name        = "nwfw"
+
+  description = "KMS key for Network Firewall encryption"
+}
+
+module "logs_bucket" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/s3-bucket?ref=<tag>"
+
+  service     = "bcss"
+  project     = "bcss"
+  environment = "prod"
+  stack       = "shared-resources"
+  name        = "nwfw-logs"
+
+  versioning_enabled = true
+  enforce_ssl        = true
+}
+```
+
+### Inline policy with module-managed stateful rule groups
 
 ```hcl
 module "network_firewall" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/network-firewall?ref=v2.1.0"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/network-firewall?ref=<tag>"
 
   service             = "bcss"
   project             = "bcss"
@@ -192,44 +131,15 @@ module "network_firewall" {
   stack               = "shared-resources"
   name                = "nwfw"
 
-  # Multi-AZ deployment — provide one subnet per AZ
   vpc_id              = module.vpc.vpc_id
-  firewall_subnet_ids = module.vpc.firewall_subnet_ids  # e.g., [subnet-az1, subnet-az2, subnet-az3]
+  firewall_subnet_ids = module.vpc.firewall_subnet_ids
 
-  # Encryption
-  kms_key_arn                = module.nwfw_kms.key_arn
-  alert_log_group_kms_key_id = module.nwfw_kms.key_arn
-
-  # Logging to all three destinations
-  create_logging_configuration = true
-  logging = {
-    flow_s3 = {
-      log_type             = "FLOW"
-      log_destination_type = "S3"
-      log_destination      = { bucketName = module.logs_bucket.id, prefix = "nwfw/flow" }
-    }
-    alert_s3 = {
-      log_type             = "ALERT"
-      log_destination_type = "S3"
-      log_destination      = { bucketName = module.logs_bucket.id, prefix = "nwfw/alerts" }
-    }
-    tls_firehose = {
-      log_type             = "TLS"
-      log_destination_type = "KinesisDataFirehose"
-      log_destination      = { deliveryStream = "nwfw-tls-stream" }
-    }
-  }
-
-  create_alert_log_group            = true
-  alert_log_group_retention_in_days = 90
-
-  # Custom rule groups for domain blocking and threat inspection
   rule_groups = {
     deny_known_malware_domains = {
       description = "Block known-bad domains via TLS SNI and HTTP Host"
       type        = "STATEFUL"
       capacity    = 100
-      priority    = 1
+      priority    = 100
       rule_group = {
         stateful_rule_options = { rule_order = "STRICT_ORDER" }
         rules_source = {
@@ -242,11 +152,11 @@ module "network_firewall" {
       }
     }
     inspect_ssl = {
-      description = "Enable SSL/TLS inspection on suspicious traffic"
+      description = "Alert on non-TLS 1.3 traffic"
       type        = "STATEFUL"
       capacity    = 50
-      priority    = 5
-      rules       = "alert tls any any -> any any (msg:\"SSL inspection enabled\"; ssl_version:!tls1.3; sid:100001;)"
+      priority    = 200
+      rules       = "alert tls any any -> any any (msg:\"Inspect legacy TLS\"; ssl_version:!tls1.3; sid:100001;)"
       rule_group = {
         stateful_rule_options = { rule_order = "STRICT_ORDER" }
       }
@@ -255,27 +165,142 @@ module "network_firewall" {
 
   policy_stateful_default_actions = ["aws:drop_strict"]
   policy_stateful_engine_options = {
-    rule_order = "STRICT_ORDER"
+    rule_order              = "STRICT_ORDER"
     stream_exception_policy = "DROP"
   }
+}
+```
 
-  # Stateless default actions: forward established connections
-  policy_stateless_default_actions = ["aws:forward_to_sfe"]
-  policy_stateless_fragment_default_actions = ["aws:forward_to_sfe"]
+### Inline policy with mixed module-managed and external stateful rule groups
 
-  delete_protection                 = true
-  subnet_change_protection          = true
-  firewall_policy_change_protection = true
+```hcl
+module "network_firewall" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/network-firewall?ref=<tag>"
 
-  enabled_analysis_types = ["TLS_SNI", "HTTP_HOST"]
+  service             = "bcss"
+  project             = "bcss"
+  environment         = "prod"
+  stack               = "shared-resources"
+  name                = "nwfw"
 
-  tags = merge(
-    module.this.tags,
-    {
-      Compliance = "NHS-Baseline"
-      Monitoring = "Advanced"
+  vpc_id              = module.vpc.vpc_id
+  firewall_subnet_ids = module.vpc.firewall_subnet_ids
+
+  # Module-created stateful rule groups are attached automatically.
+  rule_groups = {
+    allow_internal_dns = {
+      description = "Allow resolver traffic to the shared DNS tier"
+      type        = "STATEFUL"
+      capacity    = 50
+      priority    = 100
+      rules       = <<-EOT
+        pass udp $HOME_NET any -> 10.0.0.2 53 (msg:"Allow DNS to shared resolver"; sid:100100;)
+      EOT
     }
-  )
+  }
+
+  # External references are for stateful rule groups managed elsewhere.
+  policy_stateful_rule_group_reference = {
+    shared_threat_feed = {
+      resource_arn = aws_networkfirewall_rule_group.shared_threat_feed.arn
+      priority     = 200
+      override = {
+        action = "DROP_TO_ALERT"
+      }
+    }
+  }
+
+  policy_stateful_default_actions = ["aws:drop_strict"]
+  policy_stateful_engine_options = {
+    rule_order = "STRICT_ORDER"
+  }
+}
+
+resource "aws_networkfirewall_rule_group" "shared_threat_feed" {
+  capacity = 100
+  name     = "shared-threat-feed"
+  type     = "STATEFUL"
+
+  rule_group {
+    rules_source {
+      rules_string = <<-EOT
+        drop tcp any any -> any any (msg:"Drop known-bad feed"; content:"malware"; sid:200100;)
+      EOT
+    }
+
+    stateful_rule_options {
+      rule_order = "STRICT_ORDER"
+    }
+  }
+}
+```
+
+### Firewall attached to an external policy
+
+```hcl
+module "network_firewall" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/network-firewall?ref=<tag>"
+
+  service             = "bcss"
+  project             = "bcss"
+  environment         = "prod"
+  stack               = "shared-resources"
+  name                = "nwfw"
+
+  vpc_id              = module.vpc.vpc_id
+  firewall_subnet_ids = module.vpc.firewall_subnet_ids
+
+  create_policy       = false
+  firewall_policy_arn = aws_networkfirewall_firewall_policy.shared.arn
+
+  create_logging_configuration = true
+  logging = {
+    alert_cloudwatch = {
+      log_type             = "ALERT"
+      log_destination_type = "CloudWatchLogs"
+      log_destination      = { logGroup = module.network_firewall.alert_log_group_name }
+    }
+  }
+
+  create_alert_log_group = true
+}
+
+resource "aws_networkfirewall_firewall_policy" "shared" {
+  name = "shared-network-firewall-policy"
+
+  firewall_policy {
+    stateful_default_actions = ["aws:drop_strict"]
+
+    stateful_engine_options {
+      rule_order = "STRICT_ORDER"
+    }
+
+    stateful_rule_group_reference {
+      resource_arn = aws_networkfirewall_rule_group.shared_threat_feed.arn
+      priority     = 100
+    }
+
+    stateless_default_actions          = ["aws:forward_to_sfe"]
+    stateless_fragment_default_actions = ["aws:forward_to_sfe"]
+  }
+}
+
+resource "aws_networkfirewall_rule_group" "shared_threat_feed" {
+  capacity = 100
+  name     = "shared-threat-feed"
+  type     = "STATEFUL"
+
+  rule_group {
+    rules_source {
+      rules_string = <<-EOT
+        drop tcp any any -> any any (msg:"Drop known-bad feed"; content:"malware"; sid:200100;)
+      EOT
+    }
+
+    stateful_rule_options {
+      rule_order = "STRICT_ORDER"
+    }
+  }
 }
 ```
 
@@ -289,7 +314,11 @@ module "network_firewall" {
 
 **CloudWatch log groups:** The module can optionally create and manage a CloudWatch log group for ALERT logs (set `create_alert_log_group = true`). The log group name is `/aws/network-firewall/{firewall_id}` and is exposed via `alert_log_group_name` output for use in the `logging` variable.
 
-**External policies:** By default, this module creates a firewall policy inline. To use an externally managed policy (e.g. shared via Resource Access Manager), set `create_policy = false` and provide `firewall_policy_arn`.
+**Managed logging destinations:** This wrapper currently manages only the ALERT CloudWatch log group convenience resource. FLOW, TLS, and any Kinesis Data Firehose destinations must still be created outside the module and passed through the `logging` map.
+
+**External policies:** By default, this module creates a firewall policy inline. To use an externally managed policy (e.g. shared via Resource Access Manager), set `create_policy = false` and provide `firewall_policy_arn`. In that mode, the policy-specific inputs on this module are ignored because the firewall attaches directly to the external policy ARN.
+
+**Rule group wiring:** Any stateful rule groups created through `rule_groups` are automatically attached to the inline firewall policy. Use `policy_stateful_rule_group_reference` only to add extra externally managed stateful rule groups. If `create_policy = false`, neither `rule_groups` nor `policy_stateful_rule_group_reference` updates the external policy for you.
 
 ## What this module does NOT do
 
@@ -307,7 +336,7 @@ module "network_firewall" {
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.28 |
 
 ## Providers

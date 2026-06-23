@@ -34,11 +34,10 @@ locals {
   # ----------------------------------------------------------------
   # Rule group references
   #
-  # Merge module-created rule groups (from var.rule_groups) with
-  # any externally supplied references (from
-  # var.policy_stateful_rule_group_reference).
+  # `rule_groups` is the authoring interface for rule groups this module
+  # creates itself. Only STATEFUL groups are merged into the inline
+  # firewall policy reference map.
   # ----------------------------------------------------------------
-  # TODO: below looks very complicated – can it be simplified with fewer merges and conditionals?
   module_stateful_rule_group_references = {
     for k, v in var.rule_groups : k => merge(
       { resource_arn = module.rule_group[k].arn },
@@ -46,8 +45,15 @@ locals {
     ) if v.type == "STATEFUL"
   }
 
-  merged_stateful_rule_group_references = length(local.module_stateful_rule_group_references) > 0 || var.policy_stateful_rule_group_reference != null ? merge(
+  # Normalise a nullable caller input to an empty map so the later
+  # `length(...)` and `merge(...)` expressions do not need to handle null.
+  external_stateful_rule_group_references = var.policy_stateful_rule_group_reference != null ? var.policy_stateful_rule_group_reference : {}
+
+  # The upstream policy interface expects a single map of stateful rule
+  # group references. This local keeps module-managed and external rule
+  # groups composable while still returning null when neither is present.
+  merged_stateful_rule_group_references = length(local.module_stateful_rule_group_references) + length(local.external_stateful_rule_group_references) > 0 ? merge(
     local.module_stateful_rule_group_references,
-    coalesce(var.policy_stateful_rule_group_reference, {})
+    local.external_stateful_rule_group_references
   ) : null
 }

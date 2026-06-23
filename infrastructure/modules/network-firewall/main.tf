@@ -39,9 +39,13 @@ module "network_firewall" {
 
   # ------------------------------------------------------------------
   # Policy
-  # TODO: Do we want to use a separate policy submodule: terraform-aws-network-firewall/modules/policy at master · https://github.com/terraform-aws-modules/terraform-aws-network-firewall/tree/master/modules/policy
-  # TODO: Add support for external policy (create_policy = false + policy_arn) if users want to manage the policy separately (e.g. shared via RAM)
-  # TODO: The other way of doing it looks like this example: https://github.com/terraform-aws-modules/terraform-aws-network-firewall/tree/master/examples/separate – but it creates the policy first and then the firewall, which causes a dependency cycle if the policy references the firewall in its stateful rules. The upstream module's approach of creating the policy inline and then referencing it in the firewall seems cleaner to me.
+  # Keep policy creation inline by default so module-managed rule groups
+  # can be attached without introducing a second module boundary.
+  #
+  # For externally managed policies, set `create_policy = false` and pass
+  # `firewall_policy_arn`. In that mode, the upstream module skips the
+  # inline policy settings below and attaches the supplied policy ARN
+  # directly to the firewall.
   # ------------------------------------------------------------------
   create_policy       = var.create_policy
   firewall_policy_arn = var.firewall_policy_arn
@@ -52,8 +56,10 @@ module "network_firewall" {
   policy_variables                = var.policy_variables
   policy_stateful_default_actions = var.policy_stateful_default_actions
   policy_stateful_engine_options  = var.policy_stateful_engine_options
-  # TODO: why was this changed?
-  # policy_stateful_rule_group_reference      = var.policy_stateful_rule_group_reference
+  # `rule_groups` is the preferred path for stateful rule groups created
+  # by this module. `policy_stateful_rule_group_reference` remains
+  # available for attaching additional externally managed stateful groups
+  # to the same inline policy.
   policy_stateful_rule_group_reference      = local.merged_stateful_rule_group_references
   policy_stateless_default_actions          = var.policy_stateless_default_actions
   policy_stateless_fragment_default_actions = var.policy_stateless_fragment_default_actions
