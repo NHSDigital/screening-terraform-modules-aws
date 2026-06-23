@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    postgresql = {
-      source  = "cyrilgdn/postgresql"
-      version = ">= 1.25.0"
-    }
-  }
-}
-
 provider "postgresql" {
   host             = var.rds_endpoint
   username         = "postgres"

@@ -23,8 +23,21 @@ clean:: # Clean-up project resources (main) @Operations
 	# TODO: Implement project resources clean-up step
 
 config:: # Configure development environment (main) @Configuration
-	# TODO: Use only 'make' targets that are specific to this project, e.g. you may not need to install Node.js
-	make _install-dependencies
+	# Install tools from .tool-versions and mise.toml
+	mise install
+	# Install git hooks
+	pre-commit install --install-hooks --hook-type commit-msg
+
+test-validations: test-commit-validator test-workflow-pinning test-tool-version-upgrade # Run validation tests for new features @Testing
+
+test-commit-validator: # Test conventional commit validator implementation @Testing
+	bash tests/test-conventional-commit.sh
+
+test-workflow-pinning: # Test workflow security pinning (immutable refs) @Testing
+	bash tests/test-workflow-security.sh
+
+test-tool-version-upgrade: # Test tool version upgrade helper @Testing
+	bash tests/test-tool-version-upgrade.sh
 
 # ==============================================================================
 
@@ -34,3 +47,7 @@ ${VERBOSE}.SILENT: \
 	config \
 	dependencies \
 	deploy \
+	test-validations \
+	test-commit-validator \
+	test-workflow-pinning
+	test-tool-version-upgrade

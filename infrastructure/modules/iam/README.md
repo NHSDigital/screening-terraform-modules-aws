@@ -1,12 +1,22 @@
-# iam
+# IAM
 
-Creates iam customer-managed policies and (optionally) iam roles for any
+Creates IAM customer-managed policies and (optionally) IAM roles for any
 team on the screening platform. Thin wrapper around the community
 [`terraform-aws-modules/iam/aws`](https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest)
 submodules (`iam-policy` and `iam-role`), with naming and tagging supplied
 by the central `tags` module via `context.tf` — so every team gets
 consistent `/<service>/<project>/` paths and the standard NHS tag set
 automatically.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| IAM path namespacing | Policies and roles use `/<service>/<project>/` path derived from context |
+| Consistent naming | Names derived from `module.this.id` with per-resource attributes |
+| Tagging | All policies and roles tagged via `module.this.tags` |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+| Map-driven interface | Single module call produces multiple policies/roles with stable keys |
 
 ## Usage
 
@@ -15,7 +25,7 @@ roles. Three typical consumer patterns:
 
 ### 1. SSO customer-managed policies (no roles)
 
-Use this when defining the iam policies that AWS Identity Center
+Use this when defining the IAM policies that AWS Identity Center
 permission sets will reference. The SSO wiring itself
 (`aws_ssoadmin_permission_set`, `aws_ssoadmin_customer_managed_policy_attachment`,
 account assignments) lives in the consumer stack, not in this module.
@@ -126,12 +136,12 @@ module "iam" {
 
 - **Naming.** Resource names are derived from `module.this.id` plus an
   `attributes` suffix — e.g. `<id>-policy-<key>` and `<id>-role-<key>`.
-- **iam path.** Defaults to `/<service>/<project>/` from context. Override
+- **IAM path.** Defaults to `/<service>/<project>/` from context. Override
   globally with `var.path` or per-entry with `entry.path`.
 - **Enabled switch.** Set `context.enabled = false` to disable the entire
   module (e.g. in development tfvars). All resources are gated by it.
 - **Descriptions.** Strongly encouraged on every policy and role —
-  whoever sees them in the iam console later will thank you.
+  whoever sees them in the IAM console later will thank you.
 - **Inline policies.** `inline_policies` is a map of name -> JSON document;
   the upstream `iam-role` submodule merges all documents into a single
   inline policy on the role, so the map keys are used only for caller-side
@@ -142,15 +152,18 @@ module "iam" {
 
 - SSO permission sets, account assignments, group/user management — lives
   in the consumer stack via `aws_ssoadmin_*` and `aws_identitystore_*`.
-- iam users, iam groups, SAML/OIDC identity providers
-- Account-wide iam settings (password policy, account alias, MFA enforcement).
+- IAM users, IAM groups, SAML/OIDC identity providers
+- Account-wide IAM settings (password policy, account alias, MFA enforcement).
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.28 |
 
 ## Providers
 
@@ -161,8 +174,8 @@ No providers.
 | Name | Source | Version |
 | ---- | ------ | ------- |
 | <a name="module_policies"></a> [policies](#module\_policies) | terraform-aws-modules/iam/aws//modules/iam-policy | 6.6.0 |
-| <a name="module_policy_label"></a> [policy\_label](#module\_policy\_label) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.6.0 |
-| <a name="module_role_label"></a> [role\_label](#module\_role\_label) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.6.0 |
+| <a name="module_policy_label"></a> [policy\_label](#module\_policy\_label) | ../tags | n/a |
+| <a name="module_role_label"></a> [role\_label](#module\_role\_label) | ../tags | n/a |
 | <a name="module_roles"></a> [roles](#module\_roles) | terraform-aws-modules/iam/aws//modules/iam-role | 6.6.0 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 

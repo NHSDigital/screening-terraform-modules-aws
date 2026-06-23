@@ -1,17 +1,114 @@
 # License Manager
 
+NHS Screening module for AWS License Manager license configurations. Creates self-managed license configurations (vCPU / Core / Socket / Instance counted) with optional hard limits and resource associations. Uses the shared `context.tf` for naming and tagging.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| License counting validation | Only valid counting types (`vCPU`, `Instance`, `Core`, `Socket`) are accepted |
+| Tagging and naming | Uses shared `context.tf` (`module.this`) for tags and naming |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+| Stable associations | Map-based `for_each` prevents unnecessary re-creation of resource associations |
+
+## Usage
+
+### Minimal license configuration (vCPU counted)
+
+```hcl
+module "license_manager" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=<tag>"
+
+  service     = "bcss"
+  project     = "platform"
+  environment = "prod"
+  name        = "windows-server"
+
+  description           = "Windows Server BYOL licenses"
+  license_counting_type = "vCPU"
+  license_count         = 100
+}
+```
+
+### License configuration with hard limit and rules
+
+```hcl
+module "license_sql" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=<tag>"
+
+  service     = "bcss"
+  project     = "database"
+  environment = "prod"
+  name        = "sql-server-enterprise"
+
+  description              = "SQL Server Enterprise BYOL licenses"
+  license_counting_type    = "Core"
+  license_count            = 64
+  license_count_hard_limit = true
+
+  license_rules = [
+    "#minimumCores=4",
+    "#allowedTenancy=EC2-DedicatedHost"
+  ]
+}
+```
+
+### License configuration with AMI associations
+
+```hcl
+module "license_windows_with_amis" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/license-manager?ref=<tag>"
+
+  service     = "bcss"
+  project     = "compute"
+  environment = "prod"
+  name        = "windows-2022-byol"
+
+  description           = "Windows Server 2022 BYOL licenses"
+  license_counting_type = "Instance"
+  license_count         = 50
+
+  associated_resource_arns = {
+    windows-2022-base    = "arn:aws:ec2:eu-west-2::image/ami-0123456789abcdef0"
+    windows-2022-iis     = "arn:aws:ec2:eu-west-2::image/ami-0fedcba9876543210"
+    windows-2022-sql-web = "arn:aws:ec2:eu-west-2::image/ami-01234567890fedcba"
+  }
+}
+```
+
+## Conventions
+
+- `license_counting_type` is required and must be one of `vCPU`, `Instance`, `Core`, or `Socket`.
+- `license_count` is optional; when null, no count limit is tracked.
+- `license_count_hard_limit` defaults to `false`; set to `true` to block further usage once the count is exceeded.
+- `license_rules` is an optional list of rules in the format `#RuleType=RuleValue`; supported rule types include `minimumVcpus`, `maximumVcpus`, `minimumCores`, `maximumCores`, `minimumSockets`, `maximumSockets`, and `allowedTenancy`.
+- `associated_resource_arns` is a map where keys are stable identifiers (e.g., `windows-ami-2022`) and values are ARNs of AMIs, EC2 instances, hosts, or other supported resources. Map-based approach prevents unnecessary re-creation when associations change.
+- `name_override` can be used to provide a custom name; when null, the name is derived from `module.this.id`.
+- **Important:** Removing `license_count` after it has been set is not supported by the License Manager API and requires resource replacement.
+
+## What this module does NOT do
+
+- Create AMIs, EC2 instances, or dedicated hosts; you must provide existing resource ARNs for association.
+- Support product licenses from AWS Marketplace (use the License Manager console or native resources for those).
+- Manage license grants across AWS Organisations or delegated administrator accounts (this module is for standalone account configurations only).
+- Enforce license usage automatically on EC2 instance launch; License Manager tracking is passive unless you configure enforcement rules separately.
+- Support license configurations for third-party License Manager integrations (e.g., bring-your-own-license agreements outside AWS).
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.14 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.47.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
 
 ## Modules
 
@@ -65,7 +162,7 @@ No requirements.
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
-| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 

@@ -1,0 +1,286 @@
+#!/usr/bin/env bash
+################################################################################
+# Test suite for scripts/generate-dependabot-config.sh
+#
+# Tests the Dependabot configuration generation script to ensure:
+#  - All modules with versions.tf are included
+#  - .terraform/ cache directories are excluded
+#  - Non-terraform ecosystems are preserved
+#  - Generated YAML is valid
+#  - Script handles edge cases gracefully
+#
+# Usage:
+#   bash tests/test-generate-dependabot-config.sh
+#
+################################################################################
+
+set -u
+
+script="scripts/generate-dependabot-config.sh"
+repo_root="$(git rev-parse --show-toplevel)"
+mkdir -p "$repo_root/tmp"
+fixture_root="$(mktemp -d "$repo_root/tmp/generate-dependabot-config.XXXXXX")"
+failed=0
+passed=0
+
+# Colors
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[1;33m'
+blue='\033[0;34m'
+nc='\033[0m'
+
+# shellcheck disable=SC2329 # Invoked via trap on script exit.
+cleanup() {
+    rm -rf "${fixture_root}"
+}
+trap cleanup EXIT
+
+# Helper: Test assertions
+assert_contains() {
+    local haystack="$1"
+    local needle="$2"
+    local description="$3"
+
+    if echo "${haystack}" | grep -F -q -- "${needle}"; then
+        printf "${green}✓${nc} %s\n" "${description}"
+        ((passed++))
+    else
+        printf "${red}✗${nc} %s\n" "${description}"
+        printf "  Expected to find: %s\n" "${needle}"
+        ((failed++))
+    fi
+}
+
+assert_not_contains() {
+    local haystack="$1"
+    local needle="$2"
+    local description="$3"
+
+    if ! echo "${haystack}" | grep -F -q -- "${needle}"; then
+        printf "${green}✓${nc} %s\n" "${description}"
+        ((passed++))
+    else
+        printf "${red}✗${nc} %s\n" "${description}"
+        printf "  Should NOT contain: %s\n" "${needle}"
+        ((failed++))
+    fi
+}
+
+assert_file_exists() {
+    local file="$1"
+    local description="$2"
+
+    if [ -f "${file}" ]; then
+        printf "${green}✓${nc} %s\n" "${description}"
+        ((passed++))
+    else
+        printf "${red}✗${nc} %s\n" "${description}"
+        printf "  File not found: %s\n" "${file}"
+        ((failed++))
+    fi
+}
+
+# ============================================================================
+# Test Suite
+# ============================================================================
+
+printf "\n${blue}=== Dependabot Config Generation Tests ===${nc}\n\n"
+
+# Test 1: Script exists and is executable
+printf "${blue}Test: Script availability${nc}\n"
+if [ ! -f "${repo_root}/${script}" ]; then
+    printf "${red}✗${nc} Script not found at %s\n" "${script}"
+    ((failed++))
+else
+    printf "${green}✓${nc} Script exists\n"
+    ((passed++))
+fi
+
+if [ ! -x "${repo_root}/${script}" ]; then
+    printf "${red}✗${nc} Script is not executable\n"
+    ((failed++))
+else
+    printf "${green}✓${nc} Script is executable\n"
+    ((passed++))
+fi
+
+# Test 2: Generate config in temporary location
+printf "\n${blue}Test: Config generation${nc}\n"
+output_file="${fixture_root}/dependabot.yaml"
+if bash "${repo_root}/${script}" "${output_file}" > /dev/null 2>&1; then
+    printf "${green}✓${nc} Script executed successfully\n"
+    ((passed++))
+else
+    printf "${red}✗${nc} Script execution failed\n"
+    ((failed++))
+    exit 1
+fi
+
+assert_file_exists "${output_file}" "Output file created"
+
+# Test 3: Validate YAML structure
+printf "\n${blue}Test: YAML structure${nc}\n"
+
+if command -v python3 &>/dev/null && python3 -c "import yaml" 2>/dev/null; then
+    if python3 -c "import yaml; yaml.safe_load(open('${output_file}'))" 2>/dev/null; then
+        printf "${green}✓${nc} Generated YAML is valid\n"
+        ((passed++))
+    else
+        printf "${red}✗${nc} Generated YAML is invalid\n"
+        ((failed++))
+    fi
+elif command -v yq &>/dev/null; then
+    if yq eval '.' "${output_file}" > /dev/null 2>&1; then
+        printf "${green}✓${nc} Generated YAML is valid\n"
+        ((passed++))
+    else
+        printf "${red}✗${nc} Generated YAML is invalid\n"
+        ((failed++))
+    fi
+else
+    printf "${yellow}⊘${nc} Cannot validate YAML (python3+pyyaml or yq required)\n"
+fi
+
+config=$(cat "${output_file}")
+
+# Test 4: Verify required sections exist
+printf "\n${blue}Test: Required sections${nc}\n"
+assert_contains "${config}" "version: 2" "Version field present"
+assert_contains "${config}" "updates:" "Updates section present"
+assert_contains "${config}" "package-ecosystem: \"github-actions\"" "GitHub Actions ecosystem preserved"
+assert_contains "${config}" "package-ecosystem: \"docker\"" "Docker ecosystem preserved"
+assert_contains "${config}" "- \"/scripts/docker\"" "Custom docker directory preserved"
+assert_contains "${config}" "- \"/scripts/docker/tests\"" "Custom docker test directory preserved"
+assert_contains "${config}" "cooldown:" "Custom cooldown setting preserved"
+assert_contains "${config}" "open-pull-requests-limit: 10" "Custom PR limit preserved"
+assert_contains "${config}" "# BEGIN_AUTOGENERATED_TERRAFORM_UPDATES" "Start marker preserved"
+assert_contains "${config}" "# END_AUTOGENERATED_TERRAFORM_UPDATES" "End marker preserved"
+
+# Test 5: Verify Terraform modules are included
+printf "\n${blue}Test: Terraform module entries${nc}\n"
+tf_entry_count=$(echo "${config}" | grep -c 'package-ecosystem: "terraform"' || echo 0)
+if [ "${tf_entry_count}" -eq 1 ]; then
+    printf "${green}✓${nc} Found single Terraform update entry\n"
+    ((passed++))
+else
+    printf "${red}✗${nc} Expected 1 Terraform update entry, found %d\n" "${tf_entry_count}"
+    ((failed++))
+fi
+assert_contains "${config}" "directories:" "Terraform uses directories directive"
+
+# Verify some known modules are present
+assert_contains "${config}" "infrastructure/modules/s3-bucket" "Known module: s3-bucket"
+assert_contains "${config}" "infrastructure/modules/iam" "Known module: iam"
+assert_contains "${config}" "infrastructure/modules/kms" "Known module: kms"
+assert_contains "${config}" "infrastructure/modules/secrets-manager" "Known module: secrets-manager"
+assert_contains "${config}" "infrastructure/modules/tags" "Foundation module: tags"
+
+# Test 6: Verify .terraform/ cache is excluded
+printf "\n${blue}Test: Exclusion of cache directories${nc}\n"
+assert_not_contains "${config}" ".terraform" "Cache directories excluded"
+
+# Test 7: Verify weekly schedule is set
+printf "\n${blue}Test: Schedule configuration${nc}\n"
+if echo "${config}" | grep -A1 'schedule:' | grep -q 'interval: "weekly"'; then
+    printf "${green}✓${nc} Weekly schedule configured\n"
+    ((passed++))
+else
+    printf "${red}✗${nc} Weekly schedule not found\n"
+    ((failed++))
+fi
+
+# Test 8: Test idempotency - running twice should produce same output
+printf "\n${blue}Test: Idempotency${nc}\n"
+output_file_2="${fixture_root}/dependabot2.yaml"
+bash "${repo_root}/${script}" "${output_file_2}" > /dev/null 2>&1
+
+if diff -q "${output_file}" "${output_file_2}" > /dev/null 2>&1; then
+    printf "${green}✓${nc} Script output is idempotent\n"
+    ((passed++))
+else
+    printf "${red}✗${nc} Script output is not idempotent\n"
+    ((failed++))
+fi
+
+# Test 9: Count modules in actual repository
+printf "\n${blue}Test: Module count verification${nc}\n"
+actual_module_count=$(find "${repo_root}/infrastructure/modules" -name "versions.tf" -type f | grep -v '/.terraform/' | wc -l)
+expected_tf_entries=$(echo "${config}" | grep -c '^      - "infrastructure/modules/' || echo 0)
+
+if [ "${actual_module_count}" -eq "${expected_tf_entries}" ]; then
+    printf "${green}✓${nc} All %d modules accounted for in Terraform directories list\n" "${actual_module_count}"
+    ((passed++))
+else
+    printf "${red}✗${nc} Module count mismatch\n"
+    printf "  Found %d modules with versions.tf\n" "${actual_module_count}"
+    printf "  Generated %d terraform directories entries\n" "${expected_tf_entries}"
+    ((failed++))
+fi
+
+# Test 10: Preserve non-generated customizations from template
+printf "\n${blue}Test: Preserve template customizations outside markers${nc}\n"
+template_copy="${fixture_root}/dependabot-template.yaml"
+custom_output="${fixture_root}/dependabot-custom.yaml"
+cp "${repo_root}/.github/dependabot.yaml" "${template_copy}"
+
+# Simulate manual edit outside autogenerated section
+sed 's|/scripts/docker/tests|/scripts/docker/tests-custom|g' "${template_copy}" > "${template_copy}.tmp"
+mv "${template_copy}.tmp" "${template_copy}"
+
+if DEPENDABOT_TEMPLATE_FILE="${template_copy}" bash "${repo_root}/${script}" "${custom_output}" > /dev/null 2>&1; then
+    custom_config=$(cat "${custom_output}")
+    assert_contains "${custom_config}" "/scripts/docker/tests-custom" "Manual non-Terraform customization preserved"
+else
+    printf "${red}✗${nc} Generator failed with custom template\n"
+    ((failed++))
+fi
+
+# Test 11: Documentation lint checks for touched docs in this feature
+printf "\n${blue}Test: Documentation lint checks${nc}\n"
+docs_to_check=(
+    "${repo_root}/README.md"
+    "${repo_root}/tests/README.md"
+    "${repo_root}/.github/instructions/terraform-modules.instructions.md"
+    "${repo_root}/docs/user-guides/Pre_commit_hooks_reference.md"
+)
+
+if command -v markdownlint >/dev/null 2>&1; then
+    if markdownlint "${docs_to_check[@]}" --config "${repo_root}/scripts/config/markdownlint.yaml" >/dev/null 2>&1; then
+        printf "${green}✓${nc} Markdownlint passes for touched docs\n"
+        ((passed++))
+    else
+        printf "${red}✗${nc} Markdownlint failed for touched docs\n"
+        ((failed++))
+    fi
+else
+    printf "${yellow}⊘${nc} markdownlint not available (skip markdown docs lint assertion)\n"
+fi
+
+if command -v vale >/dev/null 2>&1; then
+    if vale --config "${repo_root}/scripts/config/vale/vale.ini" "${docs_to_check[@]}" >/dev/null 2>&1; then
+        printf "${green}✓${nc} Vale passes for touched docs\n"
+        ((passed++))
+    else
+        printf "${red}✗${nc} Vale failed for touched docs\n"
+        ((failed++))
+    fi
+else
+    printf "${yellow}⊘${nc} vale not available (skip prose lint assertion)\n"
+fi
+
+# ============================================================================
+# Summary
+# ============================================================================
+
+printf "\n${blue}=== Test Summary ===${nc}\n"
+printf "${green}Passed${nc}: %d\n" "${passed}"
+printf "${red}Failed${nc}: %d\n" "${failed}"
+
+if [ "${failed}" -gt 0 ]; then
+    printf "\n${red}Test suite FAILED${nc}\n"
+    exit 1
+else
+    printf "\n${green}Test suite PASSED${nc}\n"
+    exit 0
+fi

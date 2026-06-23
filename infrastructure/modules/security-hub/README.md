@@ -16,7 +16,7 @@ This wraps the upstream module in the same way as
 | Consistent naming & tagging     | `context = module.this.context` forwarded to the upstream module         |
 | `enabled` switch                | Honoured via `module.this.context.enabled`                               |
 | Default standards on by default | `var.enable_default_standards = true` (AWS FSBP + CIS AWS Foundations)   |
-| Single source of SNS truth      | `create_sns_topic = false`; findings forwarded to an existing topic arn  |
+| Single source of SNS truth      | `create_sns_topic = false`; findings forwarded to an existing topic ARN  |
 
 ## Pairing with GuardDuty
 
@@ -32,7 +32,7 @@ shared SNS topic created by the separate alerting module via the
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -45,7 +45,7 @@ module "security_hub" {
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -64,7 +64,7 @@ module "security_hub" {
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -75,10 +75,19 @@ module "security_hub" {
 }
 ```
 
+## Conventions
+
+* `enable_default_standards` defaults to `true`, enabling AWS Foundational Security Best Practices (FSBP) and CIS AWS Foundations Benchmark.
+* `enabled_standards` is an optional list of additional standards to enable (e.g., `"standards/pci-dss/v/3.2.1"`).
+* `finding_aggregator_enabled` defaults to `false`; set to `true` to aggregate findings from multiple regions into the current region.
+* `create_sns_topic` is always `false` (the module does not create its own topic); provide `findings_notification_arn` to forward findings to an existing SNS topic.
+* GuardDuty findings are automatically ingested by Security Hub when both services are enabled in the same account/region; no additional configuration is required.
+* Context-based naming and tagging via `module.this.context` is forwarded to the upstream CloudPosse module.
+
 ## What this module does NOT do
 
 * Create the SNS topic that receives findings. That is owned by the alerting
-  module — pass its arn via `findings_notification_arn`.
+  module — pass its ARN via `findings_notification_arn`.
 * Create a KMS key. If the alerting SNS topic is KMS-encrypted, configure that
   inside the alerting module.
 * Manage Organization-wide Security Hub administration / member accounts. Those
@@ -89,7 +98,10 @@ module "security_hub" {
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.64.0 |
 
 ## Providers
 
@@ -115,11 +127,11 @@ No resources.
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
 | <a name="input_cloudwatch_event_rule_pattern_detail_type"></a> [cloudwatch\_event\_rule\_pattern\_detail\_type](#input\_cloudwatch\_event\_rule\_pattern\_detail\_type) | The detail-type pattern used to match Security Hub events for the CloudWatch rule. | `string` | `"Security Hub Findings - Imported"` | no |
-| <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "namespace": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "stage": null,<br/>  "tags": {},<br/>  "tenant": null,<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
+| <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_data_classification"></a> [data\_classification](#input\_data\_classification) | Used to identify the data classification of the resource, e.g 1-5 | `string` | `"n/a"` | no |
 | <a name="input_data_type"></a> [data\_type](#input\_data\_type) | The tag data\_type | `string` | `"None"` | no |
 | <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to be used between ID elements.<br/>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
-| <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br/>Map of maps. Keys are names of descriptors. Values are maps of the form<br/>`{<br/>  format = string<br/>  labels = list(string)<br/>}`<br/>(Type is `any` so the map values can later be enhanced to provide additional options.)<br/>`format` is a Terraform format string to be passed to the `format()` function.<br/>`labels` is a list of labels, in order, to pass to `format()` function.<br/>Label values will be normalized before being passed to `format()` so they will be<br/>identical to how they appear in `id`.<br/>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
+| <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br/>Map of maps. Keys are names of descriptors. Values are maps of the form<br/>`{<br/>    format = string<br/>    labels = list(string)<br/>}`<br/>(Type is `any` so the map values can later be enhanced to provide additional options.)<br/>`format` is a Terraform format string to be passed to the `format()` function.<br/>`labels` is a list of labels, in order, to pass to `format()` function.<br/>Label values will be normalized before being passed to `format()` so they will be<br/>identical to how they appear in `id`.<br/>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
 | <a name="input_enable_default_standards"></a> [enable\_default\_standards](#input\_enable\_default\_standards) | Whether to enable the AWS-recommended default standards (AWS Foundational Security Best Practices and CIS AWS Foundations Benchmark) when Security Hub is first enabled in this account/region. | `bool` | `true` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
 | <a name="input_enabled_standards"></a> [enabled\_standards](#input\_enabled\_standards) | A list of Security Hub standards/rulesets to subscribe to (in addition to or<br/>instead of the defaults). Pass either short identifiers<br/>(e.g. `standards/aws-foundational-security-best-practices/v/1.0.0`) or full<br/>ARNs. The upstream module resolves identifiers per partition/region. See:<br/>https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/securityhub_standards_subscription | `list(any)` | `[]` | no |
@@ -145,6 +157,7 @@ No resources.
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 

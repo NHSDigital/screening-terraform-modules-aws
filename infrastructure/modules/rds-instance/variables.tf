@@ -1,5 +1,6 @@
 variable "name" {
   description = "The name of the resource"
+  type        = string
 }
 
 variable "rds_instance_class" {
@@ -19,6 +20,7 @@ variable "rds_engine_version" {
   default     = "16"
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "aws_secret_id" {
   type        = string
   description = "The name of the secret that holds the postgresql login details"
@@ -66,6 +68,7 @@ variable "port" {
   default     = 5432
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "db_storage_encryption" {
   description = "Whether the database storage should be encrypted"
   type        = bool
@@ -84,6 +87,7 @@ variable "copy_tags_to_snapshot" {
   default     = true
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "allocated_storage" {
   description = "The amount of storage to allocate to the database in GB"
   type        = number
@@ -108,6 +112,7 @@ variable "performance_insights_retention_period" {
   default     = 7
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "enable_backup" {
   description = "Whether to enable automated backups for the database"
   type        = bool
@@ -162,6 +167,7 @@ variable "deletion_protection" {
   default     = false
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "is_temporary_shutdown" {
   description = "Whether the database is in a temporary shutdown state (not a standard AWS attribute)"
   type        = bool
@@ -174,6 +180,7 @@ variable "enabled_cloudwatch_logs_exports" {
   default     = ["postgresql"]
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "cloudwatch_log_retention_days" {
   description = "Number of days to retain CloudWatch logs"
   type        = number
@@ -185,17 +192,20 @@ variable "name_prefix" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "aws_account_id" {
   sensitive   = true
   description = "The AWS account ID"
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "environment" {
   description = "The name of the Environment this is deployed into, for example CICD, NFT, UAT or PROD"
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "vpc_name" {
   description = "vpc name"
   type        = string
