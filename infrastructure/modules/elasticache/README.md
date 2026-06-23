@@ -264,7 +264,7 @@ module "page_cache" {
 - **Encryption**: Both in-transit (TLS) and at-rest encryption are **enforced and cannot be disabled**. Auth tokens required for Redis/Valkey.
 - **Cluster mode**: Enabled by default within `replication_group` mode. Each shard holds the full dataset; scales out by adding shards.
 - **Replicas**: Default 2 per shard. Set `replicas_per_node_group = 0` only for non-critical single-node deployments.
-- **Logging**: Both slow-log and engine-log delivered to CloudWatch with 365-day retention by default. Override via `log_delivery_configuration`. Pre-create log groups via the cloudwatch module for KMS encryption.
+- **Logging**: Both slow-log and engine-log delivered to CloudWatch with 365-day retention by default. Override via `log_delivery_configuration`. Pre-create log groups via the CloudWatch module for KMS encryption.
 - **Snapshots**: Redis/Valkey only (not Memcached). Default 5-day retention. Set `final_snapshot_identifier_prefix` to preserve state on deletion.
 - **Maintenance**: Applied during the configured window (default: Sunday 03:00–05:00 UTC). Use `apply_immediately = true` for emergency patches only.
 
@@ -283,18 +283,18 @@ module "page_cache" {
 
 Before deploying, verify:
 
-- [x] Encryption in transit enforced (TLS)
-- [x] Encryption at rest enforced
-- [x] No public access (private subnets + security groups)
-- [x] Multi-AZ enabled for production
-- [x] Automatic failover enabled for HA
-- [x] Auth token set for Redis/Valkey (stored in Secrets Manager)
-- [x] Allowed security groups/CIDRs explicitly defined
-- [x] Logging enabled with KMS encryption
-- [x] Snapshots enabled with retention policy
-- [x] Maintenance window set to low-traffic time
-- [x] SNS topic for notifications configured
-- [x] All resources tagged via context module
+- [ ] Encryption in transit enforced (TLS) — hardcoded, no action needed
+- [ ] Encryption at rest enforced — hardcoded, no action needed
+- [ ] No public access — confirm private subnets only in `subnet_ids`
+- [ ] Multi-AZ enabled — set `multi_az_enabled = true` for production
+- [ ] Automatic failover enabled — set `automatic_failover_enabled = true` for production
+- [ ] Auth token supplied for Redis/Valkey — source from AWS Secrets Manager
+- [ ] Security group configured — supply via `security_group_ids` or set `create_security_group = true`
+- [ ] Logging configured — review `log_delivery_configuration` default (365-day retention)
+- [ ] Snapshot retention set — review `snapshot_retention_days` (default: 5)
+- [ ] Maintenance window configured for low-traffic period
+- [ ] SNS topic supplied for failover/maintenance notifications
+- [ ] All context labels set (`service`, `project`, `environment`, `name`)
 
 ## Outputs
 
@@ -422,7 +422,6 @@ No resources.
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs for the ElastiCache subnet group.<br/>Should be private subnets across multiple AZs for high availability.<br/>Minimum: 2 subnets (different AZs); recommended for multi-AZ deployments. | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
-| <a name="input_tls_version"></a> [tls\_version](#input\_tls\_version) | TLS version for encryption in transit. Valid: 'plaintext', 'tls'. Default: 'tls' (enforced). | `string` | `"tls"` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID. Required when create\_security\_group = true; otherwise optional. | `string` | `null` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 
@@ -436,7 +435,7 @@ No resources.
 | <a name="output_cluster_arn"></a> [cluster\_arn](#output\_cluster\_arn) | ARN of the standalone ElastiCache cluster. |
 | <a name="output_cluster_configuration_endpoint"></a> [cluster\_configuration\_endpoint](#output\_cluster\_configuration\_endpoint) | Configuration endpoint for Memcached clusters (auto-discovery). |
 | <a name="output_configuration_endpoint_address"></a> [configuration\_endpoint\_address](#output\_configuration\_endpoint\_address) | Configuration endpoint for cluster-mode replication groups (connects to all shards). |
-| <a name="output_id"></a> [id](#output\_id) | Active deployment mode: replication\_group, cluster, or serverless. |
+| <a name="output_deployment_mode"></a> [deployment\_mode](#output\_deployment\_mode) | Active deployment mode: replication\_group, cluster, or serverless. |
 | <a name="output_maintenance_window"></a> [maintenance\_window](#output\_maintenance\_window) | Maintenance window (UTC). |
 | <a name="output_member_clusters"></a> [member\_clusters](#output\_member\_clusters) | List of member node IDs in the replication group. |
 | <a name="output_port"></a> [port](#output\_port) | Port on which the ElastiCache resource listens. |

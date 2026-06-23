@@ -57,6 +57,9 @@ module "elasticache" {
   replicas_per_node_group = var.cluster_mode_enabled ? var.replicas_per_node_group : null
   num_node_groups         = var.cluster_mode_enabled ? var.num_node_groups : null
 
+  # Parameter group family (e.g. valkey8, redis7, memcached1.6)
+  parameter_group_family = local.parameter_family
+
   # ----------------------------------------------------------------
   # Resource identifiers
   # ----------------------------------------------------------------
@@ -66,9 +69,10 @@ module "elasticache" {
 
   # ----------------------------------------------------------------
   # Encryption: in transit (TLS) and at rest — ENFORCED
+  # Neither is exposed as a variable; callers cannot weaken these.
   # ----------------------------------------------------------------
   transit_encryption_enabled = true
-  transit_encryption_mode    = var.tls_version
+  transit_encryption_mode    = "required"
   at_rest_encryption_enabled = true
   kms_key_arn                = var.kms_key_arn
 

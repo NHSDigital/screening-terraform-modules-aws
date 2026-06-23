@@ -166,17 +166,6 @@ variable "port" {
 # Encryption (enforced)
 # ================================================================
 
-variable "tls_version" {
-  description = "TLS version for encryption in transit. Valid: 'plaintext', 'tls'. Default: 'tls' (enforced)."
-  type        = string
-  default     = "tls"
-
-  validation {
-    condition     = contains(["plaintext", "tls"], var.tls_version)
-    error_message = "tls_version must be 'plaintext' or 'tls'; only 'tls' recommended"
-  }
-}
-
 variable "kms_key_arn" {
   description = <<-EOT
     Optional KMS key ARN for encryption at rest. When null, AWS-managed encryption is used.

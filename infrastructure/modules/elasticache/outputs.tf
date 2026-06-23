@@ -1,4 +1,4 @@
-output "id" {
+output "deployment_mode" {
   description = "Active deployment mode: replication_group, cluster, or serverless."
   value       = var.deployment_mode
 }
