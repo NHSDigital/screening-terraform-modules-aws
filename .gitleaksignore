@@ -5,3 +5,7 @@ e876843351a025eb754ec61982c8b7d95deeb709:.pre-commit-config.yaml:ipv4:119
 e364bc1869c67729653c7efb4d6169f2294e68de:.pre-commit-config.yaml:ipv4:110
 62088509f98ce02ce379adef2168b867eecfb5da:.pre-commit-config.yaml:ipv4:110
 a3fa25da4e8f9eaa2e28c29f6196f23bfe87a58d:.pre-commit-config.yaml:ipv4:119
+# Historical false positive: example ARN comment in tags/main.tf contained hex-like content
+# which triggered the ipv6 rule. Comment updated in later commit; old commits suppressed here.
+7b49758d98757e8f404cb2c540c1f146afd6e395:infrastructure/modules/tags/main.tf:ipv6:131
+091dcd76884ffd307aee6c6b306b015c065f4896:infrastructure/modules/tags/main.tf:ipv6:131

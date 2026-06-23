@@ -62,6 +62,7 @@ updates:
       - "infrastructure/modules/s3-bucket"
       - "infrastructure/modules/s3"
       - "infrastructure/modules/secrets-manager"
+      - "infrastructure/modules/security-group"
       - "infrastructure/modules/security-hub"
       - "infrastructure/modules/sns"
       - "infrastructure/modules/sqs"

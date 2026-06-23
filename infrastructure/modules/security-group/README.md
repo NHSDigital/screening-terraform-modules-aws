@@ -12,11 +12,11 @@ the replacement before destroying the original.
 
 ## What this module enforces
 
-| Control                            | How it is enforced                                                     |
-| ---------------------------------- | ---------------------------------------------------------------------- |
-| Consistent naming and tagging      | `name = module.this.id` and `tags = module.this.tags`                 |
-| Central `enabled` switch           | `create = module.this.enabled`                                         |
-| Caller-defined traffic policy only | `ingress_rules` and `egress_rules` are passed through without mutation |
+|Control|How it is enforced|
+|---|---|
+|Naming consistency|`name = module.this.id` and `tags = module.this.tags`|
+|Creation gate|`create = module.this.enabled`|
+|Exclusive rules|`enable_exclusive_rules = true` by default|
 
 ## Usage
 
@@ -24,7 +24,7 @@ the replacement before destroying the original.
 
 ```hcl
 module "app_sg" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=<tag>"
 
   service     = "bcss"
   project     = "api"
@@ -40,7 +40,7 @@ module "app_sg" {
 
 ```hcl
 module "app_sg" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=<tag>"
 
   service     = "bcss"
   project     = "api"
@@ -63,7 +63,7 @@ module "app_sg" {
 
 ```hcl
 module "app_sg" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=<tag>"
 
   service     = "bcss"
   project     = "api"
@@ -89,7 +89,7 @@ module "app_sg" {
 
 ```hcl
 module "app_sg" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=<tag>"
 
   service     = "bcss"
   project     = "api"
@@ -111,6 +111,130 @@ module "app_sg" {
 }
 ```
 
+### IPv6 example: allow documentation-only ranges
+
+```hcl
+module "ipv6_app_sg" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=<tag>"
+
+  service     = "bcss"
+  project     = "api"
+  environment = "prod"
+  name        = "ipv6-app"
+
+  description = "IPv6 example using documentation prefixes"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_rules = {
+    # RFC9637 documentation prefix example (3fff::/20)
+    app_from_docs_ipv6 = {
+      ip_protocol = "tcp"
+      from_port   = 443
+      to_port     = 443
+      cidr_ipv6   = "3fff:0f00:1234:5678::/64"
+      description = "HTTPS from a narrow RFC9637 documentation subnet"
+    }
+  }
+
+  egress_rules = {
+    # RFC3849 documentation prefix example (2001:db8::/32)
+    app_to_docs_ipv6 = {
+      ip_protocol = "tcp"
+      from_port   = 443
+      to_port     = 443
+      cidr_ipv6   = "2001:db8:abcd:ef01::/64"
+      description = "HTTPS egress to a narrow RFC3849 documentation range"
+    }
+  }
+}
+```
+
+### Complex: database with multiple rule types (single IP, CIDR range, prefix list, security group)
+
+```hcl
+module "database_sg" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=<tag>"
+
+  service     = "bcss"
+  project     = "data"
+  environment = "prod"
+  name        = "postgres-db"
+
+  description = "PostgreSQL database with complex access rules"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_rules = {
+    # Single IP address (admin access)
+    admin_direct = {
+      ip_protocol = "tcp"
+      from_port   = 5432
+      to_port     = 5432
+      # RFC5737 TEST-NET-3 example address (safe dummy value)
+      cidr_ipv4   = "203.0.113.5/32"
+      description = "Direct PostgreSQL from admin workstation"
+    }
+
+    # Range of IPs (office network)
+    office_network = {
+      ip_protocol = "tcp"
+      from_port   = 5432
+      to_port     = 5432
+      cidr_ipv4   = "10.1.0.0/16"
+      description = "PostgreSQL from office network"
+    }
+
+    # AWS managed prefix list (e.g., S3 gateway endpoint)
+    s3_via_gateway = {
+      ip_protocol    = "tcp"
+      from_port      = 443
+      to_port        = 443
+      prefix_list_id = "pl-12345678"
+      description    = "HTTPS to S3 via VPC gateway endpoint"
+    }
+
+    # Referenced security group (app servers)
+    from_app_servers = {
+      ip_protocol                  = "tcp"
+      from_port                    = 5432
+      to_port                      = 5432
+      referenced_security_group_id = module.app_sg.security_group_id
+      description                  = "PostgreSQL from application tier"
+    }
+  }
+
+  egress_rules = {
+    # Outbound to external database replication
+    replication_out = {
+      ip_protocol = "tcp"
+      from_port   = 5432
+      to_port     = 5432
+      # RFC5737 TEST-NET-1 example range (safe dummy value)
+      cidr_ipv4   = "192.0.2.0/24"
+      description = "PostgreSQL replication to standby"
+    }
+
+    # DNS queries
+    dns_out = {
+      ip_protocol = "udp"
+      from_port   = 53
+      to_port     = 53
+      # 0.0.0.0/0 intentionally shown as "whole world" example traffic scope
+      cidr_ipv4   = "0.0.0.0/0"
+      description = "DNS resolution"
+    }
+
+    # Egress to monitoring stack (referenced security group)
+    to_monitoring = {
+      ip_protocol                  = "tcp"
+      from_port                    = 443
+      to_port                      = 443
+      referenced_security_group_id = module.monitoring_sg.security_group_id
+      description                  = "Metrics export to monitoring"
+    }
+  }
+}
+```
+
 ## Conventions
 
 * Keep `ingress_rules` and `egress_rules` keys stable (for example `alb_https`,
@@ -121,6 +245,130 @@ module "app_sg" {
   understand why a rule exists from the AWS console.
 * Use `context.enabled = false` to disable creation in environments where the
   security group is not required.
+
+## Common rule presets (avoiding port duplication)
+
+To avoid duplicating port ranges and protocol definitions across multiple security groups, define common rule templates as locals in your Terraform stack. This keeps your code DRY and maintainable.
+
+### Reference: upstream module port ranges
+
+The upstream `terraform-aws-modules/security-group/aws` module provides comprehensive rule presets in its [`modules/`](https://github.com/terraform-aws-modules/terraform-aws-security-group/tree/master/modules) directory (e.g., `modules/http-80`, `modules/https-443`, `modules/mysql`, etc.). You can reference these for authoritative port ranges:
+
+1. Browse [`github.com/terraform-aws-modules/terraform-aws-security-group/tree/master/modules`](https://github.com/terraform-aws-modules/terraform-aws-security-group/tree/master/modules)
+2. Check the relevant module (e.g., `modules/postgresql/main.tf`) to see the port definitions
+3. Copy the port ranges and protocols into your stack's rule presets
+
+**Example:** To find the standard port for PostgreSQL, check [`modules/postgresql/main.tf`](https://github.com/terraform-aws-modules/terraform-aws-security-group/tree/master/modules/postgresql) in the upstream repo and extract the port number (5432 for TCP).
+
+### Defining and using rule presets in your stack
+
+In your consumer stack (e.g., `bcss` repository), define rule templates as locals:
+
+```hcl
+locals {
+  # Common rule presets to reuse across security groups
+  # Reference: https://github.com/terraform-aws-modules/terraform-aws-security-group/tree/master/modules
+  rules_http = {
+    http = {
+      ip_protocol = "tcp"
+      from_port   = 80
+      to_port     = 80
+      description = "HTTP"
+    }
+  }
+
+  rules_https = {
+    https = {
+      ip_protocol = "tcp"
+      from_port   = 443
+      to_port     = 443
+      description = "HTTPS"
+    }
+  }
+
+  rules_http_https = merge(local.rules_http, local.rules_https)
+
+  rules_ssh = {
+    ssh = {
+      ip_protocol = "tcp"
+      from_port   = 22
+      to_port     = 22
+      description = "SSH"
+    }
+  }
+
+  rules_dns = {
+    dns_tcp = {
+      ip_protocol = "tcp"
+      from_port   = 53
+      to_port     = 53
+      description = "DNS (TCP)"
+    }
+    dns_udp = {
+      ip_protocol = "udp"
+      from_port   = 53
+      to_port     = 53
+      description = "DNS (UDP)"
+    }
+  }
+
+  rules_postgresql = {
+    postgresql = {
+      ip_protocol = "tcp"
+      from_port   = 5432
+      to_port     = 5432
+      description = "PostgreSQL"
+    }
+  }
+
+  rules_mysql = {
+    mysql = {
+      ip_protocol = "tcp"
+      from_port   = 3306
+      to_port     = 3306
+      description = "MySQL"
+    }
+  }
+}
+```
+
+Then reference these locals when creating security groups:
+
+```hcl
+module "web_sg" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-group?ref=<tag>"
+
+  service     = "bcss"
+  project     = "web"
+  environment = "prod"
+  name        = "web-tier"
+
+  description = "Web tier with HTTP and HTTPS"
+  vpc_id      = module.vpc.vpc_id
+
+  # Merge preset rules with custom rules
+  ingress_rules = merge(
+    local.rules_http_https,
+    {
+      ssh_from_admin = {
+        ip_protocol = "tcp"
+        from_port   = 22
+        to_port     = 22
+        # RFC5737 TEST-NET-3 example range (safe dummy value)
+        cidr_ipv4   = "203.0.113.0/24"
+        description = "SSH from admin network"
+      }
+    }
+  )
+
+  egress_rules = merge(
+    local.rules_https,
+    local.rules_dns,
+  )
+}
+```
+
+This pattern keeps rule definitions in your own codebase where they can be versioned and reused across all your security groups. Store these locals in a shared file (e.g., `infrastructure/security_group_rules.tf`) so all your security group modules can reference them.
 
 ## What this module does NOT do
 
@@ -137,7 +385,10 @@ module "app_sg" {
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.29 |
 
 ## Providers
 
@@ -147,7 +398,7 @@ No providers.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_security_group"></a> [security\_group](#module\_security\_group) | terraform-aws-modules/security-group/aws | n/a |
+| <a name="module_security_group"></a> [security\_group](#module\_security\_group) | terraform-aws-modules/security-group/aws | 6.0.0 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
@@ -169,6 +420,7 @@ No resources.
 | <a name="input_description"></a> [description](#input\_description) | Description for the security group | `string` | `null` | no |
 | <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br/>Map of maps. Keys are names of descriptors. Values are maps of the form<br/>`{<br/>    format = string<br/>    labels = list(string)<br/>}`<br/>(Type is `any` so the map values can later be enhanced to provide additional options.)<br/>`format` is a Terraform format string to be passed to the `format()` function.<br/>`labels` is a list of labels, in order, to pass to `format()` function.<br/>Label values will be normalized before being passed to `format()` so they will be<br/>identical to how they appear in `id`.<br/>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
 | <a name="input_egress_rules"></a> [egress\_rules](#input\_egress\_rules) | Map of egress rules to add to the security group | <pre>map(object({<br/>    name                         = optional(string)<br/>    cidr_ipv4                    = optional(string)<br/>    cidr_ipv6                    = optional(string)<br/>    description                  = optional(string)<br/>    from_port                    = optional(number)<br/>    ip_protocol                  = optional(string, "tcp")<br/>    prefix_list_id               = optional(string)<br/>    referenced_security_group_id = optional(string)<br/>    tags                         = optional(map(string), {})<br/>    to_port                      = optional(number)<br/>  }))</pre> | `{}` | no |
+| <a name="input_enable_exclusive_rules"></a> [enable\_exclusive\_rules](#input\_enable\_exclusive\_rules) | Whether to enforce that only the rules declared by this module exist on the security group. When true, out-of-band rules added via the AWS console or other Terraform configurations will be reverted on next apply | `bool` | `true` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used to indicate role, e.g. 'prd', 'dev', 'test', 'preprod', 'prod', 'uat' | `string` | `null` | no |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br/>Set to `0` for unlimited length.<br/>Set to `null` for keep the existing setting, which defaults to `0`.<br/>Does not affect `id_full`. | `number` | `null` | no |
@@ -184,6 +436,8 @@ No resources.
 | <a name="input_public_facing"></a> [public\_facing](#input\_public\_facing) | Whether this resource is public facing | `bool` | `false` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br/>Characters matching the regex will be removed from the ID elements.<br/>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
 | <a name="input_region"></a> [region](#input\_region) | ID element \_(Rarely used, not included by default)\_.  Usually an abbreviation of the selected AWS region e.g. 'uw2', 'ew2' or 'gbl' for resources like IAM roles that have no region | `string` | `null` | no |
+| <a name="input_revoke_rules_on_delete"></a> [revoke\_rules\_on\_delete](#input\_revoke\_rules\_on\_delete) | Whether to revoke all rules on the security group when it is deleted. This is useful for security groups that are shared across multiple resources, as it prevents orphaned rules from remaining after the security group is deleted. | `bool` | `false` | no |
+| <a name="input_security_group_name"></a> [security\_group\_name](#input\_security\_group\_name) | Name of security group | `string` | `""` | no |
 | <a name="input_service"></a> [service](#input\_service) | ID element. Usually an abbreviation of your service directorate name, e.g. 'bcss' or 'csms', to help ensure generated IDs are globally unique | `string` | `null` | no |
 | <a name="input_service_category"></a> [service\_category](#input\_service\_category) | The tag service\_category | `string` | `"n/a"` | no |
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
@@ -191,7 +445,8 @@ No resources.
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where the security group is created | `string` | `null` | no |
+| <a name="input_use_name_prefix"></a> [use\_name\_prefix](#input\_use\_name\_prefix) | Whether to use the name (`name`) as a prefix, appending a random suffix | `bool` | `true` | no |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where the security group is created; defaults to the region's default VPC | `string` | `null` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 
 ## Outputs
