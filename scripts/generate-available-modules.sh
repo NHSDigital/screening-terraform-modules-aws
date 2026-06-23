@@ -190,7 +190,7 @@ while IFS='|' read -r sort_key module_path module_name; do
     fi
 
     # Write table row
-    printf "| \`%s\`${legacy_indicator} | %s | %s |\n" "${module_name}" "${wraps}" "${description}" >> "${temp_table}"
+    printf "| \`%s\`%s | %s | %s |\n" "${module_name}" "${legacy_indicator}" "${wraps}" "${description}" >> "${temp_table}"
 
     ((module_count++))
 done < "${temp_modules}"
