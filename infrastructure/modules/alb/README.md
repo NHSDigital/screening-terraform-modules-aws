@@ -2,7 +2,7 @@
 
 Thin NHS wrapper around [terraform-aws-modules/alb/aws](https://registry.terraform.io/modules/terraform-aws-modules/alb/aws) that enforces the screening platform's baseline controls.
 
-## Fixed controls
+## What this module enforces
 
 | Setting | Value | Reason |
 |---|---|---|
@@ -170,6 +170,22 @@ module "nlb" {
   }
 }
 ```
+
+## Conventions
+
+* The load balancer name is derived from `module.this.id` and cannot be overridden — pass `context`, `name`, and `label_order` to control the generated name.
+* `internal` defaults to `false` (internet-facing). Set `internal = true` for ALBs and NLBs that should only be reachable from within the VPC.
+* Security group rules are caller-supplied via `security_group_ingress_rules` and `security_group_egress_rules`. This supports both ALB (HTTP/HTTPS) and NLB (TCP/TLS) patterns without constraining port numbers.
+* Access logging is optional. Supply an S3 bucket ARN via `access_logs` to enable it. NHS production environments should always enable access logging.
+* For NLBs, `drop_invalid_header_fields` is set to `null` automatically — this argument is only valid for ALBs.
+
+## What this module does NOT do
+
+* Create SSL/TLS certificates — use the `acm` module and pass the certificate ARN into `listeners`.
+* Create an S3 bucket for access logs — use the `s3-bucket` module and pass the bucket ID via `access_logs.bucket`.
+* Create Route53 DNS records — create an alias record pointing to `module.alb.dns_name` and `module.alb.zone_id` in your stack.
+* Create a WAF Web ACL — use the `waf` module and pass the ARN via `web_acl_arn`.
+* Enforce a minimum TLS policy — callers must specify `ssl_policy` on HTTPS listeners; use `ELBSecurityPolicy-TLS13-1-2-Res-2021-06` or later.
 
 ## Outputs
 
