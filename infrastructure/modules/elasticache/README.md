@@ -320,28 +320,6 @@ Before deploying, verify:
 |`snapshot_window`|all|Snapshot window|
 |`maintenance_window`|all|Maintenance window|
 
-## Exemplar Modules
-
-Reference these for patterns:
-
-- [s3-bucket](../s3-bucket) — full wrapper with comprehensive security
-- [kms](../kms) — customer-managed key creation
-- [security-group](../security-group) — security group patterns
-- [sns](../sns) — notification topic setup
-
-## Terraform Validation
-
-```bash
-# Format
-terraform fmt -recursive infrastructure/modules/elasticache
-
-# Initialize (required for validate)
-terraform -chdir=infrastructure/modules/elasticache init
-
-# Validate
-terraform -chdir=infrastructure/modules/elasticache validate
-```
-
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
