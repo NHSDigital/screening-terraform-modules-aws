@@ -55,6 +55,7 @@ updates:
       - "infrastructure/modules/license-manager"
       - "infrastructure/modules/parameter_store"
       - "infrastructure/modules/r53-healthcheck"
+      - "infrastructure/modules/r53"
       - "infrastructure/modules/rds-database"
       - "infrastructure/modules/rds-gateway-ecs-task"
       - "infrastructure/modules/rds-instance"
