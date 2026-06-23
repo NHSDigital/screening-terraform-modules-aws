@@ -4,9 +4,17 @@
 # Screening wrapper around the
 # `terraform-aws-modules/network-firewall/aws` upstream module
 #
-# Deploys an AWS Network Firewall into the dedicated firewall
-# subnets created by the VPC module
-
+# Deploys an AWS Network Firewall into dedicated firewall
+# subnets, typically passed in as an output from the VPC module.
+#
+# Enforces the platform's baseline security controls:
+#
+#   * Deletion protection enabled by default (opt-out requires explicit override)
+#   * Subnet change protection enabled by default
+#   * Logging opt-in (disabled by default to prevent log ingestion costs)
+#   * All resources tagged via module.this
+#   * Creation gated by module.this.enabled
+#
 # Naming and tagging are derived from context.tf via module.this.
 ################################################################
 

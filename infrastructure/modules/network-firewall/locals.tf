@@ -1,6 +1,6 @@
 locals {
-  # Build the subnet_mapping from the firewall subnet IDs provided
-  # by the VPC module.
+  # Build the subnet_mapping from the firewall subnet IDs provided,
+  # typically as an output from the VPC module.
   subnet_mapping = { for idx, subnet_id in var.firewall_subnet_ids :
     "subnet-${idx}" => {
       subnet_id       = subnet_id
