@@ -1,12 +1,22 @@
-# iam
+# IAM
 
-Creates iam customer-managed policies and (optionally) iam roles for any
+Creates IAM customer-managed policies and (optionally) IAM roles for any
 team on the screening platform. Thin wrapper around the community
 [`terraform-aws-modules/iam/aws`](https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest)
 submodules (`iam-policy` and `iam-role`), with naming and tagging supplied
 by the central `tags` module via `context.tf` — so every team gets
 consistent `/<service>/<project>/` paths and the standard NHS tag set
 automatically.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| IAM path namespacing | Policies and roles use `/<service>/<project>/` path derived from context |
+| Consistent naming | Names derived from `module.this.id` with per-resource attributes |
+| Tagging | All policies and roles tagged via `module.this.tags` |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+| Map-driven interface | Single module call produces multiple policies/roles with stable keys |
 
 ## Usage
 
@@ -15,7 +25,7 @@ roles. Three typical consumer patterns:
 
 ### 1. SSO customer-managed policies (no roles)
 
-Use this when defining the iam policies that AWS Identity Center
+Use this when defining the IAM policies that AWS Identity Center
 permission sets will reference. The SSO wiring itself
 (`aws_ssoadmin_permission_set`, `aws_ssoadmin_customer_managed_policy_attachment`,
 account assignments) lives in the consumer stack, not in this module.
@@ -126,12 +136,12 @@ module "iam" {
 
 - **Naming.** Resource names are derived from `module.this.id` plus an
   `attributes` suffix — e.g. `<id>-policy-<key>` and `<id>-role-<key>`.
-- **iam path.** Defaults to `/<service>/<project>/` from context. Override
+- **IAM path.** Defaults to `/<service>/<project>/` from context. Override
   globally with `var.path` or per-entry with `entry.path`.
 - **Enabled switch.** Set `context.enabled = false` to disable the entire
   module (e.g. in development tfvars). All resources are gated by it.
 - **Descriptions.** Strongly encouraged on every policy and role —
-  whoever sees them in the iam console later will thank you.
+  whoever sees them in the IAM console later will thank you.
 - **Inline policies.** `inline_policies` is a map of name -> JSON document;
   the upstream `iam-role` submodule merges all documents into a single
   inline policy on the role, so the map keys are used only for caller-side
@@ -142,8 +152,8 @@ module "iam" {
 
 - SSO permission sets, account assignments, group/user management — lives
   in the consumer stack via `aws_ssoadmin_*` and `aws_identitystore_*`.
-- iam users, iam groups, SAML/OIDC identity providers
-- Account-wide iam settings (password policy, account alias, MFA enforcement).
+- IAM users, IAM groups, SAML/OIDC identity providers
+- Account-wide IAM settings (password policy, account alias, MFA enforcement).
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
@@ -208,7 +218,7 @@ No resources.
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
-| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 

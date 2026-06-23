@@ -16,7 +16,7 @@ This wraps the upstream module in the same way as
 | Consistent naming & tagging     | `context = module.this.context` forwarded to the upstream module         |
 | `enabled` switch                | Honoured via `module.this.context.enabled`                               |
 | Default standards on by default | `var.enable_default_standards = true` (AWS FSBP + CIS AWS Foundations)   |
-| Single source of SNS truth      | `create_sns_topic = false`; findings forwarded to an existing topic arn  |
+| Single source of SNS truth      | `create_sns_topic = false`; findings forwarded to an existing topic ARN  |
 
 ## Pairing with GuardDuty
 
@@ -32,7 +32,7 @@ shared SNS topic created by the separate alerting module via the
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -45,7 +45,7 @@ module "security_hub" {
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -64,7 +64,7 @@ module "security_hub" {
 
 ```hcl
 module "security_hub" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/security-hub?ref=<tag>"
 
   service     = "bcss"
   project     = "platform"
@@ -75,10 +75,19 @@ module "security_hub" {
 }
 ```
 
+## Conventions
+
+* `enable_default_standards` defaults to `true`, enabling AWS Foundational Security Best Practices (FSBP) and CIS AWS Foundations Benchmark.
+* `enabled_standards` is an optional list of additional standards to enable (e.g., `"standards/pci-dss/v/3.2.1"`).
+* `finding_aggregator_enabled` defaults to `false`; set to `true` to aggregate findings from multiple regions into the current region.
+* `create_sns_topic` is always `false` (the module does not create its own topic); provide `findings_notification_arn` to forward findings to an existing SNS topic.
+* GuardDuty findings are automatically ingested by Security Hub when both services are enabled in the same account/region; no additional configuration is required.
+* Context-based naming and tagging via `module.this.context` is forwarded to the upstream CloudPosse module.
+
 ## What this module does NOT do
 
 * Create the SNS topic that receives findings. That is owned by the alerting
-  module — pass its arn via `findings_notification_arn`.
+  module — pass its ARN via `findings_notification_arn`.
 * Create a KMS key. If the alerting SNS topic is KMS-encrypted, configure that
   inside the alerting module.
 * Manage Organization-wide Security Hub administration / member accounts. Those
@@ -148,7 +157,7 @@ No resources.
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
-| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 

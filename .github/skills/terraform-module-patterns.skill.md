@@ -181,7 +181,13 @@ variable "meaningful_name" {
 - Complex types → use `object({})` with `optional()` fields.
 - Sensitive values → mark with `sensitive = true`.
 
-## Locals Pattern
+## Conditional Module Files
+
+- `data.tf` is mandatory only when data sources exist in the module (for example `data.aws_*`, `data.local_file`, `data.external`).
+- `locals.tf` is mandatory only when the module defines one or more `locals {}` blocks.
+- When present, keep all data sources in `data.tf` and all local values in `locals.tf`.
+
+## Locals Pattern (When Locals Are Needed)
 
 ```hcl
 ################################################################
@@ -284,7 +290,7 @@ module that enforces the platform's baseline controls.
 
 \```hcl
 module "example" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/<name>?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/<name>?ref=<tag>"
 
   service     = "bcss"
   environment = "test"
