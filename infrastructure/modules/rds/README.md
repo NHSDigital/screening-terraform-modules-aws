@@ -2,12 +2,12 @@
 
 Thin NHS wrapper around [`terraform-aws-modules/rds/aws`](https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest) (v7.2.0).
 
-The module provisions an RDS DB instance together with its subnet group, parameter group, option group, and (optionally) an Enhanced Monitoring iam role. The caller is responsible for creating a security group (use the dedicated security group module) and passing its ID via `vpc_security_group_ids`.
+The module provisions an RDS DB instance together with its subnet group, parameter group, option group, and (optionally) an Enhanced Monitoring IAM role. The caller is responsible for creating a security group (use the dedicated security group module) and passing its ID via `vpc_security_group_ids`.
 
 ## What this module enforces
 
 |Control|Value|Reason|
-|-|-|-|
+|---|---|---|
 |`publicly_accessible`|`false`|Databases must never be internet-facing|
 |`storage_encrypted`|`true`|Encryption at rest is mandatory|
 |`copy_tags_to_snapshot`|`true`|Snapshots must carry the same tags as the instance|
@@ -256,7 +256,7 @@ The master password arn is exposed via the `master_user_secret_arn` output.
 - Resource creation is gated by `module.this.enabled`.
 - Snapshot tagging is always enabled via `copy_tags_to_snapshot = true`.
 - Resource arn values (e.g., `instance_arn`) are exposed as output attributes.
-- iam authentication and resource tagging require the instance resource ID.
+- IAM authentication and resource tagging require the instance resource ID.
 
 ## What this module does NOT do
 
