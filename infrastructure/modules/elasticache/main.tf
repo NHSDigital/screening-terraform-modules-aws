@@ -111,17 +111,8 @@ module "elasticache" {
   vpc_id              = var.vpc_id
 
   # Security group:
-  # Option A — pass existing SG IDs from the security-group module
-  #            (feature/BCSS-23606-security-group-module):
-  #   create_security_group = false
-  #   security_group_ids    = [module.cache_sg.id]
-  # Option B — let the upstream module create one inline:
-  #   create_security_group = true
-  #   security_group_rules  = { ... }
-  create_security_group = var.create_security_group
+  create_security_group = false
   security_group_ids    = var.security_group_ids
-  security_group_rules  = var.security_group_rules
-  security_group_tags   = module.this.tags
 
   # Port configuration
   port = var.port
@@ -131,7 +122,7 @@ module "elasticache" {
   # ----------------------------------------------------------------
   # Delegated to upstream module built-in log group creation.
   #
-  # TODO: <JIRA> Pre-create log groups via the cloudwatch module for stronger
+  # TODO: Pre-create log groups via the cloudwatch module for stronger
   # control over KMS key, retention class, and skip_destroy behaviour. Example
   # using terraform-aws-modules/cloudwatch/aws//modules/log-group:
   #

@@ -260,17 +260,6 @@ variable "subnet_ids" {
   }
 }
 
-variable "create_security_group" {
-  description = <<-EOT
-    When false (default), supply existing security group IDs via security_group_ids — e.g.
-    from this repo's security-group module (feature/BCSS-23606-security-group-module).
-    When true, the upstream module creates a security group in var.vpc_id using the
-    rules defined in security_group_rules. vpc_id is required in this case.
-  EOT
-  type        = bool
-  default     = false
-}
-
 variable "security_group_ids" {
   description = <<-EOT
     List of existing security group IDs to associate with the cache.
@@ -279,16 +268,6 @@ variable "security_group_ids" {
   EOT
   type        = list(string)
   default     = []
-}
-
-variable "security_group_rules" {
-  description = <<-EOT
-    Map of ingress and egress rules for the upstream-managed security group.
-    Only used when create_security_group = true.
-    See the upstream module documentation for the full shape of each rule entry.
-  EOT
-  type        = any
-  default     = {}
 }
 
 # ================================================================

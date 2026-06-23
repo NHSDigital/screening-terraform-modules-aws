@@ -87,10 +87,9 @@ output "serverless_reader_endpoint" {
 output "security_group_id" {
   description = <<-EOT
     First security group ID associated with the cache.
-    When create_security_group = false this is security_group_ids[0] (caller-managed).
-    When create_security_group = true, query the SG from the security-group module instead.
+    This is security_group_ids[0] (caller-managed).
   EOT
-  value       = module.this.enabled && !var.create_security_group && length(var.security_group_ids) > 0 ? var.security_group_ids[0] : null
+  value       = module.this.enabled && length(var.security_group_ids) > 0 ? var.security_group_ids[0] : null
 }
 
 # ================================================================
