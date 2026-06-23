@@ -2,7 +2,7 @@
 # AWS Certificate Manager (ACM)
 #
 # A thin wrapper around the terraform-aws-modules/acm/aws module,
-# enforcing the following opinions:
+# enforcing the following controls:
 #
 #   * new certificates are validated via DNS, specifically via Route53
 #   * certificates cannot be exported

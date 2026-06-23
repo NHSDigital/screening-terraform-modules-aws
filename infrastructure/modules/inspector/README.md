@@ -8,6 +8,115 @@ Classic with consistent naming and tagging via the shared
 For Inspector v2 (continuous scanning of EC2, ECR and Lambda),
 build a separate module using the `aws_inspector2_*` resources.
 
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| Periodic assessments | CloudWatch Event rule triggers Inspector on a schedule (`schedule_expression`) |
+| Rule package validation | Only valid short identifiers (`cve`, `cis`, `nr`, `sbp`) are accepted |
+| Tagging and naming | Uses shared `context.tf` (`module.this`) for tags and naming |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+
+## Usage
+
+### Minimal Inspector Classic with CVE and CIS rules
+
+```hcl
+module "inspector" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=<tag>"
+
+  service     = "bcss"
+  project     = "security"
+  environment = "prod"
+  name        = "classic"
+
+  enabled_rules = ["cve", "cis"]
+}
+```
+
+### Production Inspector with all rule packages and SNS notifications
+
+```hcl
+module "inspector" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=<tag>"
+
+  service     = "bcss"
+  project     = "security"
+  environment = "prod"
+  name        = "full-scan"
+
+  enabled_rules = ["cve", "cis", "nr", "sbp"]
+
+  # Run assessments daily
+  schedule_expression = "rate(1 day)"
+  assessment_duration = "7200"
+
+  # Send notifications to SNS
+  assessment_event_subscription = {
+    completed = {
+      event     = "ASSESSMENT_RUN_COMPLETED"
+      topic_arn = module.sns_alerts.topic_arn
+    }
+    failed = {
+      event     = "ASSESSMENT_RUN_STATE_CHANGED"
+      topic_arn = module.sns_alerts.topic_arn
+    }
+  }
+}
+```
+
+### Custom IAM role for Inspector execution
+
+```hcl
+resource "aws_iam_role" "inspector" {
+  name = "custom-inspector-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "events.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "inspector" {
+  role       = aws_iam_role.inspector.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonInspectorServiceRolePolicy"
+}
+
+module "inspector" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/inspector?ref=<tag>"
+
+  service     = "bcss"
+  project     = "security"
+  environment = "prod"
+  name        = "custom-role"
+
+  enabled_rules = ["cve", "cis"]
+
+  create_iam_role = false
+  iam_role_arn    = aws_iam_role.inspector.arn
+}
+```
+
+## Conventions
+
+- `enabled_rules` is required and must contain at least one valid rule package identifier.
+- Valid short identifiers: `cve` (Common Vulnerabilities & Exposures), `cis` (CIS benchmarks), `nr` (Network Reachability), `sbp` (Security Best Practices).
+- `schedule_expression` defaults to `rate(7 days)`; adjust based on compliance requirements.
+- `assessment_duration` defaults to `3600` seconds (1 hour); increase for larger environments.
+- `create_iam_role` defaults to `false`; the upstream module creates a role if set to `true`, or you can provide an existing role via `iam_role_arn`.
+- `assessment_event_subscription` is a map for stability; use descriptive keys like `completed`, `failed`, `started`.
+
+## What this module does NOT do
+
+- Support Inspector v2 (use native `aws_inspector2_*` resources for that).
+- Create SNS topics for notifications; you must create the topic separately and pass its ARN.
+- Install or configure the Inspector agent on EC2 instances; that is managed separately via Systems Manager or user data scripts.
+- Support cross-account or organisation-wide Inspector delegation; this module manages standalone account deployments only.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -72,7 +181,7 @@ No resources.
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
-| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 
