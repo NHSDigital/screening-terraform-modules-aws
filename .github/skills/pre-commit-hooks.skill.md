@@ -390,7 +390,7 @@ AWS credentials detected
 **Fix:** Never commit credentials. Use:
 
 - GitHub Secrets for CI/CD
-- AWS assume role or iam OIDC federation
+- AWS assume role or IAM OIDC federation
 - `~/.aws/credentials` for local development
 
 ---
@@ -509,16 +509,62 @@ vale README.md infrastructure/AGENTS.md
 
 ### Category 5: Security & Secrets
 
-#### 5.1 `scan-secrets` — Secret Scanning via Gitleaks
+#### 5.1 `scan-secrets-staged-changes` — Secret Scanning (Staged Files)
 
-**What it does:** Scans entire git history for embedded secrets (API keys, credentials, etc.) using Gitleaks.
+**What it does:** Scans staged changes for embedded secrets (API keys, credentials, etc.) using Gitleaks. Runs automatically on `git commit`.
 
 **When it fails:**
 
 ```text
 Leaks found: 1
-File: .env.example
+File: .env
 Secret: aws_secret_access_key = "AKIA2EXAMPLE..."
+```
+
+**Common false positives:**
+
+- Example/placeholder credentials in `.env.example`
+- Test data that looks like credentials
+
+**Fix:**
+
+##### Staged changes: Real secret detected
+
+```bash
+# Unstage the file immediately
+git reset .env
+
+# Remove or edit to remove the secret
+rm .env  # or edit to remove secrets
+
+# Stage clean version and commit
+git add .env
+git commit -m "fix: remove secret from env"
+```
+
+##### Staged changes: False positive detected
+
+```bash
+# Add to .gitleaksignore
+echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
+
+# Re-stage and commit
+git add .gitleaksignore
+git commit -m "chore: ignore false positive"
+```
+
+---
+
+#### 5.2 `scan-secrets-whole-history` — Secret Scanning (Complete History)
+
+**What it does:** Scans entire git history for embedded secrets using Gitleaks. Runs on `pre-commit run --all-files` or in CI/CD.
+
+**When it fails:**
+
+```text
+Leaks found: 1
+File: config/old-backup.tf (in commit abc1234)
+Secret: aws_access_key_id = "AKIAIOSFODNN7EXAMPLE"
 ```
 
 **Common false positives:**
@@ -529,31 +575,28 @@ Secret: aws_secret_access_key = "AKIA2EXAMPLE..."
 
 **Fix:**
 
-#### Option 1: Real secret (CRITICAL)
+##### History scan: Real secret in git history (CRITICAL)
 
 ```bash
-# Remove the secret immediately
+# Remove from history (destructive operation)
 git filter-branch --force --index-filter \
-  'git rm --cached --ignore-unmatch PATH_TO_FILE' \
+  'git rm --cached --ignore-unmatch config/old-backup.tf' \
   --prune-empty --tag-name-filter cat -- --all
 
-# Force push (warning: destructive)
+# Force push to remove from remote
 git push origin +main
+
+# IMPORTANT: Regenerate/rotate any exposed credentials
 ```
 
-#### Option 2: False positive (Add to ignore list)
+##### History scan: False positive in git history
 
 ```bash
-# Get the fingerprint from the error
 # Add to .gitleaksignore
 echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
-```
 
-**Manual run:**
-
-```bash
-gitleaks detect --verbose
-gitleaks detect -i .gitleaksignore  # With ignores
+# Re-run to verify
+pre-commit run scan-secrets-whole-history --all-files
 ```
 
 ---
@@ -764,7 +807,8 @@ fi
 | `check-english-usage` | `.md` | ❌ No | Low | Format |
 | `detect-aws-credentials` | All | ❌ No | **CRITICAL** | Security |
 | `detect-private-key` | All | ❌ No | **CRITICAL** | Security |
-| `scan-secrets` | All | ❌ No | **CRITICAL** | Security |
+| `scan-secrets-staged-changes` | All | ❌ No | **CRITICAL** | Security |
+| `scan-secrets-whole-history` | All | ❌ No | **CRITICAL** | Security |
 | `conventional-commit` | Commit msg | ❌ No | Medium | Commit |
 | `no-commit-to-branch` | N/A | ❌ No | High | Git |
 

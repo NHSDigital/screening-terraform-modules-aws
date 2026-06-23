@@ -33,7 +33,7 @@ jobs:
           - name: "shell-and-content"
             hooks: >-
               shellcheck check-file-format check-markdown-format
-              check-english-usage scan-secrets
+              check-english-usage scan-secrets-whole-history
           - name: "terraform-format-lint"
             hooks: >-
               generate-terraform-providers terraform_fmt terraform_tflint
