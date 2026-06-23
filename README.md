@@ -320,6 +320,7 @@ Rules:
 | `lambda-layer` | — | Lambda layer for function libraries |
 | `license-manager` | — | License Manager configuration |
 | `parameter_store` | — | SSM Parameter Store configuration |
+| `r53` | terraform-aws-modules/route53/aws | Route 53 DNS Zones, Records, Resolver and Resolver Firewall |
 | `r53-healthcheck` | — | Route 53 health checks |
 | `rds-database` | — | RDS database (logical) |
 | `rds-gateway-ecs-task` | — | RDS gateway ECS task definition |
@@ -332,7 +333,7 @@ Rules:
 | `sns` | terraform-aws-modules/sns/aws | SNS topic with encryption and policies |
 | `sqs` | — | SQS queue with encryption |
 | `tags` | — | Foundation: naming and tagging context module |
-| `vpc` | — | VPC with subnets, routing, and gateways |
+| `vpc` | terraform-aws-modules/vpc/aws | VPC with subnets, routing, and gateways |
 | `vpce` | — | VPC endpoint (single service) |
 | `vpces` | — | VPC endpoints (multiple services) |
 | `waf` | — | WAF web ACL with rules |

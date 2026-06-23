@@ -94,16 +94,16 @@ parameter_store:
   wraps: "—"
 
 r53:
-  description: "Route 53 DNS records (legacy)"
-  wraps: "—"
+  description: "Route 53 DNS Zones, Records, Resolver and Resolver Firewall"
+  wraps: "terraform-aws-modules/route53/aws"
 
 r53-healthcheck:
   description: "Route 53 health checks"
   wraps: "—"
 
 rds:
-  description: "RDS database instance (legacy)"
-  wraps: "—"
+  description: "RDS database instance"
+  wraps: "terraform-aws-modules/rds/aws"
 
 rds-database:
   description: "RDS database (logical)"
@@ -151,7 +151,7 @@ tags:
 
 vpc:
   description: "VPC with subnets, routing, and gateways"
-  wraps: "—"
+  wraps: "terraform-aws-modules/vpc/aws"
 
 vpce:
   description: "VPC endpoint (single service)"
