@@ -1,4 +1,4 @@
-name: CI/CD 2 - On Pull Request
+name: "CI/CD - On Pull Request"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 # Test comment
@@ -14,10 +14,16 @@ concurrency:
 permissions:
   id-token: write
   contents: read
+  pull-requests: read
 
 jobs:
+  # Workflow design note:
+  # - Non-Dependabot PRs run standard quality gates directly.
+  # - Dependabot PRs may receive an auto-fix commit first (locks/docs/dependabot config),
+  #   then quality gates run on the refreshed commit in the next workflow run.
+  # Dependabot PRs should run core validation checks (metadata, coding standards, validation tests).
+  # Only advisory commit-message style checks remain human-focused.
   metadata:
-    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
     name: "Set Metadata"
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -50,10 +56,161 @@ jobs:
           action: ${{ inputs.action || 'apply' }}
           sql_file: ${{ inputs.sql_file || 'coreData.sql' }}
 
-  coding-standards: # Recommended maximum execution time is 5 minutes
-    if: github.actor != 'dependabot[bot]'
-    name: "Enforce Coding Standards"
+  dependabot-auto-fix-terraform:
+    name: "Dependabot auto-fix Terraform docs/locks"
     needs: [metadata]
+    # Restrict auto-fix writes to Dependabot branches in the same repository.
+    # Fork PRs are excluded to avoid unsafe write operations.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+    steps:
+      - name: "Checkout PR branch"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: "Set up mise"
+        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+
+      - name: "Install pinned tools"
+        shell: bash
+        run: mise install
+
+      - name: "Upgrade Terraform locks and run regeneration hooks"
+        shell: bash
+        run: |
+          # Compare PR head against base to find modules with provider constraint changes.
+          base_sha="${{ github.event.pull_request.base.sha }}"
+
+          mapfile -t modules_to_upgrade < <(
+            git diff --name-only "$base_sha...HEAD" \
+              | grep '^infrastructure/modules/.*/versions\.tf$' \
+              # -r avoids calling dirname with empty stdin when grep finds no matches.
+              | xargs -r -n1 dirname \
+              | sort -u
+          )
+
+          if [[ ${#modules_to_upgrade[@]} -gt 0 ]]; then
+            for module_path in "${modules_to_upgrade[@]}"; do
+              echo "Upgrading Terraform lock file for $module_path"
+              # init -upgrade refreshes provider selection; providers lock writes platform hashes.
+              terraform -chdir="$module_path" init -upgrade -no-color
+              terraform -chdir="$module_path" providers lock \
+                -platform=linux_arm64 \
+                -platform=linux_amd64 \
+                -platform=darwin_arm64 \
+                -platform=darwin_amd64 \
+                -platform=windows_amd64
+            done
+          else
+            echo "No module versions.tf changes detected; skipping explicit lock upgrade loop."
+          fi
+
+          # terraform_docs intentionally exits non-zero when it rewrites docs.
+          # Keep running so changes can be detected and committed in this job.
+          mise x -- pre-commit run --all-files generate-terraform-providers
+          mise x -- pre-commit run --all-files terraform_providers_lock
+          mise x -- pre-commit run --all-files terraform_docs || true
+          mise x -- pre-commit run --all-files regenerate-dependabot-config
+
+      - name: "Detect changes"
+        id: detect
+        shell: bash
+        run: |
+          # Expose whether any auto-fix output changed tracked files.
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: "Commit and push auto-fixes"
+        # Push an auto-fix commit so the next PR workflow run validates the refreshed content.
+        if: steps.detect.outputs.changed == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(dependabot): regenerate terraform docs and lockfiles"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+
+      - name: "Comment on PR with auto-fix summary"
+        if: steps.detect.outputs.changed == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const marker = '<!-- dependabot-terraform-autofix -->';
+            const body = `${marker}
+            Dependabot Terraform auto-fix applied by CI.
+
+            The workflow regenerated and committed:
+            - Terraform provider lock files (`terraform init -upgrade` + `terraform providers lock`)
+            - Module docs (`terraform_docs`)
+            - Dependabot configuration (`regenerate-dependabot-config`)
+
+            A new commit was pushed to this PR branch, so checks will re-run automatically.`;
+
+            const issue_number = context.payload.pull_request.number;
+            const { owner, repo } = context.repo;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+
+            const existing = comments.find(
+              (c) => c.user?.login === 'github-actions[bot]' && c.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
+  coding-standards: # Recommended maximum execution time is 5 minutes
+    name: "Enforce Coding Standards"
+    needs: [metadata, dependabot-auto-fix-terraform]
+    # Condition intent:
+    # - Always require successful metadata.
+    # - For non-Dependabot PRs: run normally.
+    # - For Dependabot PRs: run only when auto-fix ran successfully and produced no new commit
+    #   (if it produced changes, this run is skipped and the next run validates the new commit).
+    if: >-
+      always() &&
+      needs.metadata.result == 'success' &&
+      (
+        github.actor != 'dependabot[bot]' ||
+        (
+          needs.dependabot-auto-fix-terraform.result == 'success' &&
+          needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+        )
+      )
     uses: ./.github/workflows/stage-1-coding-standards.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -65,8 +222,99 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
     secrets: inherit
 
+  conventional-commit-advisory:
+    name: "Conventional Commit Advisory"
+    # Bot PR commit formats are tool-generated and non-blocking by design.
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Review PR commit messages (non-blocking)"
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        continue-on-error: true
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.warning('No pull_request payload found. Skipping Conventional Commit advisory check.');
+              return;
+            }
+
+            // Conventional Commits: type(scope optional)!: description
+            const pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([A-Za-z0-9._/-]+\))?(!)?: .+/;
+
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+
+            const invalid = commits
+              .map(c => ({
+                sha: c.sha,
+                headline: (c.commit?.message || '').split('\n')[0] || '',
+              }))
+              .filter(c => !pattern.test(c.headline));
+
+            if (invalid.length === 0) {
+              core.info('All PR commit messages are Conventional Commit compliant.');
+              await core.summary
+                .addHeading('Conventional Commit advisory')
+                .addRaw('All commit messages in this PR are compliant.\n')
+                .write();
+              return;
+            }
+
+            const details = invalid
+              .map(c => `- ${c.headline} (${c.sha.slice(0, 7)})`)
+              .join('\n');
+
+            core.warning(
+              `Found ${invalid.length} non-compliant commit message(s). This is advisory only and does not fail the workflow.\n${details}`
+            );
+
+            await core.summary
+              .addHeading('Conventional Commit advisory')
+              .addRaw(`Found ${invalid.length} non-compliant commit message(s).\n\n`)
+              .addCodeBlock(details)
+              .addRaw('\nExamples: feat(ci): add PR checks, fix(terraform): correct provider version\n')
+              .write();
+
+  validation-tests:
+    name: "Validation Tests"
+    needs: [metadata, dependabot-auto-fix-terraform]
+    # Mirrors coding-standards gating to avoid validating stale pre-auto-fix content.
+    if: >-
+      always() &&
+      needs.metadata.result == 'success' &&
+      (
+        github.actor != 'dependabot[bot]' ||
+        (
+          needs.dependabot-auto-fix-terraform.result == 'success' &&
+          needs.dependabot-auto-fix-terraform.outputs.changed != 'true'
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: "Set up mise"
+        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+
+      - name: "Install pinned tools"
+        shell: bash
+        run: mise install
+
+      - name: "Run validation test suite"
+        shell: bash
+        run: make test-validations
+
   # enforce-pr-title-format: #
-  #   name: "Enforce PR title format"
+  #   name: "Enforce Conventional Commit format"
   #   runs-on: ubuntu-latest
   #   if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
   #   permissions:
@@ -83,7 +331,34 @@ jobs:
   #         app-id: ${{ vars.GH_APP_ID }}
   #         private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
-  #     - name: Check PR title format
+  #     - name: Check Conventional Commit format
   #       uses: ./.github/actions/enforce-pr-title-format
   #       with:
   #         github-token: ${{ steps.generate-token.outputs.token }}
+  #         validate-pr-title: "true"
+  #         validate-commit-messages: "true"
+
+  # Final job to ensure all required jobs completed successfully.
+  # This allows branch protection to target a single status check.
+  all-checks-complete:
+    name: "All Checks Complete"
+    if: always()
+    needs:
+      - metadata
+      - dependabot-auto-fix-terraform
+      - coding-standards
+      - conventional-commit-advisory
+      - validation-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check all jobs succeeded"
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more jobs failed"
+            exit 1
+          elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more jobs were cancelled"
+            exit 1
+          else
+            echo "All jobs completed successfully"
+          fi

@@ -10,16 +10,6 @@
 # so this wrapper invokes the relevant submodules
 ################################################################
 
-locals {
-  # Default IAM path falls back to a context-derived value so policies/roles
-  # are grouped under a predictable namespace, e.g. "/bcss/screening/".
-  default_iam_path = format(
-    "/%s/",
-    join("/", compact([module.this.service, module.this.project, module.this.environment]))
-  )
-  iam_path = var.path != null ? var.path : local.default_iam_path
-}
-
 ################################################################
 # Per-policy and per-role label modules
 #
@@ -28,7 +18,7 @@ locals {
 ################################################################
 
 module "policy_label" {
-  source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.6.0"
+  source   = "../tags"
   for_each = var.policies
 
   context    = module.this.context
@@ -36,7 +26,7 @@ module "policy_label" {
 }
 
 module "role_label" {
-  source   = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags?ref=v2.6.0"
+  source   = "../tags"
   for_each = var.roles
 
   context    = module.this.context
@@ -70,16 +60,6 @@ module "policies" {
 # `inline_policies` is forwarded via `source_inline_policy_documents`
 # so all statements are merged into one inline policy per role.
 ################################################################
-
-locals {
-  # role_key -> { static_name => policy_arn } for attached policies.
-  role_policies = {
-    for role_key, role in var.roles : role_key => merge(
-      { for idx, arn in role.policy_arns : "external-${idx}" => arn },
-      { for k in role.policy_keys : k => module.policies[k].arn }
-    )
-  }
-}
 
 module "roles" {
   source   = "terraform-aws-modules/iam/aws//modules/iam-role"

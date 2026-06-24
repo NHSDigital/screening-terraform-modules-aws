@@ -18,4 +18,5 @@ variable "stack_name" {
 
 variable "topic_arn" {
   description = "Source SNS topic arn"
+  type        = string
 }

@@ -1,0 +1,106 @@
+name: "Pre-commit checks"
+
+# Runs all pre-commit hooks against the full repository.
+# This workflow is the canonical quality gate — individual linting/format
+# jobs in stage-1-coding-standards.yaml are deprecated in favour of this.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pre-commit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    name: "Run pre-commit hooks (${{ matrix.shard.name }})"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - name: "general-hygiene"
+            hooks: >-
+              check-added-large-files check-merge-conflict check-vcs-permalinks
+              forbid-new-submodules no-commit-to-branch end-of-file-fixer
+              trailing-whitespace check-yaml check-executables-have-shebangs
+              check-case-conflict mixed-line-ending detect-aws-credentials
+              detect-private-key
+          - name: "shell-and-content"
+            hooks: >-
+              shellcheck check-file-format check-markdown-format
+              check-english-usage scan-secrets-whole-history
+          - name: "terraform-format-lint"
+            hooks: >-
+              generate-terraform-providers terraform_fmt terraform_tflint
+              check-terraform-format
+          - name: "terraform-validate-docs-lock"
+            hooks: >-
+              generate-terraform-providers terraform_providers_lock
+              terraform_validate terraform_docs
+          - name: "configuration-generation"
+            hooks: >
+              regenerate-dependabot-config check-available-modules
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      # ------------------------------------------------------------------
+      # Install prerequisites from version files (.tool-versions/.tool-versions.yml)
+      # ------------------------------------------------------------------
+      - name: "Set up mise"
+        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+
+      - name: "Generate .tool-versions from .tool-versions.yml (fallback)"
+        shell: bash
+        run: |
+          if [[ ! -f .tool-versions && -f .tool-versions.yml ]]; then
+            ruby -ryaml -e 'YAML.load_file(".tool-versions.yml").fetch("infrastructure", {}).each { |k, v| puts "#{k} #{v}" }' > .tool-versions
+          fi
+
+      - name: "Install pinned tools from .tool-versions via mise"
+        shell: bash
+        run: |
+          mise install
+          mise ls
+
+      - name: "Configure Terraform plugin cache"
+        if: contains(matrix.shard.name, 'terraform-')
+        shell: bash
+        run: |
+          mkdir -p ~/.terraform.d/plugin-cache
+
+      - name: "Cache Terraform plugins"
+        if: contains(matrix.shard.name, 'terraform-')
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-plugins-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-plugins-
+
+      # ------------------------------------------------------------------
+      # Run sharded hooks
+      # ------------------------------------------------------------------
+      - name: "Run pre-commit shard"
+        shell: bash
+        run: |
+          export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+          hooks='${{ matrix.shard.hooks }}'
+          for hook in ${hooks}; do
+            if [[ "${hook}" == "terraform_validate" ]]; then
+              export TF_CLI_ARGS_init="-lockfile=readonly"
+            else
+              unset TF_CLI_ARGS_init
+            fi
+            echo "Running hook: ${hook}"
+            mise x -- pre-commit run --all-files --show-diff-on-failure "$hook"
+          done
+        env:
+          AWS_DEFAULT_REGION: eu-west-2

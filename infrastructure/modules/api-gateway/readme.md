@@ -5,13 +5,17 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.49.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.9.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.9.0 |
 
 ## Modules
@@ -51,11 +55,11 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_api_gateway_description"></a> [api\_gateway\_description](#input\_api\_gateway\_description) | Description for the API Gateway | `string` | n/a | yes |
-| <a name="input_api_gateway_name"></a> [api\_gateway\_name](#input\_api\_gateway\_name) | the name of the API Gateway | `any` | n/a | yes |
-| <a name="input_api_path_part"></a> [api\_path\_part](#input\_api\_path\_part) | the url path for the API | `any` | n/a | yes |
-| <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | n/a | `any` | n/a | yes |
-| <a name="input_aws_lambda_arn"></a> [aws\_lambda\_arn](#input\_aws\_lambda\_arn) | n/a | `any` | n/a | yes |
-| <a name="input_aws_lambda_name"></a> [aws\_lambda\_name](#input\_aws\_lambda\_name) | n/a | `any` | n/a | yes |
+| <a name="input_api_gateway_name"></a> [api\_gateway\_name](#input\_api\_gateway\_name) | the name of the API Gateway | `string` | n/a | yes |
+| <a name="input_api_path_part"></a> [api\_path\_part](#input\_api\_path\_part) | the url path for the API | `string` | n/a | yes |
+| <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | AWS account ID for the deployment context | `string` | n/a | yes |
+| <a name="input_aws_lambda_arn"></a> [aws\_lambda\_arn](#input\_aws\_lambda\_arn) | Lambda function ARN | `string` | n/a | yes |
+| <a name="input_aws_lambda_name"></a> [aws\_lambda\_name](#input\_aws\_lambda\_name) | Lambda function name | `string` | n/a | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region where the API Gateway is deployed | `string` | `"eu-west-2"` | no |
 | <a name="input_certificate_arn"></a> [certificate\_arn](#input\_certificate\_arn) | The ARN of the ACM certificate to use for the custom domain (optional, will create if not provided) | `string` | `null` | no |
 | <a name="input_domain_name_prefix"></a> [domain\_name\_prefix](#input\_domain\_name\_prefix) | Prefix for the custom domain name | `string` | n/a | yes |
@@ -64,7 +68,7 @@ No modules.
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Prefix for naming resources | `string` | n/a | yes |
 | <a name="input_route53_hosted_zone_id"></a> [route53\_hosted\_zone\_id](#input\_route53\_hosted\_zone\_id) | The ID of the Route53 hosted zone | `string` | n/a | yes |
 | <a name="input_secret_replication_regions"></a> [secret\_replication\_regions](#input\_secret\_replication\_regions) | List of additional regions where created secrets should be replicated | `list(string)` | n/a | yes |
-| <a name="input_stage_name"></a> [stage\_name](#input\_stage\_name) | the API stage name | `any` | n/a | yes |
+| <a name="input_stage_name"></a> [stage\_name](#input\_stage\_name) | the API stage name | `string` | n/a | yes |
 
 ## Outputs
 

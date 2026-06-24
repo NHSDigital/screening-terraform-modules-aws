@@ -38,13 +38,16 @@ module "test_backup_vault" {
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.14 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
 
 ## Modules
 
@@ -86,8 +89,8 @@ No modules.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_copy_recovery_point_role_arn"></a> [copy\_recovery\_point\_role\_arn](#output\_copy\_recovery\_point\_role\_arn) | ARN of role to assume from source account lambda (set ASSUME\_ROLE\_ARN to this). Only present if enabled. |
-| <a name="output_vault_arn"></a> [vault\_arn](#output\_vault\_arn) | n/a |
-| <a name="output_vault_name"></a> [vault\_name](#output\_vault\_name) | The name of the backup vault. |
+| <a name="output_vault_arn"></a> [vault\_arn](#output\_vault\_arn) | ARN of the destination backup vault. |
+| <a name="output_vault_name"></a> [vault\_name](#output\_vault\_name) | Name of the destination backup vault. |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->

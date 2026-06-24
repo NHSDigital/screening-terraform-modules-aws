@@ -104,6 +104,7 @@ variable "user_email" {
   default     = "nhsdigital.axe@nhs.net"
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "user_password" {
   description = "Fallback password for bootstrap Cognito users when an individual bootstrap_users entry does not provide user_password."
   type        = string

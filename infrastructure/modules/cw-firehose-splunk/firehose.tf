@@ -14,6 +14,7 @@
 ###################
 # The Lambda code #
 ###################
+# tflint-ignore: terraform_naming_convention
 resource "local_file" "preprocess-cw-logs-py" {
   content = templatefile("${path.module}/templates/preprocess-cw-logs.py.tpl", {
     servicePrefix         = var.name_prefix,
@@ -25,10 +26,10 @@ resource "local_file" "preprocess-cw-logs-py" {
 
 #This causes the local_file.preprocess-cw-logs-py to complete before the archive_file tries to read the .py file
 locals {
-  depends_on  = [local_file.preprocess-cw-logs-py]
   source_file = local_file.preprocess-cw-logs-py.filename
 }
 
+# tflint-ignore: terraform_naming_convention
 data "archive_file" "preprocess-cw-logs-zip" {
   depends_on  = [local_file.preprocess-cw-logs-py]
   type        = "zip"
@@ -39,6 +40,7 @@ data "archive_file" "preprocess-cw-logs-zip" {
 ###############
 # Lambda defn #
 ###############
+# tflint-ignore: terraform_naming_convention
 resource "aws_lambda_function" "preprocess-cw-logs" {
   filename         = data.archive_file.preprocess-cw-logs-zip.output_path
   function_name    = "${var.name_prefix}-preprocess-cw-logs"

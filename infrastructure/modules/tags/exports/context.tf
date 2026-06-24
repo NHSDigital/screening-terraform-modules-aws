@@ -1,3 +1,4 @@
+# tflint-ignore-file: terraform_standard_module_structure, terraform_unused_declarations
 #
 # ONLY EDIT THIS FILE IN github.com/NHSDigital/screening-terraform-modules-aws/infrastructure/modules/tags
 # All other instances of this file should be a copy of that one
@@ -21,8 +22,10 @@
 #
 
 module "this" {
+  # tflint-ignore: terraform_module_pinned_source
   source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags"
 
+  enabled             = var.enabled
   service             = var.service
   project             = var.project
   region              = var.region

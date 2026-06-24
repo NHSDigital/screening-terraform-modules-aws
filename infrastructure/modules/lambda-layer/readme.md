@@ -5,13 +5,17 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.47.0 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | >= 3.3.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.46.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | 3.3.0 |
 
 ## Modules
@@ -39,7 +43,7 @@ No modules.
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_layer_arn"></a> [layer\_arn](#output\_layer\_arn) | n/a |
+| <a name="output_layer_arn"></a> [layer\_arn](#output\_layer\_arn) | ARN of the published Lambda layer version |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->
