@@ -86,8 +86,8 @@ license-manager:
   wraps: "—"
 
 network-firewall:
-  description: "Network Firewall rules and policies"
-  wraps: "—"
+  description: "Network Firewall with rules and policies"
+  wraps: "terraform-aws-modules/network-firewall/aws"
 
 parameter_store:
   description: "SSM Parameter Store configuration"
@@ -132,6 +132,10 @@ s3-bucket:
 secrets-manager:
   description: "Secrets Manager for secure secret storage"
   wraps: "terraform-aws-modules/secrets-manager/aws"
+
+security-group:
+  description: "Security group with ingress and egress rules"
+  wraps: "terraform-aws-modules/security-group/aws"
 
 security-hub:
   description: "Security Hub for centralized security findings"

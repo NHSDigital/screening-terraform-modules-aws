@@ -319,6 +319,7 @@ Rules:
 | `lambda` | terraform-aws-modules/lambda/aws | Lambda function with runtime and layers |
 | `lambda-layer` | — | Lambda layer for function libraries |
 | `license-manager` | — | License Manager configuration |
+| `network-firewall` | terraform-aws-modules/network-firewall/aws | Network Firewall with rules and policies |
 | `parameter_store` | — | SSM Parameter Store configuration |
 | `r53` | terraform-aws-modules/route53/aws | Route 53 DNS Zones, Records, Resolver and Resolver Firewall |
 | `r53-healthcheck` | — | Route 53 health checks |
@@ -329,6 +330,7 @@ Rules:
 | `s3` | — | S3 bucket (legacy) |
 | `s3-bucket` | terraform-aws-modules/s3-bucket/aws | S3 bucket with full security baseline |
 | `secrets-manager` | terraform-aws-modules/secrets-manager/aws | Secrets Manager for secure secret storage |
+| `security-group` | terraform-aws-modules/security-group/aws | Security group with ingress and egress rules |
 | `security-hub` | — | Security Hub for centralized security findings |
 | `sns` | terraform-aws-modules/sns/aws | SNS topic with encryption and policies |
 | `sqs` | — | SQS queue with encryption |
