@@ -25,8 +25,21 @@ infrastructure/
     ├── rds-database/       # RDS database module
     ├── sqs/                # SQS queue module
     ├── waf/                # WAF module
-    └── ...                 # Additional modules
+    ├── ...                 # Additional modules
+    └── _legacy/            # Archive of deprecated/superseded modules
+        ├── old-module-1/   # Legacy module (kept for backwards compatibility)
+        └── old-module-2/   # Legacy module (kept for backwards compatibility)
 ```
+
+**Note on `_legacy/` modules:**
+
+- Legacy modules are older-format modules (from before the major restructuring and compliance enforcement) that may include older screening programme-specific variants
+- They are kept in the `_legacy/` directory for backwards compatibility with existing infrastructure
+- They remain discoverable and documented in README.md (marked with `[LEGACY]` annotation) to prevent accidental breaking changes
+- They appear at the end of the Available modules table, after all active modules, visually signaling their deprecated status
+- **Do not use legacy modules for new infrastructure** — they lack the security baseline and compliance controls enforced in modern modules
+- To migrate away from a legacy module: identify or create the modern equivalent in `infrastructure/modules/`, update your stack, then deprecate the legacy module
+- To mark a module as legacy (after all consumers have migrated): move it from `infrastructure/modules/{name}/` to `infrastructure/modules/_legacy/{name}/`
 
 ## The Wrapper Module Pattern
 

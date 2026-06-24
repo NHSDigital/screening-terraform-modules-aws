@@ -54,7 +54,7 @@ The recommended convention is to use labels as follows:
 
 - `service`: A short (3-4 letters) abbreviation of the service directorate to ensure globally unique IDs for things like S3 buckets i.e. bcss
 - `project`: The name or role of the project the resource is for, such as `web` or `api`
-- `region`: By default this will auto-populate the provider region, but can be overridden or set to `gbl` for resources like iam roles that have no region
+- `region`: By default this will auto-populate the provider region, but can be overridden or set to `gbl` for resources like IAM roles that have no region
 - `environment`: The name or role of the account the resource is for, such as `prod` or `dev`
 - `workspace`: _(Rarely needed)_ Typically, the singular environment label suffices as there would only be a singular resource created per environment. On occasion, there may be multiple sub-environment, still of a singular environment/with shared environment resources i.e. sit1, sit2, nft1, nft2).  `workspace` can be used to identify the specific sub-environment the resources relate to and by default is auto-populated to the `terraform.workspace` value.
 - `name`: The name of the component that owns the resources, such as `eks` or `rds`
