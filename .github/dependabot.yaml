@@ -42,6 +42,7 @@ updates:
       - "infrastructure/modules/aws-scheduler"
       - "infrastructure/modules/cognito"
       - "infrastructure/modules/cw-firehose-splunk"
+      - "infrastructure/modules/ec2-instance"
       - "infrastructure/modules/ecr"
       - "infrastructure/modules/ecs-cluster"
       - "infrastructure/modules/elasticache"
