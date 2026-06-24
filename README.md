@@ -309,7 +309,7 @@ Rules:
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `ecr` | — | ECR repository with security controls |
-| `ecs-cluster` | — | ECS Fargate cluster |
+| `ecs-cluster` | terraform-aws-modules/ecs/aws//modules/cluster | ECS Fargate cluster |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
 | `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
