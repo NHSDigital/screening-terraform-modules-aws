@@ -108,3 +108,15 @@ variable "web_acl_arn" {
   default     = null
   description = "ARN of a WAFv2 Web ACL to associate with the load balancer. Only valid for ALB. When null, no WAF association is created."
 }
+
+variable "enable_deletion_protection" {
+  type        = bool
+  default     = true
+  description = "When true, deletion protection is enabled on the load balancer. Set to false for non-production environments where the load balancer needs to be freely destroyed."
+}
+
+variable "enable_http_https_redirect" {
+  type        = bool
+  default     = true
+  description = "When true, automatically adds a port-80 HTTP-to-HTTPS (301) redirect listener. Only applies when load_balancer_type is 'application'. Set to false if you are defining your own HTTP listener or the ALB is not serving HTTPS traffic."
+}

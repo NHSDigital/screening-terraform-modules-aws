@@ -6,7 +6,6 @@ Thin NHS wrapper around [terraform-aws-modules/alb/aws](https://registry.terrafo
 
 | Setting | Value | Reason |
 |---|---|---|
-| `enable_deletion_protection` | `true` | Prevents accidental load balancer deletion via the AWS API |
 | `drop_invalid_header_fields` | `true` (ALB only) | Prevents HTTP header injection attacks |
 
 ## Usage
@@ -58,16 +57,8 @@ module "alb" {
     }
   }
 
+  # HTTP → HTTPS redirect on port 80 is added automatically by this module.
   listeners = {
-    http-redirect = {
-      port     = 80
-      protocol = "HTTP"
-      redirect = {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
     https = {
       port            = 443
       protocol        = "HTTPS"
@@ -175,6 +166,8 @@ module "nlb" {
 
 * The load balancer name is derived from `module.this.id` and cannot be overridden — pass `context`, `name`, and `label_order` to control the generated name.
 * `internal` defaults to `false` (internet-facing). Set `internal = true` for ALBs and NLBs that should only be reachable from within the VPC.
+* `enable_deletion_protection` defaults to `true`. Set it to `false` for non-production environments where the load balancer needs to be freely destroyed.
+* HTTP-to-HTTPS redirect on port 80 is added automatically for ALBs (`enable_http_https_redirect = true` by default). Set to `false` if you need custom HTTP listener behaviour or the ALB is not serving HTTPS traffic. Does not apply to NLBs.
 * Security group rules are caller-supplied via `security_group_ingress_rules` and `security_group_egress_rules`. This supports both ALB (HTTP/HTTPS) and NLB (TCP/TLS) patterns without constraining port numbers.
 * Access logging is optional. Supply an S3 bucket ARN via `access_logs` to enable it. NHS production environments should always enable access logging.
 * For NLBs, `drop_invalid_header_fields` is set to `null` automatically — this argument is only valid for ALBs.

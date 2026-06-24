@@ -4,16 +4,34 @@
 # Thin NHS wrapper around the community ALB module that enforces
 # the screening platform's baseline controls:
 #
-#   * Deletion protection: always enabled
+#   * Deletion protection: enabled by default; set enable_deletion_protection = false for non-prod
 #   * Invalid header fields: always dropped (ALB only)
+#   * HTTP→HTTPS redirect: automatic on port 80 for ALBs (disable with enable_http_https_redirect = false)
 #   * Naming:  derived from context labels via module.this.id
 #   * Tagging: all NHS-required tags applied automatically
 #   * Enabled flag: create = module.this.enabled
 #
 # Inputs intentionally NOT exposed (hardcoded below):
-#   - enable_deletion_protection → always true
 #   - drop_invalid_header_fields → always true (ALB); null (NLB)
 ################################################################
+
+locals {
+  # Inject an HTTP → HTTPS redirect listener on port 80 when enabled (ALB only).
+  # Callers can override by providing their own "http-redirect" key in var.listeners.
+  http_redirect_listener = var.enable_http_https_redirect && var.load_balancer_type == "application" ? {
+    http-redirect = {
+      port     = 80
+      protocol = "HTTP"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+  } : {}
+
+  effective_listeners = merge(local.http_redirect_listener, var.listeners)
+}
 
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
@@ -28,11 +46,13 @@ module "alb" {
   subnets            = var.subnets
 
   # ----------------------------------------------------------------
-  # Security baseline — hardcoded, callers cannot override.
+  # Security baseline — drop_invalid_header_fields is hardcoded.
+  # enable_deletion_protection defaults to true; callers may set it to
+  # false for non-production environments.
   # drop_invalid_header_fields is ALB-only; pass null for NLB so
   # the upstream module does not error.
   # ----------------------------------------------------------------
-  enable_deletion_protection = true
+  enable_deletion_protection = var.enable_deletion_protection
   drop_invalid_header_fields = var.load_balancer_type == "application" ? true : null
 
   # ----------------------------------------------------------------
@@ -48,11 +68,10 @@ module "alb" {
   access_logs = var.access_logs
 
   # ----------------------------------------------------------------
-  # Listeners and target groups — passed through as-is.
-  # Callers define the full listener/target group configuration
-  # including SSL policies, certificates, health checks, etc.
+  # Listeners — merged with the automatic HTTP→HTTPS redirect (ALB only).
+  # Target groups are passed through as-is.
   # ----------------------------------------------------------------
-  listeners     = var.listeners
+  listeners     = local.effective_listeners
   target_groups = var.target_groups
 
   # ----------------------------------------------------------------
