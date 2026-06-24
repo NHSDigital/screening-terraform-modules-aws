@@ -97,6 +97,18 @@ else
   echo -e "${RED}✗ Dependabot config generation tests failed${NC}"
   TOTAL_FAILED=$((TOTAL_FAILED + 1))
 fi
+# Test 6: Available Modules Table Generation
+echo -e "${BLUE}Running: Available Modules Table Generation Tests${NC}"
+echo "----------------------------------------------------------------------"
+if bash tests/test-generate-available-modules.sh "${VERBOSE:-}" > /tmp/test-available-modules.log 2>&1; then
+  cat /tmp/test-available-modules.log
+  echo -e "${GREEN}✓ Available modules table generation tests passed${NC}"
+else
+  cat /tmp/test-available-modules.log
+  echo -e "${RED}✗ Available modules table generation tests failed${NC}"
+  TOTAL_FAILED=$((TOTAL_FAILED + 1))
+fi
+echo ""
 echo ""
 
 # Final summary
@@ -114,6 +126,7 @@ if [ $TOTAL_FAILED -eq 0 ]; then
   echo "  - Pre-commit configuration verified for consistency"
   echo "  - Tool versions synchronized across .tool-versions and mise.toml"
   echo "  - Tool version upgrade helper verified"
+  echo "  - Available modules table generation verified"
   exit 0
 else
   echo -e "${RED}✗ $TOTAL_FAILED test suite(s) failed${NC}"
