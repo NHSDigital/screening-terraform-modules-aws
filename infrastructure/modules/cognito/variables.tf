@@ -20,6 +20,11 @@ variable "deletion_protection" {
   description = "Deletion protection setting for the user pool. Valid values are ACTIVE and INACTIVE."
   type        = string
   default     = "INACTIVE"
+
+  validation {
+    condition     = contains(["ACTIVE", "INACTIVE"], var.deletion_protection)
+    error_message = "Allowed values: `ACTIVE`, `INACTIVE`."
+  }
 }
 
 variable "mfa_configuration" {
