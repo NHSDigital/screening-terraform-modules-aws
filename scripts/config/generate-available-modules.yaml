@@ -43,11 +43,11 @@ ecr:
 
 ecs-cluster:
   description: "ECS Fargate cluster"
-  wraps: "—"
+  wraps: "terraform-aws-modules/ecs/aws//modules/cluster"
 
 ecs-service:
   description: "ECS service and task definition"
-  wraps: "—"
+  wraps: "terraform-aws-modules/ecs/aws//modules/service"
 
 elasticache:
   description: "ElastiCache cluster (Redis/Memcached)"
