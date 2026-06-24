@@ -84,6 +84,11 @@ variable "message_action" {
   description = "Message action for bootstrap Cognito user creation. Defaults to SUPPRESS to match the current BCSS stacks."
   type        = string
   default     = "SUPPRESS"
+
+  validation {
+    condition     = contains(["SUPPRESS", "RESEND"], var.message_action)
+    error_message = "Allowed values: `SUPPRESS`, `RESEND`."
+  }
 }
 
 variable "acr" {
