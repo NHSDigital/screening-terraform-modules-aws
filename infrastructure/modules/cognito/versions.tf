@@ -8,7 +8,11 @@ terraform {
     }
 
     awscc = {
-      source = "hashicorp/awscc"
+      # Not used directly in this module
+      # Used by `lgallard/cognito-user-pool/aws` for managed login branding
+      # Not clear what the minimum version should be
+      source  = "hashicorp/awscc"
+      version = ">= 1.89"
     }
   }
 }

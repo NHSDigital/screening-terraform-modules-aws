@@ -31,6 +31,11 @@ variable "mfa_configuration" {
   description = "MFA setting for the user pool. Valid values are ON, OFF, or OPTIONAL."
   type        = string
   default     = "OFF"
+
+  validation {
+    condition     = contains(["ON", "OFF", "OPTIONAL"], var.mfa_configuration)
+    error_message = "Allowed values: `ON`, `OFF`, `OPTIONAL`."
+  }
 }
 
 variable "attribute_names" {
