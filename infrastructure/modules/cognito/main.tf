@@ -82,7 +82,7 @@ module "cognito" {
   source  = "lgallard/cognito-user-pool/aws"
   version = "4.0.2"
 
-  enabled = module.this.enabled && var.create
+  enabled = module.this.enabled
 
   user_pool_name           = local.user_pool_name
   domain                   = local.domain_name
