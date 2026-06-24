@@ -42,6 +42,9 @@ jobs:
             hooks: >-
               generate-terraform-providers terraform_providers_lock
               terraform_validate terraform_docs
+          - name: "configuration-generation"
+            hooks: >
+              regenerate-dependabot-config check-available-modules
     steps:
       - name: "Checkout code"
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

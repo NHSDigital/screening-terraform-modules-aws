@@ -197,7 +197,10 @@ screening-terraform-modules-aws/
 │       ├── iam/           # Exemplar: iam policies & roles
 │       ├── secrets-manager/
 │       ├── kms/
-│       └── ...            # Additional modules
+│       ├── ...            # Additional modules
+│       └── _legacy/       # Older-format modules (pre-restructure, screening-specific variants)
+│           ├── old-module-1/
+│           └── old-module-2/
 ├── scripts/               # Helper scripts (linting, hooks, Docker)
 ├── docs/                  # ADRs, developer guides, diagrams
 ├── .pre-commit-config.yaml # Pre-commit hook definitions
@@ -295,6 +298,7 @@ Rules:
 
 ## Available modules
 
+<!-- BEGIN_AVAILABLE_MODULES -->
 | Module | Wraps | Description |
 | --- | --- | --- |
 | `acm` | terraform-aws-modules/acm/aws | AWS Certificate Manager (ACM) certificate management |
@@ -306,7 +310,6 @@ Rules:
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `ecr` | — | ECR repository with security controls |
 | `ecs-cluster` | — | ECS Fargate cluster |
-| `ecs-service` | — | ECS service and task definition |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
 | `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
@@ -316,11 +319,10 @@ Rules:
 | `lambda` | terraform-aws-modules/lambda/aws | Lambda function with runtime and layers |
 | `lambda-layer` | — | Lambda layer for function libraries |
 | `license-manager` | — | License Manager configuration |
-| `network-firewall` | — | Network Firewall rules and policies |
+| `network-firewall` | terraform-aws-modules/network-firewall/aws | Network Firewall with rules and policies |
 | `parameter_store` | — | SSM Parameter Store configuration |
-| `r53` | — | Route 53 DNS records (legacy) |
+| `r53` | terraform-aws-modules/route53/aws | Route 53 DNS Zones, Records, Resolver and Resolver Firewall |
 | `r53-healthcheck` | — | Route 53 health checks |
-| `rds` | — | RDS database instance (legacy) |
 | `rds-database` | — | RDS database (logical) |
 | `rds-gateway-ecs-task` | — | RDS gateway ECS task definition |
 | `rds-instance` | — | RDS instance |
@@ -328,14 +330,17 @@ Rules:
 | `s3` | — | S3 bucket (legacy) |
 | `s3-bucket` | terraform-aws-modules/s3-bucket/aws | S3 bucket with full security baseline |
 | `secrets-manager` | terraform-aws-modules/secrets-manager/aws | Secrets Manager for secure secret storage |
+| `security-group` | terraform-aws-modules/security-group/aws | Security group with ingress and egress rules |
 | `security-hub` | — | Security Hub for centralized security findings |
 | `sns` | terraform-aws-modules/sns/aws | SNS topic with encryption and policies |
 | `sqs` | — | SQS queue with encryption |
 | `tags` | — | Foundation: naming and tagging context module |
-| `vpc` | — | VPC with subnets, routing, and gateways |
+| `vpc` | terraform-aws-modules/vpc/aws | VPC with subnets, routing, and gateways |
 | `vpce` | — | VPC endpoint (single service) |
 | `vpces` | — | VPC endpoints (multiple services) |
 | `waf` | — | WAF web ACL with rules |
+
+<!-- END_AVAILABLE_MODULES -->
 
 ## Pre-commit hooks
 
