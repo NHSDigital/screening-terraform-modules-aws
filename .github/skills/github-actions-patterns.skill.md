@@ -190,16 +190,18 @@ Module validation doesn't require AWS credentials:
 
 ### Pin Action Versions
 
-Always pin to a specific tag or SHA:
+Always pin to a specific tag (only permissible if the tag is immutable) or preferably SHA:
 
 ```yaml
 # Good
 - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+- uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
 
 # Bad
 - uses: actions/checkout@main
 - uses: hashicorp/setup-terraform@latest
+- uses: actions/github-script@v6
 ```
 
 ### Restrict Workflow Permissions
