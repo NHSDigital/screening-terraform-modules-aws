@@ -25,13 +25,6 @@ Secrets Manager password flow.
 * Supports optional bootstrap user creation because the current BCSS Cognito
   stacks still provision initial users during stack deployment
 
-## What this module does not do
-
-* It does not create or replicate a Secrets Manager password secret
-* It does not create the KMS keys or SSM parameters used by the older external
-  and training stacks; those remain stack-level concerns and can consume this
-  module's outputs instead
-
 ## Usage
 
 ```hcl
@@ -83,7 +76,12 @@ module "cognito" {
 * `attribute_names` produces the same default custom string attributes as the old module
 * `bootstrap_users` can be used to preserve the current stack behavior where Cognito users are created during deployment
 
-## Intentionally omitted upstream surface
+## What this module does NOT do
+
+* It does not create or replicate a Secrets Manager password secret
+* It does not create the KMS keys or SSM parameters used by the older external
+  and training stacks; those remain stack-level concerns and can consume this
+  module's outputs instead
 
 The wrapper does not directly expose the upstream generic inputs for:
 
@@ -93,17 +91,6 @@ The wrapper does not directly expose the upstream generic inputs for:
 * arbitrary client definitions beyond the curated `app_clients` OAuth client shape
 
 If those become required later, they can be added back with an explicit shared-resources use case.
-
-## Proven BCSS compatibility notes
-
-Comparing against the current BCSS stacks showed that the module surface needs to cover:
-
-* user pool settings such as deletion protection, MFA, schema attributes, and username settings
-* one or more OAuth app clients with callback URLs, logout URLs, token settings, and user-existence handling
-* optional bootstrap user creation for shared, external, and training environments
-
-The BCSS stacks also contain stack-specific KMS and SSM parameter resources for some environments.
-Those are intentionally not moved into this shared module.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
