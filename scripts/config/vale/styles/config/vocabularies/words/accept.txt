@@ -110,6 +110,7 @@ tracing_mode
 Trufflehog
 URL
 url
+validator
 [Vv]alkey
 vault_lock_type
 vault_name

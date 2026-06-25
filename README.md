@@ -365,9 +365,14 @@ For Terraform-related matrix shards, CI enables `TF_PLUGIN_CACHE_DIR` and caches
 pre-commit install --install-hooks
 pre-commit install --hook-type commit-msg
 
-# Run all hooks against the full repo
+# Run all pre-commit stage hooks against the full repo
 pre-commit run --all-files
+
+# Run the full-history secret scan explicitly when needed
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 ```
+
+On `git commit`, repository checks now run once at the `pre-commit` stage, and the Conventional Commit validator runs separately at the `commit-msg` stage. The full-history secret scan is intentionally excluded from normal commits and `pre-commit run --all-files`; CI runs it explicitly via the `manual` stage.
 
 ### Hooks included
 
@@ -548,7 +553,7 @@ bash tests/test-workflow-security.sh verbose
 ## Contributing
 
 1. Create a feature branch from `main`.
-2. Run `pre-commit run --all-files` before pushing.
+2. Run `pre-commit run --all-files` before pushing, and run `pre-commit run scan-secrets-whole-history --hook-stage manual --all-files` when you need a full-history secret scan locally.
 3. Ensure commit messages follow the [Conventional Commits](#conventional-commits) format.
 4. Open a pull request — the `pre-commit.yml` workflow will validate all hooks pass.
 5. All modules must include the required files listed in [Module layout](#module-layout) and meet the [security baseline](#wrapper-module-pattern).
