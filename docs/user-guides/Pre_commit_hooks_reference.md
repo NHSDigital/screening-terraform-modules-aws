@@ -29,12 +29,17 @@ This is the comprehensive reference for all pre-commit hooks in the `screening-t
 pre-commit install --install-hooks
 pre-commit install --hook-type commit-msg
 
-# Run all hooks on the entire repository
+# Run all pre-commit stage hooks on the entire repository
 pre-commit run --all-files
+
+# Run the full-history secret scan explicitly
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 
 # On next commit, hooks run automatically
 git commit -m "feat(module): description"
 ```
+
+During `git commit`, repository checks run at the `pre-commit` stage and the Conventional Commit validator runs at the `commit-msg` stage. `scan-secrets-whole-history` is assigned to the `manual` stage so it does not run on every commit.
 
 ---
 
@@ -756,7 +761,7 @@ git commit -m "chore: ignore false positive secret scan"
 
 #### `scan-secrets-whole-history` — Gitleaks (complete history)
 
-**What it does:** Scans entire git history for embedded secrets (API keys, credentials, etc.). Runs on `pre-commit run --all-files` or in CI/CD.
+**What it does:** Scans entire git history for embedded secrets (API keys, credentials, etc.). Runs only when explicitly invoked with the `manual` stage or in CI/CD.
 
 **When to use:** Full repository scans (CI/CD, local validation, before pushing to remote).
 
@@ -792,7 +797,7 @@ If it's a **false positive** (e.g., example credentials):
 echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
 
 # Re-run to verify
-pre-commit run scan-secrets-whole-history --all-files
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 ```
 
 **Manual runs:**
@@ -962,6 +967,14 @@ code .vale.ini
 
 ```bash
 pre-commit run --all-files
+```
+
+This runs hooks assigned to the `pre-commit` stage.
+
+### Manual-Only Hooks
+
+```bash
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 ```
 
 ### Specific Hook
