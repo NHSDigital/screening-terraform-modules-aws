@@ -251,7 +251,7 @@ module "waf" {
 * Create CloudWatch log groups, Firehose streams, S3 buckets, SNS topics, or
   any other external logging or alerting resources.
 * Inject Screening-wide default rules or rule groups.
-* Automatically deconflict consumer-provided rule priorities.
+* Automatically resolve consumer-provided rule priority conflicts.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
