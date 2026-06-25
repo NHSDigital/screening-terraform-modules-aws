@@ -306,6 +306,7 @@ Rules:
 | `aws-backup-destination` | — | AWS Backup destination vault |
 | `aws-backup-source` | — | AWS Backup source configuration |
 | `aws-scheduler` | — | EventBridge Scheduler configuration |
+| `cloudwatch` | terraform-aws-modules/cloudwatch/aws | CloudWatch log groups, streams, metric filters, and alarms |
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `ecr` | — | ECR repository with security controls |

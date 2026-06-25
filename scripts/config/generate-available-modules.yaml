@@ -29,6 +29,10 @@ aws-scheduler:
   description: "EventBridge Scheduler configuration"
   wraps: "—"
 
+cloudwatch:
+  description: "CloudWatch log groups, streams, metric filters, and alarms"
+  wraps: "terraform-aws-modules/cloudwatch/aws"
+
 cognito:
   description: "Cognito user and identity pools"
   wraps: "—"
