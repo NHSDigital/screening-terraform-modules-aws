@@ -119,7 +119,7 @@ module "waf" {
 }
 ```
 
-### path restriction via a consumer-managed rule group
+### Path restriction via a consumer-managed rule group
 
 ```hcl
 resource "aws_wafv2_ip_set" "webservices_allowlist" {

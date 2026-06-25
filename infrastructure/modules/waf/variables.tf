@@ -43,7 +43,7 @@ variable "visibility_config" {
 variable "association_resource_arns" {
   description = "List of resource ARNs to associate with this web ACL, such as an ALB, API Gateway stage, or AppSync resource."
   type        = list(string)
-  default     = []
+  default = []
 }
 
 variable "token_domains" {
@@ -59,7 +59,7 @@ variable "token_domains" {
 variable "log_destination_configs" {
   description = "Destination ARNs for WAF logging. Create log groups, Firehose streams, or S3 buckets outside this module and pass their ARNs here."
   type        = list(string)
-  default     = []
+  default = []
 }
 
 variable "logging_filter" {
@@ -149,7 +149,7 @@ variable "byte_match_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "geo_allowlist_statement_rules" {
@@ -171,7 +171,7 @@ variable "geo_allowlist_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "geo_match_statement_rules" {
@@ -201,7 +201,7 @@ variable "geo_match_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "ip_set_reference_statement_rules" {
@@ -231,7 +231,7 @@ variable "ip_set_reference_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "managed_rule_group_statement_rules" {
@@ -387,7 +387,7 @@ variable "managed_rule_group_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "nested_statement_rules" {
@@ -418,7 +418,7 @@ variable "nested_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "rate_based_statement_rules" {
@@ -485,7 +485,7 @@ variable "rate_based_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "regex_match_statement_rules" {
@@ -507,7 +507,7 @@ variable "regex_match_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "regex_pattern_set_reference_statement_rules" {
@@ -529,7 +529,7 @@ variable "regex_pattern_set_reference_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "rule_group_reference_statement_rules" {
@@ -569,7 +569,7 @@ variable "rule_group_reference_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "size_constraint_statement_rules" {
@@ -599,7 +599,7 @@ variable "size_constraint_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "sqli_match_statement_rules" {
