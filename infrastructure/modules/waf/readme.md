@@ -1,74 +1,148 @@
 # WAF
 
+NHS Screening wrapper around the community
+[`cloudposse/waf/aws`](https://registry.terraform.io/modules/cloudposse/waf/aws/latest)
+module that consumes shared `context.tf` naming and tagging and leaves WAF rule
+composition to the consumer.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| Shared naming and tagging | Uses `context.tf` via `module.this` and forwards that context to the upstream module |
+| No embedded platform rules | The module defines no managed rules, custom rules, or rule groups internally |
+| Consumer-owned priorities | Consumers pass rule lists directly, avoiding collisions with module-defined priorities |
+| External logging resources | Logging destinations are passed in as ARNs instead of being created in this module |
+| Standard visibility defaults | `visibility_config` defaults to an enabled CloudWatch metric and sampling configuration |
+
+## Usage
+
+### Minimal WAF with consumer-defined managed rules
+
+```hcl
+module "waf" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/waf?ref=<tag>"
+
+  service     = "bcss"
+  project     = "portal"
+  environment = "prod"
+  name        = "frontend"
+
+  managed_rule_group_statement_rules = [
+    {
+      name            = "aws-common-rules"
+      priority        = 10
+      override_action = "none"
+      statement = {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+      visibility_config = {
+        metric_name = "frontend-common-rules"
+      }
+    }
+  ]
+}
+```
+
+### WAF with external log destination and custom byte-match rule
+
+```hcl
+resource "aws_cloudwatch_log_group" "waf" {
+  name              = "aws-waf-logs-frontend"
+  retention_in_days = 30
+}
+
+module "waf" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/waf?ref=<tag>"
+
+  service     = "bcss"
+  project     = "portal"
+  environment = "prod"
+  name        = "frontend"
+
+  log_destination_configs = [aws_cloudwatch_log_group.waf.arn]
+
+  byte_match_statement_rules = [
+    {
+      name     = "block-admin-path"
+      priority = 20
+      action   = "block"
+      statement = {
+        search_string         = "/admin"
+        positional_constraint = "STARTS_WITH"
+        field_to_match = {
+          uri_path = true
+        }
+        text_transformation = [
+          {
+            priority = 0
+            type     = "NONE"
+          }
+        ]
+      }
+      visibility_config = {
+        metric_name = "frontend-block-admin-path"
+      }
+    }
+  ]
+}
+```
+
+### WAF associated to an existing load balancer
+
+```hcl
+module "waf" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/waf?ref=<tag>"
+
+  service     = "bcss"
+  project     = "portal"
+  environment = "prod"
+  name        = "frontend"
+
+  association_resource_arns = [module.alb.lb_arn]
+
+  managed_rule_group_statement_rules = [
+    {
+      name            = "aws-common-rules"
+      priority        = 10
+      override_action = "none"
+      statement = {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+      visibility_config = {
+        metric_name = "frontend-common-rules"
+      }
+    }
+  ]
+}
+```
+
+## Conventions
+
+* This wrapper does not define any rules internally. Consumers are responsible
+  for supplying all WAF rules and ensuring that priorities are unique across all
+  rule lists they pass in.
+* `visibility_config` defaults to enabled metrics and sampled requests using a
+  metric name derived from `module.this.id`.
+* Logging destinations must be created outside this module and provided as ARNs
+  through `log_destination_configs`.
+* The wrapper stays aligned with upstream input names so consumers can move
+  between this module and the upstream Cloud Posse module without learning a
+  second naming model.
+
+## What this module does NOT do
+
+* Create CloudWatch log groups, Firehose streams, S3 buckets, SNS topics, or
+  any other external logging or alerting resources.
+* Inject Screening-wide default rules or rule groups.
+* Automatically deconflict consumer-provided rule priorities.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
-## Requirements
-
-| Name | Version |
-| ---- | ------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.42 |
-| <a name="requirement_time"></a> [time](#requirement\_time) | >= 0.14 |
-
-## Providers
-
-| Name | Version |
-| ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
-| <a name="provider_time"></a> [time](#provider\_time) | 0.14.0 |
-
-## Modules
-
-No modules.
-
-## Resources
-
-| Name | Type |
-| ---- | ---- |
-| [aws_cloudwatch_event_rule.shield_ddos_rule](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
-| [aws_cloudwatch_event_target.shield_ddos_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
-| [aws_cloudwatch_log_group.waf_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_cloudwatch_log_subscription_filter.central_logging](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_subscription_filter) | resource |
-| [aws_cloudwatch_log_subscription_filter.splunk_subscr_filter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_subscription_filter) | resource |
-| [aws_cloudwatch_metric_alarm.shield_ddos_alarm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
-| [aws_iam_policy.central_cw_subscription_iam_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
-| [aws_iam_role.cw_to_subscription_filter_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
-| [aws_iam_role.eventbridge_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
-| [aws_iam_role_policy.eventbridge_put_events](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_iam_role_policy_attachment.central_logging_att](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
-| [aws_wafv2_ip_set.bs-select-exclude-ip-set](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_ip_set) | resource |
-| [aws_wafv2_ip_set.bs-select-webservices-ip-set](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_ip_set) | resource |
-| [aws_wafv2_web_acl.bss-waf-acl](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_web_acl) | resource |
-| [aws_wafv2_web_acl_logging_configuration.waf_acl_lc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_web_acl_logging_configuration) | resource |
-| [time_sleep.wait_30_seconds](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
-| [aws_iam_policy_document.central_cw_subscription_doc_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
-| [aws_iam_policy_document.central_logs_assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
-| [aws_secretsmanager_secret.cloudwatch-cross-accounts](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret) | data source |
-| [aws_secretsmanager_secret_version.cloudwatch-cross-accounts](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
-| [aws_secretsmanager_secret_version.waf_bsis_ip_range](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
-| [aws_secretsmanager_secret_version.waf_ips](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
-| [aws_sns_topic.alert](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/sns_topic) | data source |
-
-## Inputs
-
-| Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | AWS account ID used in IAM and logging integrations. | `string` | n/a | yes |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region where WAF resources are deployed. | `string` | n/a | yes |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment i.e prod, nonprod | `string` | n/a | yes |
-| <a name="input_exclude_ip_set_name"></a> [exclude\_ip\_set\_name](#input\_exclude\_ip\_set\_name) | Service | `string` | n/a | yes |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Prefix used for naming related resources. | `string` | n/a | yes |
-| <a name="input_waf_log_group_name"></a> [waf\_log\_group\_name](#input\_waf\_log\_group\_name) | waf log group | `string` | n/a | yes |
-| <a name="input_waf_name"></a> [waf\_name](#input\_waf\_name) | waf name | `string` | n/a | yes |
-| <a name="input_web_services_ip_set_name"></a> [web\_services\_ip\_set\_name](#input\_web\_services\_ip\_set\_name) | Name of the IP set for web service source addresses. | `string` | n/a | yes |
-| <a name="input_webservices_ip_set_addresses"></a> [webservices\_ip\_set\_addresses](#input\_webservices\_ip\_set\_addresses) | List of IP addresses for web services | `list(string)` | n/a | yes |
-
-## Outputs
-
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_web_acl_arn"></a> [web\_acl\_arn](#output\_web\_acl\_arn) | ARN of the WAFv2 web ACL. |
+Documentation will be regenerated with `terraform-docs`.
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->
