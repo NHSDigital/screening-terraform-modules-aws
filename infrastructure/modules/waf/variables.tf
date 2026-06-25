@@ -43,7 +43,7 @@ variable "visibility_config" {
 variable "association_resource_arns" {
   description = "List of resource ARNs to associate with this web ACL, such as an ALB, API Gateway stage, or AppSync resource."
   type        = list(string)
-  default = []
+  default     = []
 }
 
 variable "token_domains" {
@@ -59,7 +59,7 @@ variable "token_domains" {
 variable "log_destination_configs" {
   description = "Destination ARNs for WAF logging. Create log groups, Firehose streams, or S3 buckets outside this module and pass their ARNs here."
   type        = list(string)
-  default = []
+  default     = []
 }
 
 variable "logging_filter" {
@@ -621,7 +621,7 @@ variable "sqli_match_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
 
 variable "xss_match_statement_rules" {
@@ -643,5 +643,5 @@ variable "xss_match_statement_rules" {
       sampled_requests_enabled   = optional(bool)
     }), null)
   }))
-  default     = []
+  default = []
 }
