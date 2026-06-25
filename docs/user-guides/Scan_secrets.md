@@ -2,6 +2,7 @@
 
 - [Guide: Scan secrets](#guide-scan-secrets)
   - [Overview](#overview)
+  - [Two-tier scanning: Staged changes + Complete history](#two-tier-scanning-staged-changes--complete-history)
   - [Key files](#key-files)
   - [Configuration checklist](#configuration-checklist)
   - [Testing](#testing)
@@ -13,13 +14,54 @@ Scanning a repository for hard-coded secrets is a crucial security practice. "Ha
 
 [Gitleaks](https://github.com/gitleaks/gitleaks) is a powerful open-source tool designed to identify hard-coded secrets and other sensitive information in Git repositories. It works by scanning the commit history and the working directory for sensitive data that should not be there.
 
+## Two-tier scanning: Staged changes + Complete history
+
+This repository uses two complementary secret scanning hooks to provide defense in depth:
+
+### `scan-secrets-staged-changes`
+
+- **When:** Runs automatically on `git commit` before the commit is created
+- **Scope:** Scans only the files you're about to commit (staged changes)
+- **Purpose:** Fast feedback loop — catches secrets before they enter the repository
+- **Time:** ~1 second (very fast)
+
+**Fix immediately if it triggers:**
+
+```bash
+# Unstage the file
+git reset .env
+
+# Remove or edit to remove the secret
+# Then stage and commit the corrected version
+git add .env
+git commit -m "fix: remove secret"
+```
+
+### `scan-secrets-whole-history`
+
+- **When:** Runs on `pre-commit run --all-files` or in CI/CD pipelines
+- **Scope:** Scans entire git history (all commits)
+- **Purpose:** Comprehensive audit — catches secrets that may have been committed before this hook existed
+- **Time:** ~10-30 seconds (slower, but thorough)
+
+**Run manually:**
+
+```bash
+# Full history scan (use before pushing to remote)
+check=whole-history ./scripts/githooks/scan-secrets.sh
+
+# Or via pre-commit
+pre-commit run scan-secrets-whole-history --all-files
+```
+
+**If it fails:** Secret is already in history; see [Removing sensitive data](#removing-sensitive-data) below for remediation.
+
 ## Key files
 
-- [`scan-secrets.sh`](../../scripts/githooks/scan-secrets.sh): A shell script that scans the codebase for hard-coded secrets
+- [`scan-secrets.sh`](../../scripts/githooks/scan-secrets.sh): A shell script that scans the codebase for hard-coded secrets (supports `check=staged-changes` and `check=whole-history` modes)
 - [`gitleaks.toml`](../../scripts/config/gitleaks.toml): A configuration file for the secret scanner
 - [`.gitleaksignore`](../../.gitleaksignore): A list of fingerprints to ignore by the secret scanner
 - [`scan-secrets/action.yaml`](../../.github/actions/scan-secrets/action.yaml): GitHub action to run the scripts as part of the CI/CD pipeline
-- [`pre-commit.yaml`](../../scripts/config/pre-commit.yaml): Run the secret scanner as a pre-commit git hook
 
 ## Configuration checklist
 
@@ -30,10 +72,18 @@ Scanning a repository for hard-coded secrets is a crucial security practice. "Ha
 
 ## Testing
 
-You can execute and test the secret scanning across all commits locally on a developer's workstation using the following command
+You can execute and test the secret scanning locally on a developer's workstation:
 
-```shell
-ALL_FILES=true ./scripts/githooks/scan-secrets.sh
+**Staged changes only (fast):**
+
+```bash
+check=staged-changes ./scripts/githooks/scan-secrets.sh
+```
+
+**Entire history (comprehensive):**
+
+```bash
+check=whole-history ./scripts/githooks/scan-secrets.sh
 ```
 
 ## Removing sensitive data

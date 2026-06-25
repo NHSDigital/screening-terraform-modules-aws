@@ -86,7 +86,11 @@ pre-commit run terraform_fmt --files infrastructure/modules/vpc/main.tf
 
 #### 1.2 `terraform_validate` — Validate Terraform Configuration
 
-**What it does:** Ensures Terraform syntax is valid and modules are properly configured. Uses `terraform init -lockfile=readonly` internally.
+**What it does:** Ensures Terraform syntax is valid and modules are properly configured.
+
+In this repository's pre-commit configuration, `terraform_providers_lock` runs before `terraform_validate` so  lock file platform coverage is reconciled first.
+
+Local pre-commit runs allow Terraform to refresh `.terraform.lock.hcl` when provider constraints change. In CI, `terraform_validate` is run with `terraform init -lockfile=readonly` so checks remain deterministic and do not mutate lock files.
 
 **When it fails:**
 
@@ -386,7 +390,7 @@ AWS credentials detected
 **Fix:** Never commit credentials. Use:
 
 - GitHub Secrets for CI/CD
-- AWS assume role or iam OIDC federation
+- AWS assume role or IAM OIDC federation
 - `~/.aws/credentials` for local development
 
 ---
@@ -505,16 +509,62 @@ vale README.md infrastructure/AGENTS.md
 
 ### Category 5: Security & Secrets
 
-#### 5.1 `scan-secrets` — Secret Scanning via Gitleaks
+#### 5.1 `scan-secrets-staged-changes` — Secret Scanning (Staged Files)
 
-**What it does:** Scans entire git history for embedded secrets (API keys, credentials, etc.) using Gitleaks.
+**What it does:** Scans staged changes for embedded secrets (API keys, credentials, etc.) using Gitleaks. Runs automatically on `git commit`.
 
 **When it fails:**
 
 ```text
 Leaks found: 1
-File: .env.example
+File: .env
 Secret: aws_secret_access_key = "AKIA2EXAMPLE..."
+```
+
+**Common false positives:**
+
+- Example/placeholder credentials in `.env.example`
+- Test data that looks like credentials
+
+**Fix:**
+
+##### Staged changes: Real secret detected
+
+```bash
+# Unstage the file immediately
+git reset .env
+
+# Remove or edit to remove the secret
+rm .env  # or edit to remove secrets
+
+# Stage clean version and commit
+git add .env
+git commit -m "fix: remove secret from env"
+```
+
+##### Staged changes: False positive detected
+
+```bash
+# Add to .gitleaksignore
+echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
+
+# Re-stage and commit
+git add .gitleaksignore
+git commit -m "chore: ignore false positive"
+```
+
+---
+
+#### 5.2 `scan-secrets-whole-history` — Secret Scanning (Complete History)
+
+**What it does:** Scans entire git history for embedded secrets using Gitleaks. Runs on `pre-commit run --all-files` or in CI/CD.
+
+**When it fails:**
+
+```text
+Leaks found: 1
+File: config/old-backup.tf (in commit abc1234)
+Secret: aws_access_key_id = "AKIAIOSFODNN7EXAMPLE"
 ```
 
 **Common false positives:**
@@ -525,31 +575,28 @@ Secret: aws_secret_access_key = "AKIA2EXAMPLE..."
 
 **Fix:**
 
-#### Option 1: Real secret (CRITICAL)
+##### History scan: Real secret in git history (CRITICAL)
 
 ```bash
-# Remove the secret immediately
+# Remove from history (destructive operation)
 git filter-branch --force --index-filter \
-  'git rm --cached --ignore-unmatch PATH_TO_FILE' \
+  'git rm --cached --ignore-unmatch config/old-backup.tf' \
   --prune-empty --tag-name-filter cat -- --all
 
-# Force push (warning: destructive)
+# Force push to remove from remote
 git push origin +main
+
+# IMPORTANT: Regenerate/rotate any exposed credentials
 ```
 
-#### Option 2: False positive (Add to ignore list)
+##### History scan: False positive in git history
 
 ```bash
-# Get the fingerprint from the error
 # Add to .gitleaksignore
 echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
-```
 
-**Manual run:**
-
-```bash
-gitleaks detect --verbose
-gitleaks detect -i .gitleaksignore  # With ignores
+# Re-run to verify
+pre-commit run scan-secrets-whole-history --all-files
 ```
 
 ---
@@ -712,6 +759,37 @@ aws sts get-caller-identity
 
 Edit `.vale.ini` to relax rules or add exceptions for your terminology.
 
+### Tool Version Mismatches in Scripts
+
+If pre-commit hooks that invoke tools (e.g., `yq`, `actionlint`) fail with syntax errors or "can't open" errors, ensure your shell scripts wrap tool invocations with `mise x --`:
+
+**Problem:**
+
+```bash
+# System version might have different CLI syntax
+if ! yq eval '.' config.yaml > /dev/null; then
+    echo "YAML validation failed"
+fi
+```
+
+**Solution:**
+
+```bash
+# Always use mise-managed version for consistency
+if command -v mise &>/dev/null; then
+    if ! mise x -- yq eval '.' config.yaml > /dev/null 2>&1; then
+        echo "YAML validation failed"
+    fi
+elif command -v yq &>/dev/null; then
+    # Fallback to system version if mise not available
+    if ! yq eval '.' config.yaml > /dev/null 2>&1; then
+        echo "YAML validation failed"
+    fi
+fi
+```
+
+**Why?** Different implementations of the same tool (e.g., Python vs Go `yq`) have incompatible CLI syntax. Using `mise x --` guarantees the correct version is used, preventing subtle syntax mismatches.
+
 ---
 
 ## Quick Reference Table
@@ -729,7 +807,8 @@ Edit `.vale.ini` to relax rules or add exceptions for your terminology.
 | `check-english-usage` | `.md` | ❌ No | Low | Format |
 | `detect-aws-credentials` | All | ❌ No | **CRITICAL** | Security |
 | `detect-private-key` | All | ❌ No | **CRITICAL** | Security |
-| `scan-secrets` | All | ❌ No | **CRITICAL** | Security |
+| `scan-secrets-staged-changes` | All | ❌ No | **CRITICAL** | Security |
+| `scan-secrets-whole-history` | All | ❌ No | **CRITICAL** | Security |
 | `conventional-commit` | Commit msg | ❌ No | Medium | Commit |
 | `no-commit-to-branch` | N/A | ❌ No | High | Git |
 

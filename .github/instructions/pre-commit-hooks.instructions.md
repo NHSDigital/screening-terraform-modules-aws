@@ -19,6 +19,8 @@ pre-commit install --hook-type commit-msg
 | --- | --- |
 | Terraform format mismatch | `terraform fmt -recursive infrastructure/modules/` |
 | Documentation out of sync | `pre-commit run terraform_docs --all-files` |
+| Dependabot config out of sync | Commit the regenerated `.github/dependabot.yaml` (auto-generated) |
+| Available modules table out of sync | Commit the regenerated `README.md` Available modules section (auto-generated). Includes all modules: regular modules alphabetically, then legacy modules (older format, in `_legacy/`) with `[LEGACY]` markers at the end. |
 | Shell script errors | Review output; fix syntax errors; re-run `pre-commit run shellcheck` |
 | English/spelling mistakes | Check `.vale.ini` rules; update text if needed |
 | Trailing whitespace/EOL | `pre-commit run --all-files` (auto-fixed) |
@@ -41,9 +43,28 @@ git commit -m "type(scope): description"
 
 - `detect-aws-credentials` — detects embedded secrets
 - `detect-private-key` — detects leaked private keys
-- `scan-secrets` — scans git history for secrets
+- `scan-secrets-staged-changes` — scans staged changes for secrets (runs on `git commit`)
+- `scan-secrets-whole-history` — scans entire git history for secrets (runs on `pre-commit run --all-files`)
 - `terraform_validate` — ensures modules are syntactically valid
+- `regenerate-dependabot-config` — ensures Dependabot watches all modules
+- `check-available-modules` — ensures README module table is up-to-date
 - `no-commit-to-branch` — enforces PR workflow
+
+## Tool Invocation in Scripts
+
+When writing shell scripts that invoke tools (especially in pre-commit hooks), always wrap tool invocations with `mise x --` to ensure the correct version is used:
+
+```bash
+# Good: Uses mise-managed tool version
+mise x -- yq eval '.' config.yaml
+mise x -- actionlint .github/workflows/*.yml
+
+# Avoid: May use system version (syntax differences between implementations)
+yq eval '.' config.yaml
+actionlint .github/workflows/*.yml
+```
+
+**Why?** Different implementations (e.g., Go vs Python versions of yq) have different CLI syntax. Using `mise x --` guarantees version consistency across environments and prevents subtle failures.
 
 ## Need Help?
 

@@ -106,6 +106,8 @@ jobs:
         uses: ./.github/actions/lint-terraform
 
   count-lines-of-code:
+    # This job uploads reports using privileged configuration and is skipped for Dependabot PRs.
+    if: github.actor != 'dependabot[bot]'
     name: "Count lines of code"
     runs-on: ubuntu-latest
     permissions:
@@ -126,6 +128,8 @@ jobs:
           idp_aws_report_upload_bucket_endpoint: "${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}"
 
   scan-dependencies:
+    # This job uploads reports using privileged configuration and is skipped for Dependabot PRs.
+    if: github.actor != 'dependabot[bot]'
     name: "Scan dependencies"
     runs-on: ubuntu-latest
     permissions:

@@ -7,6 +7,7 @@
 #   - Terraform module upgrade helper behaviour
 #   - Pre-commit configuration consistency
 #   - Tool version file synchronization
+#   - Tool version upgrade automation helper
 #
 # Usage:
 #   bash tests/run-all-tests.sh
@@ -72,6 +73,44 @@ else
 fi
 echo ""
 
+# Test 4: Tool Version Upgrade Helper
+echo -e "${BLUE}Running: Tool Version Upgrade Helper Tests${NC}"
+echo "----------------------------------------------------------------------"
+if bash tests/test-tool-version-upgrade.sh "${VERBOSE:-}" > /tmp/test-tool-version-upgrade.log 2>&1; then
+  cat /tmp/test-tool-version-upgrade.log
+  echo -e "${GREEN}✓ Tool version upgrade helper tests passed${NC}"
+else
+  cat /tmp/test-tool-version-upgrade.log
+  echo -e "${RED}✗ Tool version upgrade helper tests failed${NC}"
+  TOTAL_FAILED=$((TOTAL_FAILED + 1))
+fi
+echo ""
+
+# Test 5: Dependabot Configuration Generation
+echo -e "${BLUE}Running: Dependabot Configuration Generation Tests${NC}"
+echo "----------------------------------------------------------------------"
+if bash tests/test-generate-dependabot-config.sh "${VERBOSE:-}" > /tmp/test-dependabot-config.log 2>&1; then
+  cat /tmp/test-dependabot-config.log
+  echo -e "${GREEN}✓ Dependabot config generation tests passed${NC}"
+else
+  cat /tmp/test-dependabot-config.log
+  echo -e "${RED}✗ Dependabot config generation tests failed${NC}"
+  TOTAL_FAILED=$((TOTAL_FAILED + 1))
+fi
+# Test 6: Available Modules Table Generation
+echo -e "${BLUE}Running: Available Modules Table Generation Tests${NC}"
+echo "----------------------------------------------------------------------"
+if bash tests/test-generate-available-modules.sh "${VERBOSE:-}" > /tmp/test-available-modules.log 2>&1; then
+  cat /tmp/test-available-modules.log
+  echo -e "${GREEN}✓ Available modules table generation tests passed${NC}"
+else
+  cat /tmp/test-available-modules.log
+  echo -e "${RED}✗ Available modules table generation tests failed${NC}"
+  TOTAL_FAILED=$((TOTAL_FAILED + 1))
+fi
+echo ""
+echo ""
+
 # Final summary
 echo "======================================================================"
 echo "Test Suite Summary"
@@ -86,6 +125,8 @@ if [ $TOTAL_FAILED -eq 0 ]; then
   echo "  - Terraform module upgrade helper verified"
   echo "  - Pre-commit configuration verified for consistency"
   echo "  - Tool versions synchronized across .tool-versions and mise.toml"
+  echo "  - Tool version upgrade helper verified"
+  echo "  - Available modules table generation verified"
   exit 0
 else
   echo -e "${RED}✗ $TOTAL_FAILED test suite(s) failed${NC}"

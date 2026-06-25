@@ -37,6 +37,47 @@ repos:
         pass_filenames: false
 
   # --------------------------------------------------------------------------
+  # Local: regenerate Dependabot configuration for Terraform modules
+  # --------------------------------------------------------------------------
+  # Automatically regenerates .github/dependabot.yaml whenever modules are
+  # added/removed. This ensures Dependabot watches all Terraform modules.
+  # Fails if the generated config differs from the committed version,
+  # forcing users to update the config and commit the result.
+  #
+  # Generates:
+  #   - .github/dependabot.yaml (complete Dependabot configuration)
+  - repo: local
+    hooks:
+      - id: regenerate-dependabot-config
+        name: regenerate-dependabot-config
+        require_serial: true
+        entry: ./scripts/githooks/check-dependabot-config.sh
+        language: script
+        files: infrastructure/modules/.*/versions\.tf$
+        pass_filenames: false
+
+  # --------------------------------------------------------------------------
+  # Local: regenerate Available modules section in README.md
+  # --------------------------------------------------------------------------
+  # Automatically regenerates the Available modules table in README.md whenever
+  # modules are added/removed or module READMEs are updated. This ensures the
+  # documentation stays in sync with the actual modules available.
+  # Fails if the generated section differs from the committed version,
+  # forcing users to review and commit the updated documentation.
+  #
+  # Generates:
+  #   - README.md (Available modules table, between markers)
+  - repo: local
+    hooks:
+      - id: check-available-modules
+        name: check-available-modules
+        require_serial: true
+        entry: ./scripts/githooks/check-available-modules.sh
+        language: script
+        files: (infrastructure/modules/.*/README\.md|README\.md)$
+        pass_filenames: false
+
+  # --------------------------------------------------------------------------
   # Terraform hooks (format, lint, validate, docs, lock)
   # --------------------------------------------------------------------------
   - repo: https://github.com/antonbabenko/pre-commit-terraform
@@ -47,12 +88,19 @@ repos:
         - --args=-no-color
         - --args=-diff
         - --args=-recursive
+      - id: terraform_providers_lock
+        args:
+          - --args=-platform=linux_arm64
+          - --args=-platform=linux_amd64
+          - --args=-platform=darwin_arm64
+          - --args=-platform=darwin_amd64
+          - --args=-platform=windows_amd64
+          - --hook-config=--mode=regenerate-lockfile-if-some-platform-missed
       - id: terraform_validate
         args:
           - --args=-json
           - --args=-no-color
           - --env-vars=AWS_DEFAULT_REGION=eu-west-2
-          - --tf-init-args=-lockfile=readonly
           - --hook-config=--retry-once-with-cleanup=true
       - id: terraform_tflint
         # exclude: ^infrastructure/modules/(aws-backup-destination|aws-backup-source)/
@@ -66,11 +114,6 @@ repos:
           - --hook-config=--create-file-if-not-exist=false
           - '--hook-config=--custom-marker-begin=<!-- vale off -->\n<!-- markdownlint-disable -->\n<!-- BEGIN_TF_DOCS -->'
           - '--hook-config=--custom-marker-end=<!-- END_TF_DOCS -->\n<!-- markdownlint-restore -->\n<!-- vale on -->'
-      - id: terraform_providers_lock
-        args:
-          - --hook-config=--mode=check-lockfile-is-cross-platform
-          # - --hook-config=--mode=always-regenerate-lockfile
-          - --hook-config=--mode=regenerate-lockfile-if-some-platform-missed
 
   # --------------------------------------------------------------------------
   # General file hygiene
@@ -158,8 +201,14 @@ repos:
         files: \.tf(vars)?$
         pass_filenames: false
 
-      - id: scan-secrets
-        name: scan-secrets
+      - id: scan-secrets-staged-changes
+        name: scan-secrets-staged-changes
+        entry: bash -c 'check=staged-changes ./scripts/githooks/scan-secrets.sh'
+        language: system
+        pass_filenames: false
+
+      - id: scan-secrets-whole-history
+        name: scan-secrets-whole-history
         entry: bash -c 'check=whole-history ./scripts/githooks/scan-secrets.sh'
         language: system
         pass_filenames: false

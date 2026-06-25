@@ -1,5 +1,110 @@
 # GuardDuty
 
+NHS Screening wrapper for AWS GuardDuty that enforces the platform's baseline controls and consumes the shared `context.tf` for naming and tagging.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| Threat detection | GuardDuty detector enabled when `enable_detector = true` |
+| S3 protection | S3 Data Events monitoring enabled by default (`s3_protection_enabled = true`) |
+| EBS malware scanning | EBS Malware Protection enabled by default (`malware_protection_scan_ec2_ebs_volumes_enabled = true`) |
+| Finding notifications | CloudWatch Event rule forwards findings to SNS by default (`enable_cloudwatch = true`) |
+| Resource enable/disable | Creation gated by `module.this.enabled` |
+| Tagging and naming | Uses shared `context.tf` (`module.this`) for tags and naming |
+
+## Usage
+
+### Minimal detector with default protections
+
+```hcl
+module "guardduty" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=<tag>"
+
+  service     = "bcss"
+  project     = "security"
+  environment = "prod"
+  name        = "detector"
+
+  enable_detector = true
+}
+```
+
+### Production detector with all protections and SNS forwarding
+
+```hcl
+module "guardduty" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=<tag>"
+
+  service     = "bcss"
+  project     = "security"
+  environment = "prod"
+  name        = "detector"
+
+  enable_detector = true
+
+  # Protection features
+  s3_protection_enabled                           = true
+  malware_protection_scan_ec2_ebs_volumes_enabled = true
+  kubernetes_audit_logs_enabled                   = true
+  lambda_network_logs_enabled                     = true
+  runtime_monitoring_enabled                      = true
+
+  runtime_monitoring_additional_config = {
+    eks_addon_management_enabled         = true
+    ecs_fargate_agent_management_enabled = true
+    ec2_agent_management_enabled         = true
+  }
+
+  # Forward findings to SNS
+  enable_cloudwatch          = true
+  findings_notification_arn  = module.sns_alerts.topic_arn
+  finding_publishing_frequency = "FIFTEEN_MINUTES"
+}
+```
+
+### Detector with minimal protections (non-production use)
+
+```hcl
+module "guardduty_dev" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/guardduty?ref=<tag>"
+
+  service     = "bcss"
+  project     = "security"
+  environment = "dev"
+  name        = "detector"
+
+  enable_detector = true
+
+  # Minimal protections for cost control in dev
+  s3_protection_enabled                           = false
+  malware_protection_scan_ec2_ebs_volumes_enabled = false
+  kubernetes_audit_logs_enabled                   = false
+  lambda_network_logs_enabled                     = false
+  runtime_monitoring_enabled                      = false
+
+  # Disable SNS forwarding in dev
+  enable_cloudwatch = false
+}
+```
+
+## Conventions
+
+- `enable_detector` defaults to `false`; you must explicitly enable it.
+- S3 protection (`s3_protection_enabled`) and EBS malware scanning (`malware_protection_scan_ec2_ebs_volumes_enabled`) default to `true`.
+- Runtime monitoring features (EKS, ECS, Lambda) default to `false`; enable based on workload requirements.
+- `runtime_monitoring_enabled` and `eks_runtime_monitoring_enabled` are mutually exclusive; `RUNTIME_MONITORING` already covers EKS.
+- CloudWatch Event rule (`enable_cloudwatch`) defaults to `true` and creates a forwarding rule; provide `findings_notification_arn` to wire it to an SNS topic.
+- `finding_publishing_frequency` defaults to `FIFTEEN_MINUTES` for faster detection; adjust to `ONE_HOUR` or `SIX_HOURS` if lower alert volume is acceptable.
+- The EventBridge rule uses a separate context label (`findings`) so its name/tags are distinct from the detector.
+
+## What this module does NOT do
+
+- Create or manage SNS topics for findings; you must create the topic separately and pass its ARN via `findings_notification_arn`.
+- Configure GuardDuty member accounts or delegated administrator relationships; this module manages standalone or master account detectors only.
+- Export findings to S3 or other destinations; use AWS GuardDuty's native export configuration outside this module if required.
+- Automatically enable runtime monitoring agents on EC2/ECS/EKS; the module enables the GuardDuty feature, but agent deployment is separate.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -20,7 +125,7 @@
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_findings_label"></a> [findings\_label](#module\_findings\_label) | git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/tags | v2.6.0 |
+| <a name="module_findings_label"></a> [findings\_label](#module\_findings\_label) | ../tags | n/a |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
@@ -81,7 +186,7 @@
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
-| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 

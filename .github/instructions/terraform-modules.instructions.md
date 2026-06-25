@@ -9,7 +9,9 @@ applyTo: "infrastructure/modules/**/*.tf"
 Every module uses the `context.tf` pattern from `infrastructure/modules/tags/exports/context.tf`.
 
 - Include `context.tf` in every module (copied from the tags module exports — **never edited directly**).
+- Always copy `context.tf` from `infrastructure/modules/tags/exports/context.tf` into the new module path first, then update only the module source reference.
 - `context.tf` instantiates `module "this"` with `source = "../tags"` (relative within this repo).
+- After copying, ensure `module "this"` in the copied file uses `source = "../tags"` before committing.
 - Use `module.this.enabled` or `create = module.this.enabled` to gate resource creation.
 - Use `module.this.id` for resource naming.
 - Use `module.this.tags` for resource tagging.
@@ -85,6 +87,13 @@ The helper automates three steps:
 
 After running the helper, verify the lock file changes are sensible and commit the results.
 
+If you do not use the helper script, you must run both commands manually in the affected module directory:
+
+- `terraform init -upgrade`
+- `terraform providers lock -platform=linux_amd64 -platform=linux_arm64 -platform=darwin_amd64 -platform=windows_amd64`
+
+This is required to create/update `.terraform.lock.hcl` with the same platform coverage used by CI.
+
 ## Pre-Commit Hooks
 
 All Terraform changes must pass pre-commit hooks before committing:
@@ -108,15 +117,23 @@ See `.github/skills/pre-commit-hooks.skill.md` for detailed documentation on all
 
 Every module must contain:
 
-| File | Purpose |
-| --- | --- |
-| `main.tf` | Primary resource definitions with header comment block |
-| `variables.tf` | Input variables with types, descriptions, defaults, validations |
-| `outputs.tf` | Output values with descriptions |
-| `versions.tf` | `required_version` and `required_providers` |
-| `context.tf` | Tags context (copied from `tags/exports/context.tf`) |
-| `locals.tf` | Derived/computed values (naming, defaults) |
-| `README.md` | Usage documentation with examples |
+| File | Purpose | Mandatory |
+| --- | --- | --- |
+| `main.tf` | Primary resource definitions with header comment block | Yes |
+| `variables.tf` | Input variables with types, descriptions, defaults, validations | Yes |
+| `outputs.tf` | Output values with descriptions | Yes |
+| `versions.tf` | `required_version` and `required_providers` | Yes |
+| `context.tf` | Tags context (copied from `tags/exports/context.tf`) | Yes |
+| `data.tf` | Data sources (e.g., `data.aws_*`, `data.local_file`) | Only if data sources exist |
+| `locals.tf` | Derived/computed values (naming, defaults) | Only if `locals {}` blocks exist |
+| `README.md` | Usage documentation with examples | Yes |
+
+**Conditional file guidance:**
+
+- **`data.tf`**: Create this file if the module queries external data (e.g., `data.aws_availability_zones`, `data.aws_ami`). Store all data sources here for clarity.
+- **`locals.tf`**: Create this file only if the module defines `locals {}` blocks for computed values, naming logic, or CIDR calculations. If no locals are needed, omit the file entirely.
+
+For any newly created module, `context.tf` must come from `infrastructure/modules/tags/exports/context.tf`, and the copied file must reference `source = "../tags"`.
 
 ## Variables & Validation
 
@@ -181,7 +198,7 @@ Every module must enforce:
 - Encryption at rest (KMS or service-managed) where applicable.
 - Encryption in transit (TLS required, deny insecure transport) where applicable.
 - No public access by default (block at all available toggles).
-- iam least-privilege (no `*` actions in managed policies).
+- IAM least-privilege (no `*` actions in managed policies).
 - Logging/audit enabled where the service supports it.
 - All resources tagged via `module.this.tags`.
 
@@ -191,10 +208,75 @@ Module READMEs should include:
 
 1. Title and one-line description.
 2. "What this module enforces" table (control -> implementation).
-3. Usage examples (minimal, with options, advanced).
-4. Conventions section explaining naming and notable defaults.
+3. **Usage** section with at least 3 examples:
+   - Minimal example (smallest valid input set)
+   - Common production-style example
+   - Advanced/edge example (e.g., restore-from-snapshot, records-only mode)
+4. **Conventions** section explaining naming, context behaviour, and notable defaults.
+5. **What this module does NOT do** section listing intentional exclusions/guardrails.
+
+READMEs that do not include a `## Usage` section are incomplete and must be updated before merge.
+
+## Documentation & README Updates
+
+**Documentation must be updated alongside code changes.** This is a quality gate, not an afterthought.
+
+### When Adding or Modifying a Module
+
+1. **Run the upgrade helper** to regenerate module documentation.
+
+   ```bash
+   ./scripts/terraform/upgrade-module.sh infrastructure/modules/<name>
+   ```
+
+   This automatically updates the module's `README.md` via `terraform-docs`.
+
+1. **Update the root README.md** if you've added a new module, changed Dependabot automation behaviour, or changed module sourcing/upgrade procedures.
+
+1. **Update relevant user guides** in `docs/user-guides/`.
+If you've added/changed a pre-commit hook, update `Pre_commit_hooks_reference.md`. If you've changed upgrade procedures or tooling, update the related guides.
+
+1. **Update `infrastructure/AGENTS.md`** if you've introduced a new pattern/tool, changed naming conventions, or changed quality expectations/validation rules.
+
+1. **Update `.github/instructions/` files** if instructions no longer reflect current practice, or if new hooks/validation steps were added.
+
+### Pre-Commit Hook for Documentation
+
+The `terraform_docs` hook automatically regenerates module README files when `variables.tf`, `outputs.tf`, or `context.tf` change. Commit the regenerated README without manual edits (unless template customization is needed).
+
+**Important:** The auto-generated terraform-docs section must be wrapped with special markers to disable linting:
+
+```markdown
+<!-- vale off -->
+<!-- markdownlint-disable -->
+<!-- BEGIN_TF_DOCS -->
+... (auto-generated content)
+<!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
+<!-- vale on -->
+```
+
+These markers ensure that the auto-generated tables and formatting don't trigger markdown linter or Vale style violations. Do not remove these markers when committing regenerated documentation.
+
+### Validation Checklist
+
+Before committing, verify:
+
+- [ ] Module code changes complete (main.tf, variables.tf, outputs.tf, etc.)
+- [ ] `terraform init -reconfigure` run in the affected module directory
+- [ ] `terraform providers lock -platform=linux_amd64 -platform=linux_arm64 -platform=darwin_amd64 -platform=windows_amd64` run in the affected module directory (to ensure `.terraform.lock.hcl` is created/updated)
+- [ ] `terraform fmt -recursive` run on the module
+- [ ] `terraform validate` passes
+- [ ] Module README.md regenerated (via upgrade helper or terraform_docs hook)
+- [ ] README.md passes markdown lint: `pre-commit run check-markdown-format --files README.md`
+- [ ] `infrastructure/AGENTS.md` updated if patterns changed
+- [ ] Root `README.md` updated if module list or procedures changed
+- [ ] User guide files updated if hooks or workflows changed
+- [ ] All pre-commit hooks pass: `pre-commit run --all-files`
 
 ## Formatting & Style
+
+### Terraform Code
 
 - Run `terraform fmt -recursive` before committing.
 - Align `=` signs within blocks for readability.
@@ -202,6 +284,21 @@ Module READMEs should include:
 - Comments use `#` (not `//`).
 - Use `################################################################` banners for section headers.
 - Descriptive header comment block at the top of `main.tf` listing what the module enforces.
+
+### Markdown Files
+
+All `.md` files must pass `markdownlint` checks (enforced by pre-commit hook `check-markdown-format`):
+
+- **Tables**: Use compact style with no extra spaces around pipes (e.g., `|Header|Value|` not `| Header | Value |`).
+- **Lists**:
+  - Unordered list items use 0-space indentation (no leading spaces).
+  - Nested lists use 3-space indentation (for sub-items within numbered lists).
+  - Blank lines required before and after list blocks.
+- **Headings**: Use `##` for section headings, `###` for subsections. No leading/trailing spaces.
+- **Code blocks**: Use triple backticks with language identifier (e.g., ` ```hcl `).
+- **Line length**: Keep under 120 characters where practical (not a hard limit, but aids readability).
+
+Run `pre-commit run check-markdown-format --files README.md` to validate before committing.
 
 ## Exemplar Modules
 
@@ -211,3 +308,4 @@ When in doubt, look at these compliant modules for reference:
 - `infrastructure/modules/iam` — Multi-resource wrapper (policies + roles) with per-resource iteration and label modules.
 - `infrastructure/modules/secrets-manager` — Simple wrapper with hard-coded security and optional features.
 - `infrastructure/modules/kms` — KMS key wrapper with policy enforcement.
+- `infrastructure/modules/acm` — Simple wrapper with opinionated security defaults.

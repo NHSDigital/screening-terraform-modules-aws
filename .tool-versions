@@ -1,16 +1,20 @@
 # This file is for you! Please, updated to the versions agreed by your team.
 
-terraform 1.13.2
-tflint 0.59.1
+terraform 1.13.5
+tflint 0.62.1
 terraform-docs 0.24.0
+go 1.26.4
 go:github.com/hashicorp/terraform-config-inspect latest
 pre-commit 4.6.0
 python 3.12
 vale 3.6.0
 gitleaks 8.30.1
 shellcheck 0.11.0
-jq 1.7.1
+actionlint 1.7.12
+jq 1.8.1
+yq 4.53.3
 nodejs 24.16.0
+make 4.4.1
 
 # ==============================================================================
 # The section below is reserved for Docker image versions.

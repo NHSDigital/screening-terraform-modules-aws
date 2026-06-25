@@ -1,14 +1,121 @@
-output "redis_configuration_endpoint_address" {
-  description = "Configuration endpoint address for the ElastiCache replication group."
-  value       = aws_elasticache_replication_group.elasticache_replication_group.configuration_endpoint_address
+output "deployment_mode" {
+  description = "Active deployment mode: replication_group, cluster, or serverless."
+  value       = var.deployment_mode
 }
 
-output "redis_configuration_endpoint_port" {
-  description = "Configuration endpoint port for the ElastiCache replication group."
-  value       = aws_elasticache_replication_group.elasticache_replication_group.port
+# ================================================================
+# Replication group (deployment_mode = "replication_group")
+# ================================================================
+
+output "replication_group_id" {
+  description = "ID of the ElastiCache replication group."
+  value       = module.this.enabled && local.create_replication_group ? module.elasticache.replication_group_id : null
 }
 
-output "redis_security_group_id" {
-  description = "Security group ID attached to the ElastiCache replication group."
-  value       = aws_security_group.cache_sg.id
+output "replication_group_arn" {
+  description = "ARN of the ElastiCache replication group."
+  value       = module.this.enabled && local.create_replication_group ? module.elasticache.replication_group_arn : null
+}
+
+output "primary_endpoint_address" {
+  description = "Primary (writer) endpoint for the replication group."
+  value       = module.this.enabled && local.create_replication_group ? module.elasticache.replication_group_primary_endpoint_address : null
+}
+
+output "reader_endpoint_address" {
+  description = "Reader endpoint (load-balanced across replicas) for the replication group."
+  value       = module.this.enabled && local.create_replication_group ? module.elasticache.replication_group_reader_endpoint_address : null
+}
+
+output "configuration_endpoint_address" {
+  description = "Configuration endpoint for cluster-mode replication groups (connects to all shards)."
+  value       = module.this.enabled && local.create_replication_group ? module.elasticache.replication_group_configuration_endpoint_address : null
+}
+
+output "member_clusters" {
+  description = "List of member node IDs in the replication group."
+  value       = module.this.enabled && local.create_replication_group ? module.elasticache.replication_group_member_clusters : []
+}
+
+output "port" {
+  description = "Port on which the ElastiCache resource listens."
+  value       = module.this.enabled && local.create_replication_group ? module.elasticache.replication_group_port : var.port
+}
+
+# ================================================================
+# Cluster (deployment_mode = "cluster")
+# ================================================================
+
+output "cluster_arn" {
+  description = "ARN of the standalone ElastiCache cluster."
+  value       = module.this.enabled && local.create_cluster ? module.elasticache.cluster_arn : null
+}
+
+output "cluster_address" {
+  description = "DNS name of the cache cluster (Memcached) or primary endpoint."
+  value       = module.this.enabled && local.create_cluster ? module.elasticache.cluster_address : null
+}
+
+output "cluster_configuration_endpoint" {
+  description = "Configuration endpoint for Memcached clusters (auto-discovery)."
+  value       = module.this.enabled && local.create_cluster ? module.elasticache.cluster_configuration_endpoint : null
+}
+
+# ================================================================
+# Serverless (deployment_mode = "serverless")
+# ================================================================
+
+output "serverless_arn" {
+  description = "ARN of the serverless cache."
+  value       = module.this.enabled && local.create_serverless_cache ? module.elasticache_serverless.serverless_cache_arn : null
+}
+
+output "serverless_endpoint" {
+  description = "Connection endpoint (address and port) for the serverless cache."
+  value       = module.this.enabled && local.create_serverless_cache ? module.elasticache_serverless.serverless_cache_endpoint : null
+}
+
+output "serverless_reader_endpoint" {
+  description = "Reader endpoint for the serverless cache."
+  value       = module.this.enabled && local.create_serverless_cache ? module.elasticache_serverless.serverless_cache_reader_endpoint : null
+}
+
+# ================================================================
+# Networking
+# ================================================================
+
+output "security_group_id" {
+  description = <<-EOT
+    First security group ID associated with the cache.
+    This is security_group_ids[0] (caller-managed).
+  EOT
+  value       = module.this.enabled && length(var.security_group_ids) > 0 ? var.security_group_ids[0] : null
+}
+
+# ================================================================
+# Logging
+# ================================================================
+
+output "cloudwatch_log_group_name" {
+  description = "Name of the primary CloudWatch log group created by the upstream module."
+  value       = module.this.enabled && !local.create_serverless_cache ? module.elasticache.cloudwatch_log_group_name : null
+}
+
+output "cloudwatch_log_group_arn" {
+  description = "ARN of the primary CloudWatch log group created by the upstream module."
+  value       = module.this.enabled && !local.create_serverless_cache ? module.elasticache.cloudwatch_log_group_arn : null
+}
+
+# ================================================================
+# Maintenance & backup
+# ================================================================
+
+output "snapshot_window" {
+  description = "Time window for automated snapshots (UTC)."
+  value       = var.snapshot_window
+}
+
+output "maintenance_window" {
+  description = "Maintenance window (UTC)."
+  value       = var.maintenance_window
 }

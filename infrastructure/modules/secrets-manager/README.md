@@ -14,7 +14,7 @@ Thin NHS wrapper around [terraform-aws-modules/secrets-manager/aws](https://regi
 
 ```hcl
 module "db_credentials" {
-  source = "../../modules/secrets-manager"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
 
   context     = module.this.context
   stack       = "database"
@@ -36,7 +36,7 @@ module "db_credentials" {
 
 ```hcl
 module "api_key" {
-  source = "../../modules/secrets-manager"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
 
   context = module.this.context
   stack   = "api"
@@ -65,7 +65,7 @@ module "api_key" {
 
 ```hcl
 module "rotated_password" {
-  source = "../../modules/secrets-manager"
+    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
 
   context = module.this.context
   stack   = "database"
@@ -81,6 +81,25 @@ module "rotated_password" {
   }
 }
 ```
+
+## Conventions
+
+- `block_public_policy` is always `true` and cannot be overridden — public access to secrets is never permitted.
+- `recovery_window_in_days` defaults to `30`; set to `0` for immediate deletion (not recommended for production).
+- `kms_key_id` is optional; when null, AWS uses the default `aws/secretsmanager` key.
+- `secret_string` is the plaintext secret value (as a string or JSON-encoded object); use Terraform variables and `sensitive = true` to avoid exposure.
+- `ignore_secret_changes` should be set to `true` when enabling rotation so Terraform does not overwrite the rotated value on the next apply.
+- `create_random_password` generates a random password as the secret value; do not set `secret_string` when using this option.
+- `create_policy` defaults to `false`; set to `true` and provide `policy_statements` to attach a resource-based policy.
+- Secret names are derived from `module.this.id` for consistency with other screening modules.
+
+## What this module does NOT do
+
+- Create KMS keys; you must provide an existing key ARN via `kms_key_id` or accept the default AWS-managed key.
+- Create rotation Lambda functions; you must create the function separately and provide its ARN via `rotation_lambda_arn`.
+- Populate secret values automatically; you must provide `secret_string` or enable `create_random_password`.
+- Manage secret replicas across regions (use native `aws_secretsmanager_secret_rotation` resources if multi-region replication is required).
+- Retrieve secret values; use `data.aws_secretsmanager_secret_version` in consumer stacks to read secrets.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
@@ -154,7 +173,7 @@ No resources.
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
 | <a name="input_tag_version"></a> [tag\_version](#input\_tag\_version) | Used to identify the tagging version in use | `string` | `"1.0"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
-| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
+| <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 
