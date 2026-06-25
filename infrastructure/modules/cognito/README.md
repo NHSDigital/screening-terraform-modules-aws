@@ -1,12 +1,10 @@
 # Cognito
 
-Thin wrapper around [`lgallard/cognito-user-pool/aws`](https://registry.terraform.io/modules/lgallard/cognito-user-pool/aws/4.0.2)
-for the shared-resources stack.
+NHS Screening wrapper around the community
+[`lgallard/cognito-user-pool/aws`](https://registry.terraform.io/modules/lgallard/cognito-user-pool/aws/4.0.2)
+module that enforces the platform's baseline controls and consumes
+the shared `context.tf` for naming and tagging.
 
-## Summary
-
-This module standardises Cognito user pool creation around the preferred upstream
-community module while adopting this repository's shared `context.tf` pattern.
 It keeps the default pool/domain/schema behaviour from the existing bespoke
 module where practical, but deliberately avoids carrying forward the old
 Secrets Manager password flow.
