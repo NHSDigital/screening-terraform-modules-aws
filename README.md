@@ -302,6 +302,7 @@ Rules:
 | Module | Wraps | Description |
 | --- | --- | --- |
 | `acm` | terraform-aws-modules/acm/aws | AWS Certificate Manager (ACM) certificate management |
+| `alb` | — | — |
 | `api-gateway` | — | API Gateway configuration with custom domain and integration |
 | `aws-backup-destination` | — | AWS Backup destination vault |
 | `aws-backup-source` | — | AWS Backup source configuration |
