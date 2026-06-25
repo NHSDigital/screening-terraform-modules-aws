@@ -12,7 +12,7 @@ module "ssm_parameter" {
   ignore_value_changes = var.ignore_value_changes
   key_id               = var.key_id
   overwrite            = var.overwrite
-  secure_type          = var.secure_type
+  secure_type          = var.type == "SecureString"
   tier                 = var.tier
   type                 = var.type
   value                = var.value

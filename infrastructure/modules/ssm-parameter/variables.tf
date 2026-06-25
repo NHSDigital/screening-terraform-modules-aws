@@ -26,18 +26,17 @@ variable "key_id" {
   description = "KMS key ID or ARN for encrypting a `SecureString`"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.type != "SecureString" || var.key_id != null
+    error_message = "`key_id` must be specified when `type` is \"SecureString\""
+  }
 }
 
 variable "overwrite" {
   description = "Overwrite an existing parameter. If not specified, defaults to `false` during create operations to avoid overwriting existing resources and then `true` for all subsequent operations once the resource is managed by Terraform"
   type        = bool
   default     = null
-}
-
-variable "secure_type" {
-  description = "Whether the type of the value should be considered as secure or not"
-  type        = bool
-  default     = false
 }
 
 variable "tier" {
@@ -49,7 +48,11 @@ variable "tier" {
 variable "type" {
   description = "Type of the parameter. Valid types are `String`, `StringList` and `SecureString`"
   type        = string
-  default     = null
+
+  validation {
+    condition     = contains(["String", "StringList", "SecureString"], var.type)
+    error_message = "`type` must be either \"String\", \"StringList\", or \"SecureString\""
+  }
 }
 
 variable "value" {

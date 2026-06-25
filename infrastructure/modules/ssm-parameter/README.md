@@ -4,6 +4,8 @@ NHS Screening wrapper around the community
 [`terraform-aws-modules/ssm-parameter/aws`](https://registry.terraform.io/modules/terraform-aws-modules/ssm-parameter/aws/latest)
 module that consumes the shared `context.tf` for naming and tagging.
 
+DAVEH: mention that we force using our own KSM key when storing a SecureString
+
 ## Usage
 
 ### Standard string parameter
@@ -96,7 +98,6 @@ No resources.
 | <a name="input_public_facing"></a> [public\_facing](#input\_public\_facing) | Whether this resource is public facing | `bool` | `false` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br/>Characters matching the regex will be removed from the ID elements.<br/>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
 | <a name="input_region"></a> [region](#input\_region) | ID element \_(Rarely used, not included by default)\_.  Usually an abbreviation of the selected AWS region e.g. 'uw2', 'ew2' or 'gbl' for resources like IAM roles that have no region | `string` | `null` | no |
-| <a name="input_secure_type"></a> [secure\_type](#input\_secure\_type) | Whether the type of the value should be considered as secure or not | `bool` | `false` | no |
 | <a name="input_service"></a> [service](#input\_service) | ID element. Usually an abbreviation of your service directorate name, e.g. 'bcss' or 'csms', to help ensure generated IDs are globally unique | `string` | `null` | no |
 | <a name="input_service_category"></a> [service\_category](#input\_service\_category) | The tag service\_category | `string` | `"n/a"` | no |
 | <a name="input_ssm_data_type"></a> [ssm\_data\_type](#input\_ssm\_data\_type) | Data type of the parameter. Valid values: `text`, `aws:ssm:integration` and `aws:ec2:image` for AMI format, see https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-ec2-aliases.html | `string` | `null` | no |
@@ -106,7 +107,7 @@ No resources.
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
 | <a name="input_tier"></a> [tier](#input\_tier) | Parameter tier to assign to the parameter. If not specified, will use the default parameter tier for the region. Valid tiers are Standard, Advanced, and Intelligent-Tiering. Downgrading an Advanced tier parameter to Standard will recreate the resource | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
-| <a name="input_type"></a> [type](#input\_type) | Type of the parameter. Valid types are `String`, `StringList` and `SecureString` | `string` | `null` | no |
+| <a name="input_type"></a> [type](#input\_type) | Type of the parameter. Valid types are `String`, `StringList` and `SecureString` | `string` | n/a | yes |
 | <a name="input_value"></a> [value](#input\_value) | Value of the parameter | `string` | `null` | no |
 | <a name="input_value_wo_version"></a> [value\_wo\_version](#input\_value\_wo\_version) | Value of the parameter. This value is always marked as sensitive in the Terraform plan output, regardless of type. Additionally, write-only values are never stored to state. `value_wo_version` can be used to trigger an update and is required with this argument | `number` | `null` | no |
 | <a name="input_values"></a> [values](#input\_values) | List of values of the parameter (will be jsonencoded to store as string natively in SSM) | `list(string)` | `[]` | no |
