@@ -90,17 +90,21 @@ jobs:
       # ------------------------------------------------------------------
       - name: "Run pre-commit shard"
         shell: bash
+        env:
+          AWS_DEFAULT_REGION: eu-west-2
+          hooks: ${{ matrix.shard.hooks }}
         run: |
           export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
-          hooks='${{ matrix.shard.hooks }}'
+          declare -A stage_by_hook=(
+            [scan-secrets-whole-history]=manual
+          )
           for hook in ${hooks}; do
             if [[ "${hook}" == "terraform_validate" ]]; then
               export TF_CLI_ARGS_init="-lockfile=readonly"
             else
               unset TF_CLI_ARGS_init
             fi
-            echo "Running hook: ${hook}"
-            mise x -- pre-commit run --all-files --show-diff-on-failure "$hook"
+            stage="${stage_by_hook[${hook}]:-pre-commit}"
+            echo "Running hook: ${hook} (stage: ${stage})"
+            mise x -- pre-commit run --all-files --show-diff-on-failure --hook-stage "$stage" "$hook"
           done
-        env:
-          AWS_DEFAULT_REGION: eu-west-2

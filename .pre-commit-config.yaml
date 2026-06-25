@@ -239,7 +239,7 @@ repos:
         entry: bash -c 'check=whole-history ./scripts/githooks/scan-secrets.sh'
         language: system
         pass_filenames: false
-        stages: [pre-commit]
+        stages: [manual]
 
   # --------------------------------------------------------------------------
   # Conventional Commits (commit message format)
