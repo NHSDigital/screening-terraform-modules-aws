@@ -1,7 +1,7 @@
 # CloudWatch
 
-NHS Screening wrapper around selected submodules from
-[terraform-aws-modules/cloudwatch/aws](https://registry.terraform.io/modules/terraform-aws-modules/cloudwatch/aws/latest)
+NHS Screening wrapper around selected submodules from the
+[terraform-aws-modules CloudWatch module](https://registry.terraform.io/modules/terraform-aws-modules/cloudwatch/aws/latest)
 that provides a single module entry point for common CloudWatch log and alarm building blocks.
 
 ## Included submodules
