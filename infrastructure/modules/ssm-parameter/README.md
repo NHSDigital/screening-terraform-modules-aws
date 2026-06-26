@@ -4,15 +4,21 @@ NHS Screening wrapper around the community
 [`terraform-aws-modules/ssm-parameter/aws`](https://registry.terraform.io/modules/terraform-aws-modules/ssm-parameter/aws/latest)
 module that consumes the shared `context.tf` for naming and tagging.
 
-DAVEH: mention that we force using our own KSM key when storing a SecureString
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| Naming consistency | Parameter name is derived from context labels; path-style names are normalised to start with `/` |
+| Tagging consistency | Tags are always sourced from `module.this.tags` |
+| SecureString guardrail | `key_id` is mandatory when `type = "SecureString"` via variable validation |
 
 ## Usage
 
-### Standard string parameter
+### Minimal string parameter
 
 ```hcl
 module "app_config_parameter" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
 
   service     = "bcss"
   project     = "api"
@@ -24,11 +30,11 @@ module "app_config_parameter" {
 }
 ```
 
-### Secure parameter encrypted with KMS
+### Production SecureString parameter with customer-managed KMS key
 
 ```hcl
 module "database_password_parameter" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
 
   service     = "bcss"
   project     = "database"
@@ -40,6 +46,38 @@ module "database_password_parameter" {
   key_id = module.kms.key_arn
 }
 ```
+
+### Path-style parameter with value change ignored
+
+```hcl
+module "shared_api_endpoint" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
+
+  service     = "bcss"
+  project     = "platform"
+  environment = "prod"
+  name        = "shared/api/base-url"
+
+  type                 = "String"
+  value                = "https://api.example.nhs.uk"
+  ignore_value_changes = true
+}
+```
+
+## Conventions
+
+* The parameter name comes from context labels. If `name` contains `/`, the module ensures the final parameter name is fully qualified (starts with `/`).
+* `type` must be one of `String`, `StringList`, or `SecureString`.
+* When using `SecureString`, you must provide `key_id`.
+* `values` are JSON-encoded by the upstream module when storing list-style values.
+* Set `ignore_value_changes = true` when values are managed outside Terraform and should not be reconciled on every apply.
+
+## What this module does NOT do
+
+* Create or manage a KMS key. Provide an existing key ARN/ID via `key_id` for `SecureString` parameters.
+* Manage parameter policies (for example expiration, no-change notifications, or advanced policy lifecycle controls).
+* Resolve secrets from external systems. The caller must provide `value`, `values`, or `value_wo_version`.
+* Manage IAM permissions for reading/writing parameters. Attach IAM policies in consumer stacks/modules.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
