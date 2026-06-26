@@ -298,15 +298,16 @@ Rules:
 
 ## Available modules
 
+<!-- vale off -->
 <!-- BEGIN_AVAILABLE_MODULES -->
 | Module | Wraps | Description |
 | --- | --- | --- |
-| `acm` | `terraform-aws-modules/acm/aws` | AWS Certificate Manager (ACM) certificate management |
+| `acm` | terraform-aws-modules/acm/aws | AWS Certificate Manager (ACM) certificate management |
 | `api-gateway` | — | API Gateway configuration with custom domain and integration |
 | `aws-backup-destination` | — | AWS Backup destination vault |
 | `aws-backup-source` | — | AWS Backup source configuration |
 | `aws-scheduler` | — | EventBridge Scheduler configuration |
-| `cloudwatch` | `terraform-aws-modules/cloudwatch/aws` | CloudWatch log groups, streams, metric filters, and alarms |
+| `cloudwatch` | terraform-aws-modules/cloudwatch/aws | CloudWatch log groups, streams, metric filters, and alarms |
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `ecr` | — | ECR repository with security controls |
@@ -342,6 +343,7 @@ Rules:
 | `waf` | — | WAF web ACL with rules |
 
 <!-- END_AVAILABLE_MODULES -->
+<!-- vale on -->
 
 ## Pre-commit hooks
 
