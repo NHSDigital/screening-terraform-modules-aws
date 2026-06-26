@@ -1,9 +1,10 @@
 locals {
-  # if the name is a path (contains a slash),
-  # then it must be fully qualified (start with a slash)
-  name = (
-    !strcontains(module.this.name, "/") || startswith(module.this.name, "/")
-    ? module.this.name
-    : "/${module.this.name}"
+  default_path = format(
+    "/%s/%s/%s",
+    module.this.service,
+    module.this.project,
+    module.this.environment
   )
+  path = var.path != null ? var.path : local.default_path
+  name = "${trimsuffix(local.path, "/")}/${module.this.id}"
 }

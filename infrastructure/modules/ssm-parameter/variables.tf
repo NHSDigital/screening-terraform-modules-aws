@@ -39,6 +39,17 @@ variable "overwrite" {
   default     = null
 }
 
+variable "path" {
+  description = "Path part of the name of the parameter. Defaults to `/<service>/<project>/<environment>` derived from context."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.path == null || can(regex("^/", coalesce(var.path, "/")))
+    error_message = "path must start with a forward slash, e.g. \"/bcss\"."
+  }
+}
+
 variable "tier" {
   description = "Parameter tier to assign to the parameter. If not specified, will use the default parameter tier for the region. Valid tiers are Standard, Advanced, and Intelligent-Tiering. Downgrading an Advanced tier parameter to Standard will recreate the resource"
   type        = string

@@ -3,7 +3,7 @@ module "ssm_parameter" {
   version = "2.1.0"
 
   create = module.this.enabled
-  name   = local.name # if it's a path, it must be fully qualified
+  name   = local.name
   tags   = module.this.tags
 
   allowed_pattern      = var.allowed_pattern
