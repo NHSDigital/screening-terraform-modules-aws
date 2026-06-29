@@ -41,6 +41,14 @@ pre-commit install --hook-type commit-msg
 pre-commit run --all-files
 ```
 
+This runs hooks assigned to the `pre-commit` stage. The Conventional Commit validator runs separately during `git commit` at the `commit-msg` stage.
+
+Run the full-history secret scan explicitly when needed:
+
+```bash
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
+```
+
 If successful, output ends with:
 
 ```text
@@ -557,7 +565,7 @@ git commit -m "chore: ignore false positive"
 
 #### 5.2 `scan-secrets-whole-history` — Secret Scanning (Complete History)
 
-**What it does:** Scans entire git history for embedded secrets using Gitleaks. Runs on `pre-commit run --all-files` or in CI/CD.
+**What it does:** Scans entire git history for embedded secrets using Gitleaks. Runs only when explicitly invoked with the `manual` stage or in CI/CD.
 
 **When it fails:**
 
@@ -596,7 +604,7 @@ git push origin +main
 echo "commit-sha:path/to/file:rule-type:line-number" >> .gitleaksignore
 
 # Re-run to verify
-pre-commit run scan-secrets-whole-history --all-files
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 ```
 
 ---
@@ -678,6 +686,14 @@ echo "feat(vpc): add IPv6 support" | pre-commit run conventional-commit --input
 
 ```bash
 pre-commit run --all-files
+```
+
+This runs hooks assigned to the `pre-commit` stage.
+
+### Run Manual-Only Hooks
+
+```bash
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 ```
 
 ### Run Specific Hook

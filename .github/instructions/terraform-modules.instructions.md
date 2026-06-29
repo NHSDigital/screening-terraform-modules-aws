@@ -103,6 +103,12 @@ pre-commit install --install-hooks
 pre-commit run --all-files
 ```
 
+If you need the full-history secret scan locally, run it explicitly:
+
+```bash
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
+```
+
 Key hooks for Terraform work:
 
 - `terraform_fmt` — enforces code formatting
@@ -272,7 +278,8 @@ Before committing, verify:
 - [ ] `infrastructure/AGENTS.md` updated if patterns changed
 - [ ] Root `README.md` updated if module list or procedures changed
 - [ ] User guide files updated if hooks or workflows changed
-- [ ] All pre-commit hooks pass: `pre-commit run --all-files`
+- [ ] All `pre-commit` stage hooks pass: `pre-commit run --all-files`
+- [ ] Manual full-history secret scan run when relevant: `pre-commit run scan-secrets-whole-history --hook-stage manual --all-files`
 
 ## Formatting & Style
 
