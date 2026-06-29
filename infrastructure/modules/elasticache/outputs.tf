@@ -95,15 +95,18 @@ output "security_group_id" {
 # ================================================================
 # Logging
 # ================================================================
+# The upstream module creates log groups with these names in the default scenario.
+# When a custom config is provided, the actual log group creation depends on the
+# create_cloudwatch_log_group setting provided by the caller.
 
-output "cloudwatch_log_group_name" {
-  description = "Name of the primary CloudWatch log group created by the upstream module."
-  value       = module.this.enabled && !local.create_serverless_cache ? module.elasticache.cloudwatch_log_group_name : null
+output "cloudwatch_log_group_slow_log_name" {
+  description = "Name of the CloudWatch log group for ElastiCache slow logs."
+  value       = module.this.enabled && !local.create_serverless_cache ? local.cloudwatch_log_group_slow_log_name : null
 }
 
-output "cloudwatch_log_group_arn" {
-  description = "ARN of the primary CloudWatch log group created by the upstream module."
-  value       = module.this.enabled && !local.create_serverless_cache ? module.elasticache.cloudwatch_log_group_arn : null
+output "cloudwatch_log_group_engine_log_name" {
+  description = "Name of the CloudWatch log group for ElastiCache engine logs."
+  value       = module.this.enabled && !local.create_serverless_cache ? local.cloudwatch_log_group_engine_log_name : null
 }
 
 # ================================================================
