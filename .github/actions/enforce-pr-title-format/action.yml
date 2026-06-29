@@ -17,7 +17,7 @@ runs:
   using: composite
   steps:
     - name: Check PR title format and comment on invalid format
-      uses: actions/github-script@v6
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       env:
         TITLE_PATTERN: ${{ inputs.title-pattern }}
         TITLE_PATTERN_DESCRIPTION: ${{ inputs.title-pattern-description }}
