@@ -61,11 +61,31 @@ module "api_key" {
 }
 ```
 
+### Random password
+
+```hcl
+module "generated_password" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
+
+  context = module.this.context
+  stack   = "database"
+  name    = "db-password"
+
+  description            = "Auto-generated database password"
+  kms_key_id             = module.rds_kms.key_arn
+  create_random_password = true
+
+  # Optional: customise the generated password
+  random_password_length           = 48
+  random_password_override_special = "!@#$%&*()-_=+[]{}<>:?"
+}
+```
+
 ### Secret with rotation
 
 ```hcl
 module "rotated_password" {
-    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
 
   context = module.this.context
   stack   = "database"
@@ -75,6 +95,7 @@ module "rotated_password" {
   ignore_secret_changes = true  # let the rotation Lambda manage the value
 
   enable_rotation     = true
+  rotate_immediately  = true
   rotation_lambda_arn = "arn:aws:lambda:eu-west-2:123456789012:function:rotate-db-secret"
   rotation_rules = {
     automatically_after_days = 30
@@ -90,6 +111,9 @@ module "rotated_password" {
 - `secret_string` is the plaintext secret value (as a string or JSON-encoded object); use Terraform variables and `sensitive = true` to avoid exposure.
 - `ignore_secret_changes` should be set to `true` when enabling rotation so Terraform does not overwrite the rotated value on the next apply.
 - `create_random_password` generates a random password as the secret value; do not set `secret_string` when using this option.
+- `random_password_length` controls the length of the generated password (default `32`; must be 8–4096).
+- `random_password_override_special` overrides the default special character set used during password generation.
+- `rotate_immediately` controls whether rotation fires immediately (`true`) or waits for the next scheduled window (`false`); only relevant when `enable_rotation = true`.
 - `create_policy` defaults to `false`; set to `true` and provide `policy_statements` to attach a resource-based policy.
 - Secret names are derived from `module.this.id` for consistency with other screening modules.
 
@@ -99,7 +123,6 @@ module "rotated_password" {
 - Create rotation Lambda functions; you must create the function separately and provide its ARN via `rotation_lambda_arn`.
 - Populate secret values automatically; you must provide `secret_string` or enable `create_random_password`.
 - Manage secret replicas across regions (use native `aws_secretsmanager_secret_rotation` resources if multi-region replication is required).
-- Retrieve secret values; use `data.aws_secretsmanager_secret_version` in consumer stacks to read secrets.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
@@ -159,9 +182,12 @@ No resources.
 | <a name="input_policy_statements"></a> [policy\_statements](#input\_policy\_statements) | A map of IAM policy statements to attach to the secret policy. Only used when create\_policy is true. | <pre>map(object({<br/>    sid           = optional(string)<br/>    actions       = optional(list(string))<br/>    not_actions   = optional(list(string))<br/>    effect        = optional(string)<br/>    resources     = optional(list(string))<br/>    not_resources = optional(list(string))<br/>    principals = optional(list(object({<br/>      type        = string<br/>      identifiers = list(string)<br/>    })))<br/>    not_principals = optional(list(object({<br/>      type        = string<br/>      identifiers = list(string)<br/>    })))<br/>    condition = optional(list(object({<br/>      test     = string<br/>      values   = list(string)<br/>      variable = string<br/>    })))<br/>  }))</pre> | `{}` | no |
 | <a name="input_project"></a> [project](#input\_project) | ID element. A project identifier, indicating the name or role of the project the resource is for, such as `website` or `api` | `string` | `null` | no |
 | <a name="input_public_facing"></a> [public\_facing](#input\_public\_facing) | Whether this resource is public facing | `bool` | `false` | no |
+| <a name="input_random_password_length"></a> [random\_password\_length](#input\_random\_password\_length) | The length of the randomly-generated password. Only used when create\_random\_password is true. | `number` | `32` | no |
+| <a name="input_random_password_override_special"></a> [random\_password\_override\_special](#input\_random\_password\_override\_special) | Supply your own list of special characters for random password generation. Overrides the default special character set. Only used when create\_random\_password is true. | `string` | `"!@#$%&*()-_=+[]{}<>:?"` | no |
 | <a name="input_recovery_window_in_days"></a> [recovery\_window\_in\_days](#input\_recovery\_window\_in\_days) | Number of days AWS Secrets Manager waits before permanently deleting the secret. Valid values: 0 (immediate deletion) or 7-30. | `number` | `30` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br/>Characters matching the regex will be removed from the ID elements.<br/>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
 | <a name="input_region"></a> [region](#input\_region) | ID element \_(Rarely used, not included by default)\_.  Usually an abbreviation of the selected AWS region e.g. 'uw2', 'ew2' or 'gbl' for resources like IAM roles that have no region | `string` | `null` | no |
+| <a name="input_rotate_immediately"></a> [rotate\_immediately](#input\_rotate\_immediately) | When enable\_rotation is true, specifies whether to rotate the secret immediately or wait until the next scheduled rotation window. Defaults to immediate rotation when not set. | `bool` | `null` | no |
 | <a name="input_rotation_lambda_arn"></a> [rotation\_lambda\_arn](#input\_rotation\_lambda\_arn) | ARN of the Lambda function that rotates the secret. Required when enable\_rotation is true. | `string` | `""` | no |
 | <a name="input_rotation_rules"></a> [rotation\_rules](#input\_rotation\_rules) | Rotation schedule for the secret. Provide either automatically\_after\_days or a schedule\_expression (cron/rate). Required when enable\_rotation is true. | <pre>object({<br/>    automatically_after_days = optional(number)<br/>    duration                 = optional(string)<br/>    schedule_expression      = optional(string)<br/>  })</pre> | `null` | no |
 | <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | Optional explicit name for the secret. When null, the name is derived from context labels via module.this.id. | `string` | `null` | no |
@@ -184,6 +210,7 @@ No resources.
 | <a name="output_secret_arn"></a> [secret\_arn](#output\_secret\_arn) | The ARN of the secret |
 | <a name="output_secret_id"></a> [secret\_id](#output\_secret\_id) | The ID of the secret (same as the ARN) |
 | <a name="output_secret_name"></a> [secret\_name](#output\_secret\_name) | The name of the secret |
+| <a name="output_secret_string"></a> [secret\_string](#output\_secret\_string) | The secret string value. Sensitive — only use where required. |
 | <a name="output_secret_version_id"></a> [secret\_version\_id](#output\_secret\_version\_id) | The unique identifier of the current version of the secret |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->

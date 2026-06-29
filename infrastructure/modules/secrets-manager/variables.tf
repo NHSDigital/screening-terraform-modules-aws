@@ -9,6 +9,7 @@
 #   - name / name_prefix   → derived from module.this.id via locals.tf
 #   - secret_binary        → not supported; use secret_string
 #   - replica              → replication not required for this use case
+#   - version_stages       → low-value for standard use cases
 ################################################################
 
 variable "secret_name" {
@@ -43,6 +44,22 @@ variable "create_random_password" {
   type        = bool
   default     = false
   description = "When true, generates a random password as the secret value. When set, secret_string and secret_string_wo should not be set."
+}
+
+variable "random_password_length" {
+  type        = number
+  default     = 32
+  description = "The length of the randomly-generated password. Only used when create_random_password is true."
+  validation {
+    condition     = var.random_password_length >= 8 && var.random_password_length <= 4096
+    error_message = "random_password_length must be between 8 and 4096 inclusive."
+  }
+}
+
+variable "random_password_override_special" {
+  type        = string
+  default     = "!@#$%&*()-_=+[]{}<>:?"
+  description = "Supply your own list of special characters for random password generation. Overrides the default special character set. Only used when create_random_password is true."
 }
 
 variable "secret_string" {
@@ -107,6 +124,12 @@ variable "enable_rotation" {
   type        = bool
   default     = false
   description = "Whether to enable automatic secret rotation via a Lambda function."
+}
+
+variable "rotate_immediately" {
+  type        = bool
+  default     = null
+  description = "When enable_rotation is true, specifies whether to rotate the secret immediately or wait until the next scheduled rotation window. Defaults to immediate rotation when not set."
 }
 
 variable "rotation_lambda_arn" {

@@ -27,11 +27,13 @@ module "secret" {
   recovery_window_in_days = var.recovery_window_in_days
 
   # Secret value
-  create_random_password   = var.create_random_password
-  secret_string            = var.secret_string
-  secret_string_wo         = var.secret_string_wo
-  secret_string_wo_version = var.secret_string_wo_version
-  ignore_secret_changes    = var.ignore_secret_changes
+  create_random_password           = var.create_random_password
+  random_password_length           = var.random_password_length
+  random_password_override_special = var.random_password_override_special
+  secret_string                    = var.secret_string
+  secret_string_wo                 = var.secret_string_wo
+  secret_string_wo_version         = var.secret_string_wo_version
+  ignore_secret_changes            = var.ignore_secret_changes
 
   # Policy
   create_policy       = var.create_policy
@@ -40,6 +42,7 @@ module "secret" {
 
   # Rotation
   enable_rotation     = var.enable_rotation
+  rotate_immediately  = var.rotate_immediately
   rotation_lambda_arn = var.rotation_lambda_arn
   rotation_rules      = var.rotation_rules
 
