@@ -253,6 +253,18 @@ module "waf" {
 * Inject Screening-wide default rules or rule groups.
 * Automatically resolve consumer-provided rule priority conflicts.
 
+## Validation
+
+To catch configuration errors before deployment, be aware of these constraints:
+
+* **Rule priority uniqueness**: All rules across all rule lists must have unique
+  priority values. Terraform will not validate this—violations will only fail at
+  AWS API time. Use local validation or pre-deployment checks to ensure
+  priorities are unique.
+* **Metric name format**: `visibility_config.metric_name` must comply with
+  CloudWatch metrics naming (alphanumeric, _, -, .).
+* **Rule naming**: All rule names must be unique within the web ACL.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -265,7 +277,9 @@ module "waf" {
 
 ## Providers
 
-No providers.
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -276,7 +290,9 @@ No providers.
 
 ## Resources
 
-No resources.
+| Name | Type |
+| ---- | ---- |
+| [terraform_data.validations](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
