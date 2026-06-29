@@ -1,7 +1,7 @@
 locals {
   visibility_config = var.visibility_config != null ? var.visibility_config : {
     cloudwatch_metrics_enabled = true
-    metric_name                = "${module.this.id}-waf"
+    metric_name                = module.this.id
     sampled_requests_enabled   = true
   }
 
