@@ -124,6 +124,13 @@ module "rotated_password" {
 - Populate secret values automatically; you must provide `secret_string` or enable `create_random_password`.
 - Manage secret replicas across regions (use native `aws_secretsmanager_secret_rotation` resources if multi-region replication is required).
 
+## Validation
+
+The following constraints are enforced at `plan` time via preconditions in `validations.tf`:
+
+- **Secret value mutual exclusivity**: `secret_string`, `secret_string_wo`, and `create_random_password` are mutually exclusive — setting more than one will produce a clear error before any resource is created.
+- **Rotation completeness**: Setting `enable_rotation = true` requires both `rotation_lambda_arn` and `rotation_rules` to be provided.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -137,7 +144,9 @@ module "rotated_password" {
 
 ## Providers
 
-No providers.
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -148,7 +157,9 @@ No providers.
 
 ## Resources
 
-No resources.
+| Name | Type |
+| ---- | ---- |
+| [terraform_data.validations](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 

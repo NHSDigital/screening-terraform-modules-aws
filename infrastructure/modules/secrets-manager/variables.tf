@@ -12,11 +12,19 @@
 #   - version_stages       → low-value for standard use cases
 ################################################################
 
+################################################################
+# Naming
+################################################################
+
 variable "secret_name" {
   type        = string
   default     = null
   description = "Optional explicit name for the secret. When null, the name is derived from context labels via module.this.id."
 }
+
+################################################################
+# Secret configuration
+################################################################
 
 variable "description" {
   type        = string
@@ -39,6 +47,10 @@ variable "recovery_window_in_days" {
     error_message = "recovery_window_in_days must be 0 (immediate deletion) or between 7 and 30 inclusive."
   }
 }
+
+################################################################
+# Secret value
+################################################################
 
 variable "create_random_password" {
   type        = bool
@@ -88,6 +100,10 @@ variable "ignore_secret_changes" {
   description = "When true, Terraform will ignore any changes made to the secret value outside of Terraform (e.g. by a rotation Lambda). Set to true when rotation is enabled."
 }
 
+################################################################
+# Policy
+################################################################
+
 variable "create_policy" {
   type        = bool
   default     = false
@@ -119,6 +135,10 @@ variable "policy_statements" {
   default     = {}
   description = "A map of IAM policy statements to attach to the secret policy. Only used when create_policy is true."
 }
+
+################################################################
+# Rotation
+################################################################
 
 variable "enable_rotation" {
   type        = bool

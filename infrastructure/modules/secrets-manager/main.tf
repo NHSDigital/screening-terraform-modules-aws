@@ -11,6 +11,8 @@
 #
 # Inputs intentionally NOT exposed (hardcoded below):
 #   - block_public_policy → always true; callers cannot override
+#
+# Cross-variable input constraints are enforced in validations.tf.
 ################################################################
 
 module "secret" {
