@@ -36,6 +36,7 @@ updates:
   - package-ecosystem: "terraform"
     directories:
       - "infrastructure/modules/acm"
+      - "infrastructure/modules/alb"
       - "infrastructure/modules/api-gateway"
       - "infrastructure/modules/aws-backup-destination"
       - "infrastructure/modules/aws-backup-source"

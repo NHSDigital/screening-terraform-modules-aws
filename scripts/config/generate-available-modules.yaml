@@ -13,6 +13,10 @@ acm:
   description: "AWS Certificate Manager (ACM) certificate management"
   wraps: "terraform-aws-modules/acm/aws"
 
+alb:
+  description: "Application / Network Load Balancer with security baseline"
+  wraps: "terraform-aws-modules/alb/aws"
+
 api-gateway:
   description: "API Gateway configuration with custom domain and integration"
   wraps: "—"
