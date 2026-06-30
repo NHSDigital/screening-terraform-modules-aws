@@ -23,6 +23,10 @@
 #   serverless        — auto-scaling serverless cache (Valkey/Redis only)
 ################################################################
 
+################################################################
+# ElastiCache
+################################################################
+
 module "elasticache" {
   source  = "terraform-aws-modules/elasticache/aws"
   version = "1.11.0"
@@ -120,46 +124,15 @@ module "elasticache" {
   # ----------------------------------------------------------------
   # Logging: engine logs and slow logs to CloudWatch
   # ----------------------------------------------------------------
-  # Delegated to upstream module built-in log group creation.
-  #
-  # TODO: Pre-create log groups via the cloudwatch module for stronger
-  # control over KMS key, retention class, and skip_destroy behaviour. Example
-  # using terraform-aws-modules/cloudwatch/aws//modules/log-group:
-  #
-  # module "cache_logs_slow" {
-  #   source            = "terraform-aws-modules/cloudwatch/aws//modules/log-group"
-  #   version           = "~> 5.0"
-  #   name              = "/aws/elasticache/${module.this.id}/slow-log"
-  #   retention_in_days = 365
-  #   kms_key_id        = var.kms_key_arn
-  #   skip_destroy      = true
-  #   tags              = module.this.tags
-  # }
-  # module "cache_logs_engine" {
-  #   source            = "terraform-aws-modules/cloudwatch/aws//modules/log-group"
-  #   version           = "~> 5.0"
-  #   name              = "/aws/elasticache/${module.this.id}/engine-log"
-  #   retention_in_days = 365
-  #   kms_key_id        = var.kms_key_arn
-  #   skip_destroy      = true
-  #   tags              = module.this.tags
-  # }
-  # Then reference them with create_cloudwatch_log_group = false:
-  # log_delivery_configuration = {
-  #   slow-log = {
-  #     destination_type            = "cloudwatch-logs"
-  #     log_format                  = "json"
-  #     create_cloudwatch_log_group = false
-  #     destination                 = module.cache_logs_slow.cloudwatch_log_group_name
-  #   }
-  #   engine-log = {
-  #     destination_type            = "cloudwatch-logs"
-  #     log_format                  = "json"
-  #     create_cloudwatch_log_group = false
-  #     destination                 = module.cache_logs_engine.cloudwatch_log_group_name
-  #   }
-  # }
-  log_delivery_configuration = var.log_delivery_configuration
+  # Two scenarios are supported:
+  #   a) var.log_delivery_configuration = null (default): the upstream module
+  #      creates and owns the log groups using the default config with distinct
+  #      names per log type (/aws/elasticache/<id>/slow-log and engine-log).
+  #   b) var.log_delivery_configuration is set: the caller provides the full config.
+  #      Set create_cloudwatch_log_group = false if log groups are managed externally,
+  #      or true if the upstream module should create them.
+  # Under no circumstances does the ElastiCache service itself create log groups.
+  log_delivery_configuration = var.log_delivery_configuration != null ? var.log_delivery_configuration : local.default_log_delivery_configuration
 
   tags = module.this.tags
 
