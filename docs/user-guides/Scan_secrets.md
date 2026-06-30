@@ -39,7 +39,7 @@ git commit -m "fix: remove secret"
 
 ### `scan-secrets-whole-history`
 
-- **When:** Runs on `pre-commit run --all-files` or in CI/CD pipelines
+- **When:** Runs only when explicitly invoked with the `manual` stage or in CI/CD pipelines
 - **Scope:** Scans entire git history (all commits)
 - **Purpose:** Comprehensive audit — catches secrets that may have been committed before this hook existed
 - **Time:** ~10-30 seconds (slower, but thorough)
@@ -51,7 +51,7 @@ git commit -m "fix: remove secret"
 check=whole-history ./scripts/githooks/scan-secrets.sh
 
 # Or via pre-commit
-pre-commit run scan-secrets-whole-history --all-files
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 ```
 
 **If it fails:** Secret is already in history; see [Removing sensitive data](#removing-sensitive-data) below for remediation.

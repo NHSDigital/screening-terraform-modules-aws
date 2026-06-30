@@ -35,6 +35,7 @@ repos:
         language: script
         files: \.tf(vars)?$
         pass_filenames: false
+        stages: [pre-commit]
 
   # --------------------------------------------------------------------------
   # Local: regenerate Dependabot configuration for Terraform modules
@@ -55,6 +56,29 @@ repos:
         language: script
         files: infrastructure/modules/.*/versions\.tf$
         pass_filenames: false
+        stages: [pre-commit]
+
+  # --------------------------------------------------------------------------
+  # Local: regenerate Available modules section in README.md
+  # --------------------------------------------------------------------------
+  # Automatically regenerates the Available modules table in README.md whenever
+  # modules are added/removed or module READMEs are updated. This ensures the
+  # documentation stays in sync with the actual modules available.
+  # Fails if the generated section differs from the committed version,
+  # forcing users to review and commit the updated documentation.
+  #
+  # Generates:
+  #   - README.md (Available modules table, between markers)
+  - repo: local
+    hooks:
+      - id: check-available-modules
+        name: check-available-modules
+        require_serial: true
+        entry: ./scripts/githooks/check-available-modules.sh
+        language: script
+        files: (infrastructure/modules/.*/README\.md|README\.md)$
+        pass_filenames: false
+        stages: [pre-commit]
 
   # --------------------------------------------------------------------------
   # Terraform hooks (format, lint, validate, docs, lock)
@@ -67,6 +91,7 @@ repos:
         - --args=-no-color
         - --args=-diff
         - --args=-recursive
+        stages: [pre-commit]
       - id: terraform_providers_lock
         args:
           - --args=-platform=linux_arm64
@@ -75,16 +100,19 @@ repos:
           - --args=-platform=darwin_amd64
           - --args=-platform=windows_amd64
           - --hook-config=--mode=regenerate-lockfile-if-some-platform-missed
+        stages: [pre-commit]
       - id: terraform_validate
         args:
           - --args=-json
           - --args=-no-color
           - --env-vars=AWS_DEFAULT_REGION=eu-west-2
           - --hook-config=--retry-once-with-cleanup=true
+        stages: [pre-commit]
       - id: terraform_tflint
         # exclude: ^infrastructure/modules/(aws-backup-destination|aws-backup-source)/
         args:
         - '--args=--config=__GIT_WORKING_DIR__/scripts/config/.tflint.hcl'
+        stages: [pre-commit]
       - id: terraform_docs
         args:
           - '--args=--lockfile=true'
@@ -93,6 +121,7 @@ repos:
           - --hook-config=--create-file-if-not-exist=false
           - '--hook-config=--custom-marker-begin=<!-- vale off -->\n<!-- markdownlint-disable -->\n<!-- BEGIN_TF_DOCS -->'
           - '--hook-config=--custom-marker-end=<!-- END_TF_DOCS -->\n<!-- markdownlint-restore -->\n<!-- vale on -->'
+        stages: [pre-commit]
 
   # --------------------------------------------------------------------------
   # General file hygiene
@@ -102,28 +131,41 @@ repos:
     hooks:
       # Git style
       - id: check-added-large-files
+        stages: [pre-commit]
       - id: check-merge-conflict
+        stages: [pre-commit]
       - id: check-vcs-permalinks
+        stages: [pre-commit]
       - id: forbid-new-submodules
+        stages: [pre-commit]
       - id: no-commit-to-branch
+        stages: [pre-commit]
 
       # Common errors
       - id: end-of-file-fixer
+        stages: [pre-commit]
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
         exclude: CHANGELOG.md
+        stages: [pre-commit]
       - id: check-yaml
+        stages: [pre-commit]
       - id: check-executables-have-shebangs
+        stages: [pre-commit]
 
       # Cross platform
       - id: check-case-conflict
+        stages: [pre-commit]
       - id: mixed-line-ending
         args: [--fix=lf]
+        stages: [pre-commit]
 
       # Security
       - id: detect-aws-credentials
         args: [--allow-missing-credentials]
+        stages: [pre-commit]
       - id: detect-private-key
+        stages: [pre-commit]
 
   # --------------------------------------------------------------------------
   # Shell script linting (uses scripts/shellscript-linter.sh; runs natively if
@@ -143,6 +185,7 @@ repos:
         language: system
         types: [shell]
         require_serial: true
+        stages: [pre-commit]
 
   # --------------------------------------------------------------------------
   # Repository githook wrappers (native tool if available, Docker fallback)
@@ -158,6 +201,7 @@ repos:
         entry: bash -c 'check=all ./scripts/githooks/check-file-format.sh'
         language: system
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: check-markdown-format
         name: check-markdown-format
@@ -165,6 +209,7 @@ repos:
         language: system
         files: \.md$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: check-english-usage
         name: check-english-usage
@@ -172,6 +217,7 @@ repos:
         language: system
         files: \.md$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: check-terraform-format
         name: check-terraform-format
@@ -179,18 +225,21 @@ repos:
         language: system
         files: \.tf(vars)?$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: scan-secrets-staged-changes
         name: scan-secrets-staged-changes
         entry: bash -c 'check=staged-changes ./scripts/githooks/scan-secrets.sh'
         language: system
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: scan-secrets-whole-history
         name: scan-secrets-whole-history
         entry: bash -c 'check=whole-history ./scripts/githooks/scan-secrets.sh'
         language: system
         pass_filenames: false
+        stages: [manual]
 
   # --------------------------------------------------------------------------
   # Conventional Commits (commit message format)

@@ -86,4 +86,5 @@ Before committing workflow or action changes, verify:
 - [ ] Root `README.md` updated if workflow is user-facing
 - [ ] `docs/` guides updated if procedure changed
 - [ ] Workflow/action permissions are minimal (least privilege)
-- [ ] All pre-commit hooks pass: `pre-commit run --all-files`
+- [ ] All `pre-commit` stage hooks pass: `pre-commit run --all-files`
+- [ ] Manual full-history secret scan run when relevant: `pre-commit run scan-secrets-whole-history --hook-stage manual --all-files`
