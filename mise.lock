@@ -462,6 +462,7 @@ url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tfl
 [tools.tflint."platforms.macos-arm64"]
 checksum = "sha256:927866fef68382138b8fed038721a03c0928ce9486e1616b18bd3dd11e7cdacb"
 url = "https://github.com/terraform-linters/tflint/releases/download/v0.62.1/tflint_darwin_arm64.zip"
+provenance = "github-attestations"
 
 [tools.tflint."platforms.macos-x64"]
 checksum = "sha256:7f55df3a25deb610c267f600eb4247657e3ff776d0322916ceecd7b58142a73a"
