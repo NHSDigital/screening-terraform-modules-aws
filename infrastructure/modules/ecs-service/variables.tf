@@ -233,6 +233,11 @@ variable "cluster_arn" {
   description = "ARN of the ECS cluster where the resources will be provisioned"
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.cluster_arn != "" || var.create_service == false || module.this.enabled == false
+    error_message = "cluster_arn must be provided if we create a service"
+  }
 }
 
 variable "container_definitions" {
