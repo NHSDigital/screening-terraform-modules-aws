@@ -735,7 +735,13 @@ variable "platform_version" {
 variable "propagate_tags" {
   description = "Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are `SERVICE` and `TASK_DEFINITION`"
   type        = string
-  default     = null
+  default     = "TASK_DEFINITION"
+  nullable    = false
+
+  validation {
+    condition     = contains(["SERVICE", "TASK_DEFINITION"], var.propagate_tags)
+    error_message = "propagate_tags must be one of \"SERVICE\" or \"TASK_DEFINITION\"."
+  }
 }
 
 variable "proxy_configuration" {
