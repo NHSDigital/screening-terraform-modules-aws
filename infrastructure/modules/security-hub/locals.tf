@@ -1,10 +1,4 @@
 locals {
-  visibility_config = var.visibility_config != null ? var.visibility_config : {
-    cloudwatch_metrics_enabled = true
-    metric_name                = module.this.id
-    sampled_requests_enabled   = true
-  }
-
   # Cloud Posse modules expect namespace/stage/tenant context fields.
   # Map NHS labels to Cloud Posse equivalents:
   # - namespace (Cloud Posse) = service (NHS)
@@ -17,5 +11,4 @@ locals {
     tenant      = module.this.project
     label_order = var.label_order != null ? module.this.label_order : ["namespace", "environment", "stage", "name", "attributes"]
   })
-
 }
