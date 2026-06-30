@@ -510,7 +510,7 @@ variable "enable_execute_command" {
 variable "enable_fault_injection" {
   description = "Enables fault injection and allows for fault injection requests to be accepted from the task's containers. Default is `false`"
   type        = bool
-  default     = null
+  default     = false
 }
 
 variable "ephemeral_storage" {
