@@ -62,7 +62,7 @@ module "oracle_rds" {
 
   # identity (optional)
   # If omitted, the module derives a name from context labels.
-  custom_name = "${var.name_prefix}-oracle-${var.environment}-${terraform.workspace}"
+  identifier = "${var.name_prefix}-oracle-${var.environment}-${terraform.workspace}"
 
   # engine
   engine               = "oracle-ee"
@@ -251,7 +251,7 @@ The master password arn is exposed via the `master_user_secret_arn` output.
 ## Conventions
 
 - Naming and tagging come from shared `context.tf` via `module.this`.
-- Identifier resolution order is `custom_name`, then `identifier`, then `module.this.id`.
+- Identifier resolution order is `identifier`, then `module.this.id`. If neither is set, the name is derived from context labels.
 - Security groups are intentionally caller-managed. This module associates IDs passed via `vpc_security_group_ids`.
 - Resource creation is gated by `module.this.enabled`.
 - Snapshot tagging is always enabled via `copy_tags_to_snapshot = true`.

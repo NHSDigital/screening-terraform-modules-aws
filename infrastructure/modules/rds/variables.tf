@@ -3,13 +3,7 @@
 # ----------------------------------------------------------------------------
 
 variable "identifier" {
-  description = "Explicit name for the RDS instance. If null, this module derives the name from context labels."
-  type        = string
-  default     = null
-}
-
-variable "custom_name" {
-  description = "Optional override name for the RDS instance. Takes precedence over identifier when set."
+  description = "Explicit identifier for the RDS instance. When set, overrides the name derived from context labels. Use this when migrating from an existing instance that already has a specific identifier, or when the context-derived name would be too long for RDS."
   type        = string
   default     = null
 }
