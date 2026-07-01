@@ -310,6 +310,7 @@ Rules:
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `ecr` | — | ECR repository with security controls |
 | `ecs-cluster` | terraform-aws-modules/ecs/aws//modules/cluster | ECS Fargate cluster |
+| `ecs-service` | terraform-aws-modules/ecs/aws//modules/service | ECS service and task definition |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
 | `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
