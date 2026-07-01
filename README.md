@@ -308,6 +308,7 @@ Rules:
 | `aws-scheduler` | — | EventBridge Scheduler configuration |
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
+| `ec2-instance` | — | — |
 | `ecr` | — | ECR repository with security controls |
 | `ecs-cluster` | terraform-aws-modules/ecs/aws//modules/cluster | ECS Fargate cluster |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
