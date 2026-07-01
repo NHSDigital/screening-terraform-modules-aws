@@ -197,7 +197,10 @@ screening-terraform-modules-aws/
 │       ├── iam/           # Exemplar: iam policies & roles
 │       ├── secrets-manager/
 │       ├── kms/
-│       └── ...            # Additional modules
+│       ├── ...            # Additional modules
+│       └── _legacy/       # Older-format modules (pre-restructure, screening-specific variants)
+│           ├── old-module-1/
+│           └── old-module-2/
 ├── scripts/               # Helper scripts (linting, hooks, Docker)
 ├── docs/                  # ADRs, developer guides, diagrams
 ├── .pre-commit-config.yaml # Pre-commit hook definitions
@@ -295,6 +298,7 @@ Rules:
 
 ## Available modules
 
+<!-- BEGIN_AVAILABLE_MODULES -->
 | Module | Wraps | Description |
 | --- | --- | --- |
 | `acm` | terraform-aws-modules/acm/aws | AWS Certificate Manager (ACM) certificate management |
@@ -305,8 +309,7 @@ Rules:
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `ecr` | — | ECR repository with security controls |
-| `ecs-cluster` | — | ECS Fargate cluster |
-| `ecs-service` | — | ECS service and task definition |
+| `ecs-cluster` | terraform-aws-modules/ecs/aws//modules/cluster | ECS Fargate cluster |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
 | `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
@@ -316,9 +319,9 @@ Rules:
 | `lambda` | terraform-aws-modules/lambda/aws | Lambda function with runtime and layers |
 | `lambda-layer` | — | Lambda layer for function libraries |
 | `license-manager` | — | License Manager configuration |
-| `network-firewall` | — | Network Firewall rules and policies |
+| `network-firewall` | terraform-aws-modules/network-firewall/aws | Network Firewall with rules and policies |
 | `parameter_store` | — | SSM Parameter Store configuration |
-| `r53` | — | Route 53 DNS records (legacy) |
+| `r53` | terraform-aws-modules/route53/aws | Route 53 DNS Zones, Records, Resolver and Resolver Firewall |
 | `r53-healthcheck` | — | Route 53 health checks |
 | `rds` | — | RDS database instance (legacy) |
 | `rds-database` | — | RDS database (logical) |
@@ -328,14 +331,17 @@ Rules:
 | `s3` | — | S3 bucket (legacy) |
 | `s3-bucket` | terraform-aws-modules/s3-bucket/aws | S3 bucket with full security baseline |
 | `secrets-manager` | terraform-aws-modules/secrets-manager/aws | Secrets Manager for secure secret storage |
+| `security-group` | terraform-aws-modules/security-group/aws | Security group with ingress and egress rules |
 | `security-hub` | — | Security Hub for centralized security findings |
 | `sns` | terraform-aws-modules/sns/aws | SNS topic with encryption and policies |
 | `sqs` | — | SQS queue with encryption |
 | `tags` | — | Foundation: naming and tagging context module |
-| `vpc` | — | VPC with subnets, routing, and gateways |
+| `vpc` | terraform-aws-modules/vpc/aws | VPC with subnets, routing, and gateways |
 | `vpce` | — | VPC endpoint (single service) |
 | `vpces` | — | VPC endpoints (multiple services) |
 | `waf` | — | WAF web ACL with rules |
+
+<!-- END_AVAILABLE_MODULES -->
 
 ## Pre-commit hooks
 
@@ -360,9 +366,14 @@ For Terraform-related matrix shards, CI enables `TF_PLUGIN_CACHE_DIR` and caches
 pre-commit install --install-hooks
 pre-commit install --hook-type commit-msg
 
-# Run all hooks against the full repo
+# Run all pre-commit stage hooks against the full repo
 pre-commit run --all-files
+
+# Run the full-history secret scan explicitly when needed
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 ```
+
+On `git commit`, repository checks now run once at the `pre-commit` stage, and the Conventional Commit validator runs separately at the `commit-msg` stage. The full-history secret scan is intentionally excluded from normal commits and `pre-commit run --all-files`; CI runs it explicitly via the `manual` stage.
 
 ### Hooks included
 
@@ -505,8 +516,8 @@ git cz
 All GitHub Actions in CI/CD workflows are pinned to immutable commit SHAs rather than version tags, with version comments for human readability:
 
 ```yaml
-- uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-- uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+- uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+- uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
 ```
 
 This prevents tag relinking attacks and supply chain compromises. Version comments are maintained for readability when reviewing workflows.
@@ -543,7 +554,7 @@ bash tests/test-workflow-security.sh verbose
 ## Contributing
 
 1. Create a feature branch from `main`.
-2. Run `pre-commit run --all-files` before pushing.
+2. Run `pre-commit run --all-files` before pushing, and run `pre-commit run scan-secrets-whole-history --hook-stage manual --all-files` when you need a full-history secret scan locally.
 3. Ensure commit messages follow the [Conventional Commits](#conventional-commits) format.
 4. Open a pull request — the `pre-commit.yml` workflow will validate all hooks pass.
 5. All modules must include the required files listed in [Module layout](#module-layout) and meet the [security baseline](#wrapper-module-pattern).

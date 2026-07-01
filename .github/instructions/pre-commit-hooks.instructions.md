@@ -20,6 +20,7 @@ pre-commit install --hook-type commit-msg
 | Terraform format mismatch | `terraform fmt -recursive infrastructure/modules/` |
 | Documentation out of sync | `pre-commit run terraform_docs --all-files` |
 | Dependabot config out of sync | Commit the regenerated `.github/dependabot.yaml` (auto-generated) |
+| Available modules table out of sync | Commit the regenerated `README.md` Available modules section (auto-generated). Includes all modules: regular modules alphabetically, then legacy modules (older format, in `_legacy/`) with `[LEGACY]` markers at the end. |
 | Shell script errors | Review output; fix syntax errors; re-run `pre-commit run shellcheck` |
 | English/spelling mistakes | Check `.vale.ini` rules; update text if needed |
 | Trailing whitespace/EOL | `pre-commit run --all-files` (auto-fixed) |
@@ -28,8 +29,11 @@ pre-commit install --hook-type commit-msg
 ## Before Committing
 
 ```bash
-# Run all hooks locally
+# Run all pre-commit stage hooks locally
 pre-commit run --all-files
+
+# Run the full-history secret scan explicitly when needed
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 
 # Fix any issues reported
 
@@ -43,9 +47,10 @@ git commit -m "type(scope): description"
 - `detect-aws-credentials` — detects embedded secrets
 - `detect-private-key` — detects leaked private keys
 - `scan-secrets-staged-changes` — scans staged changes for secrets (runs on `git commit`)
-- `scan-secrets-whole-history` — scans entire git history for secrets (runs on `pre-commit run --all-files`)
+- `scan-secrets-whole-history` — scans entire git history for secrets (run explicitly with `pre-commit run scan-secrets-whole-history --hook-stage manual --all-files`)
 - `terraform_validate` — ensures modules are syntactically valid
 - `regenerate-dependabot-config` — ensures Dependabot watches all modules
+- `check-available-modules` — ensures README module table is up-to-date
 - `no-commit-to-branch` — enforces PR workflow
 
 ## Tool Invocation in Scripts

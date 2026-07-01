@@ -22,6 +22,7 @@ callrecall
 [Cc]ognito
 [Cc]ron
 checkdigit
+CloudWatch
 Concat
 commitlint
 config
@@ -31,6 +32,7 @@ Dependabot
 Dockerfile
 domain_name_prefix
 en
+[Ff]ailover
 full[Bb]uild
 Fargate
 function_name
@@ -39,6 +41,8 @@ GitHub
 Gitleaks
 Grype
 handler_prefix
+hardcode
+hardocded
 healthcheck
 http_method
 idempotence
@@ -58,6 +62,7 @@ name_prefix
 ni
 nonfemale
 npm
+NVMe
 OAuth
 Octokit
 onboarding
@@ -75,6 +80,7 @@ rbac_role
 [Rr]eachability
 readonly
 recovery_window
+replication_group
 repo
 role_name
 [Ss]martcard
@@ -82,6 +88,8 @@ role_name
 [Ss]ql
 Splunk
 sed
+[Ss]harded
+sharding
 shellcheck
 shortcode
 source_account_name
@@ -95,12 +103,15 @@ Syft
 terraform-docs
 [Tt]utum
 tflint
+[Tt]iering
 terraform-aws-modules
 toolchain
 tracing_mode
 Trufflehog
 URL
 url
+validator
+[Vv]alkey
 vault_lock_type
 vault_name
 (VPC|[Vv]pc)

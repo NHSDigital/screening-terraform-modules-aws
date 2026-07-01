@@ -37,6 +37,14 @@ pre-commit install --hook-type commit-msg
 pre-commit run --all-files
 ```
 
+This command runs hooks assigned to the `pre-commit` stage. The Conventional Commit validator runs separately during `git commit` at the `commit-msg` stage.
+
+If you want the complete history secret scan locally, run it explicitly:
+
+```bash
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
+```
+
 If successful, output ends with:
 
 ```text
@@ -58,8 +66,11 @@ Passed: X, Failed: 0, Skipped: Y
 Run hooks locally to validate code before committing:
 
 ```bash
-# Test all hooks on the entire repository
+# Test all pre-commit stage hooks on the entire repository
 pre-commit run --all-files
+
+# Test the full-history secret scan explicitly
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 
 # Test a specific hook
 pre-commit run terraform_fmt --all-files
