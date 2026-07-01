@@ -307,7 +307,6 @@ Rules:
 | `aws-backup-destination` | — | AWS Backup destination vault |
 | `aws-backup-source` | — | AWS Backup source configuration |
 | `aws-scheduler` | — | EventBridge Scheduler configuration |
-| `cloudwatch` | terraform-aws-modules/cloudwatch/aws | CloudWatch log groups, streams, metric filters, and alarms |
 | `cloudwatch-log-metric-filter` | terraform-aws-modules/cloudwatch/aws | CloudWatch log metric filters (emits metrics from log patterns) |
 | `cloudwatch-logs` | terraform-aws-modules/cloudwatch/aws | CloudWatch log groups and streams |
 | `cloudwatch-metric-alarm` | terraform-aws-modules/cloudwatch/aws | CloudWatch metric alarms (single and multi-dimension) |

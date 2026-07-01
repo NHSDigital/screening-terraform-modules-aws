@@ -43,7 +43,6 @@ updates:
       - "infrastructure/modules/cloudwatch-log-metric-filter"
       - "infrastructure/modules/cloudwatch-logs"
       - "infrastructure/modules/cloudwatch-metric-alarm"
-      - "infrastructure/modules/cloudwatch"
       - "infrastructure/modules/cognito"
       - "infrastructure/modules/cw-firehose-splunk"
       - "infrastructure/modules/ecr"
