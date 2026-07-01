@@ -236,6 +236,15 @@ variable "performance_insights_retention_period" {
   description = "Retention period for Performance Insights data in days. Valid values: 7, 731, or a multiple of 31"
   type        = number
   default     = 7
+
+  validation {
+    condition = (
+      var.performance_insights_retention_period == 7 ||
+      var.performance_insights_retention_period == 731 ||
+      (var.performance_insights_retention_period % 31 == 0 && var.performance_insights_retention_period >= 31)
+    )
+    error_message = "performance_insights_retention_period must be 7, 731, or a multiple of 31 (e.g. 31, 62, 93)."
+  }
 }
 
 variable "performance_insights_kms_key_id" {
