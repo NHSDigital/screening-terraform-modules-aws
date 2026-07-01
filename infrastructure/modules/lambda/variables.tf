@@ -1,7 +1,12 @@
 variable "function_name" {
-  description = "The name of the Lambda function"
+  description = "Optional explicit name for the Lambda function. When null, the module uses module.this.id from context.tf."
   type        = string
-  default     = "uk-forwarder"
+  default     = null
+
+  validation {
+    condition     = var.function_name == null || length(trimspace(var.function_name)) > 0
+    error_message = "function_name must be null or a non-empty string when specified."
+  }
 }
 
 variable "python_version" {
