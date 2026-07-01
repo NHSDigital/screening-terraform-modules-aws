@@ -11,16 +11,20 @@
 #   - create_db_subnet_group = true  (subnet group always managed by this module)
 # ----------------------------------------------------------------------------
 
-# Cross-variable validation: password_wo is required unless the password is
-# managed by RDS (manage_master_user_password = true) or the instance is being
-# restored from a snapshot (snapshot_identifier is set).
-resource "terraform_data" "validate_password" {
+# Cross-variable validation — enforces rules that cannot be expressed inside
+# individual variable validation blocks because they reference multiple variables.
+resource "terraform_data" "validate_inputs" {
   count = module.this.enabled ? 1 : 0
 
   lifecycle {
     precondition {
       condition     = var.manage_master_user_password || var.snapshot_identifier != null || var.password_wo != null
       error_message = "password_wo must be provided when manage_master_user_password is false and snapshot_identifier is not set."
+    }
+
+    precondition {
+      condition     = var.snapshot_identifier == null || var.character_set_name == null
+      error_message = "character_set_name must be null when restoring from a snapshot (snapshot_identifier is set)."
     }
   }
 }
