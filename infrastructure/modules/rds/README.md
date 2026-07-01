@@ -13,6 +13,7 @@ The module provisions an RDS DB instance together with its subnet group, paramet
 |`copy_tags_to_snapshot`|`true`|Snapshots must carry the same tags as the instance|
 |`auto_minor_version_upgrade`|`false`|Teams keep instances in sync with the production engine version|
 |`create_db_subnet_group`|`true`|subnet group is always managed by this module|
+|`vpc_security_group_ids`|Non-empty list required|RDS must not rely on the default VPC security group; callers must always supply at least one explicit security group|
 |Creation gate|`module.this.enabled`|Prevents all managed RDS resources when disabled|
 
 ## Usage

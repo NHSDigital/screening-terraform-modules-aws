@@ -26,6 +26,11 @@ resource "terraform_data" "validate_inputs" {
       condition     = var.snapshot_identifier == null || var.character_set_name == null
       error_message = "character_set_name must be null when restoring from a snapshot (snapshot_identifier is set)."
     }
+
+    precondition {
+      condition     = length(var.vpc_security_group_ids) > 0
+      error_message = "vpc_security_group_ids must not be empty. Create a security group using the dedicated security group module and pass its ID here."
+    }
   }
 }
 
