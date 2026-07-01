@@ -323,7 +323,7 @@ Rules:
 | `parameter_store` | — | SSM Parameter Store configuration |
 | `r53` | terraform-aws-modules/route53/aws | Route 53 DNS Zones, Records, Resolver and Resolver Firewall |
 | `r53-healthcheck` | — | Route 53 health checks |
-| `rds` | — | RDS database instance (legacy) |
+| `rds` | terraform-aws-modules/rds/aws | RDS database instance |
 | `rds-database` | — | RDS database (logical) |
 | `rds-gateway-ecs-task` | — | RDS gateway ECS task definition |
 | `rds-instance` | — | RDS instance |
