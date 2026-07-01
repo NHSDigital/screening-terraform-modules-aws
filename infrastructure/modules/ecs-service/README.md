@@ -255,7 +255,7 @@ module "legacy_service" {
 
 - Create an ECS cluster. Use the `ecs-cluster` module and pass the ARN via
   `cluster_arn`.
-- Create VPCs, subnets, or security groups. The caller is responsible for
+- Create VPCs or subnets. The caller is responsible for
   networking; pass existing security group IDs via `security_group_ids` or let
   the module create one via `create_security_group = true`.
 - Create load balancers or target groups. Configure these separately and pass
@@ -264,8 +264,6 @@ module "legacy_service" {
 - Manage KMS encryption at the ECS service level. Task-level secrets encryption
   is handled via the task execution IAM role and the `secrets-manager` or
   `parameter_store` modules.
-- Create CloudWatch log groups. Define these in your container definitions or
-  provision them separately.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
