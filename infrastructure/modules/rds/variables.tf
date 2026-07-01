@@ -219,6 +219,11 @@ variable "monitoring_interval" {
   description = "Interval in seconds between Enhanced Monitoring data points. Valid values: 0, 1, 5, 10, 15, 30, 60. Set to 0 to disable"
   type        = number
   default     = 5
+
+  validation {
+    condition     = contains([0, 1, 5, 10, 15, 30, 60], var.monitoring_interval)
+    error_message = "monitoring_interval must be one of: 0, 1, 5, 10, 15, 30, 60."
+  }
 }
 
 variable "performance_insights_enabled" {
