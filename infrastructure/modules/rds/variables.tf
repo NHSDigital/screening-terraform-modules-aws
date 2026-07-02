@@ -226,8 +226,11 @@ variable "monitoring_interval" {
   }
 }
 
+# Note: The Performance Insights console is transitioning to CloudWatch Database
+# Insights (end-of-life July 31, 2026). Terraform API parameters are fully
+# preserved and continue to work unchanged after the transition.
 variable "performance_insights_enabled" {
-  description = "Enable Performance Insights"
+  description = "Enable Performance Insights (Standard mode of CloudWatch Database Insights). When true, performance_insights_kms_key_id must also be set."
   type        = bool
   default     = true
 }
@@ -248,7 +251,7 @@ variable "performance_insights_retention_period" {
 }
 
 variable "performance_insights_kms_key_id" {
-  description = "ARN of the KMS key used to encrypt Performance Insights data. If omitted, the default KMS key is used"
+  description = "ARN of the customer-managed KMS key used to encrypt Performance Insights data. Required when performance_insights_enabled is true. AWS-managed keys are not acceptable per platform policy."
   type        = string
   default     = null
 }

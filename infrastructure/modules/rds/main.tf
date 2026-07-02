@@ -31,6 +31,11 @@ resource "terraform_data" "validate_inputs" {
       condition     = length(var.vpc_security_group_ids) > 0
       error_message = "vpc_security_group_ids must not be empty. Create a security group using the dedicated security group module and pass its ID here."
     }
+
+    precondition {
+      condition     = !var.performance_insights_enabled || var.performance_insights_kms_key_id != null
+      error_message = "performance_insights_kms_key_id must be set when performance_insights_enabled is true. AWS-managed keys are not acceptable per platform policy."
+    }
   }
 }
 

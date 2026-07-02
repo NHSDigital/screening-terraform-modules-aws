@@ -14,6 +14,7 @@ The module provisions an RDS DB instance together with its subnet group, paramet
 |`auto_minor_version_upgrade`|`false`|Teams keep instances in sync with the production engine version|
 |`create_db_subnet_group`|`true`|subnet group is always managed by this module|
 |`vpc_security_group_ids`|Non-empty list required|RDS must not rely on the default VPC security group; callers must always supply at least one explicit security group|
+|`performance_insights_kms_key_id`|Required when Performance Insights enabled|AWS-managed keys are not acceptable per platform policy; a customer-managed KMS key must always be supplied|
 |Creation gate|`module.this.enabled`|Prevents all managed RDS resources when disabled|
 
 ## Usage
