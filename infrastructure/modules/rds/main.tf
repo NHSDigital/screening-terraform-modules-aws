@@ -11,34 +11,6 @@
 #   - create_db_subnet_group = true  (subnet group always managed by this module)
 # ----------------------------------------------------------------------------
 
-# Cross-variable validation — enforces rules that cannot be expressed inside
-# individual variable validation blocks because they reference multiple variables.
-resource "terraform_data" "validate_inputs" {
-  count = module.this.enabled ? 1 : 0
-
-  lifecycle {
-    precondition {
-      condition     = var.manage_master_user_password || var.snapshot_identifier != null || var.password_wo != null
-      error_message = "password_wo must be provided when manage_master_user_password is false and snapshot_identifier is not set."
-    }
-
-    precondition {
-      condition     = var.snapshot_identifier == null || var.character_set_name == null
-      error_message = "character_set_name must be null when restoring from a snapshot (snapshot_identifier is set)."
-    }
-
-    precondition {
-      condition     = length(var.vpc_security_group_ids) > 0
-      error_message = "vpc_security_group_ids must not be empty. Create a security group using the dedicated security group module and pass its ID here."
-    }
-
-    precondition {
-      condition     = !var.performance_insights_enabled || var.performance_insights_kms_key_id != null
-      error_message = "performance_insights_kms_key_id must be set when performance_insights_enabled is true. AWS-managed keys are not acceptable per platform policy."
-    }
-  }
-}
-
 module "rds" {
   source  = "terraform-aws-modules/rds/aws"
   version = "7.2.0"

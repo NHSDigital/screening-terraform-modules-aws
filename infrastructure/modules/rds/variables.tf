@@ -32,6 +32,11 @@ variable "character_set_name" {
   description = "Oracle character set name. Cannot be changed after creation. Must be null when restoring from a snapshot"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.snapshot_identifier == null || var.character_set_name == null
+    error_message = "character_set_name must be null when restoring from a snapshot (snapshot_identifier is set)."
+  }
 }
 
 # ----------------------------------------------------------------------------
@@ -87,6 +92,11 @@ variable "password_wo" {
   type        = string
   default     = null
   sensitive   = true
+
+  validation {
+    condition     = var.manage_master_user_password || var.snapshot_identifier != null || var.password_wo != null
+    error_message = "password_wo must be provided when manage_master_user_password is false and snapshot_identifier is not set."
+  }
 }
 
 variable "password_wo_version" {
@@ -129,6 +139,11 @@ variable "vpc_security_group_ids" {
   description = "List of security group IDs to associate with the instance. Create the security group using the dedicated security group module and pass its ID here"
   type        = list(string)
   default     = []
+
+  validation {
+    condition     = length(var.vpc_security_group_ids) > 0
+    error_message = "vpc_security_group_ids must not be empty. Create a security group using the dedicated security group module and pass its ID here."
+  }
 }
 
 # ----------------------------------------------------------------------------
@@ -254,6 +269,11 @@ variable "performance_insights_kms_key_id" {
   description = "ARN of the customer-managed KMS key used to encrypt Performance Insights data. Required when performance_insights_enabled is true. AWS-managed keys are not acceptable per platform policy."
   type        = string
   default     = null
+
+  validation {
+    condition     = !var.performance_insights_enabled || var.performance_insights_kms_key_id != null
+    error_message = "performance_insights_kms_key_id must be set when performance_insights_enabled is true. AWS-managed keys are not acceptable per platform policy."
+  }
 }
 
 # ----------------------------------------------------------------------------
