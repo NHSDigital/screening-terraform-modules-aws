@@ -72,9 +72,14 @@ variable "iops" {
 }
 
 variable "kms_key_id" {
-  description = "ARN of the KMS key for storage encryption. If omitted, the default account KMS key is used"
+  description = "ARN of the customer-managed KMS key for storage encryption. AWS-managed keys are not acceptable per platform policy."
   type        = string
   default     = null
+
+  validation {
+    condition     = var.kms_key_id != null
+    error_message = "kms_key_id must be set. AWS-managed keys are not acceptable per platform policy."
+  }
 }
 
 # ----------------------------------------------------------------------------
