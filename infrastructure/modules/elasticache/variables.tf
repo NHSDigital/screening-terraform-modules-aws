@@ -307,26 +307,26 @@ variable "apply_immediately" {
 
 variable "log_delivery_configuration" {
   description = <<-EOT
-    Log delivery configuration passed to the upstream module.
-    By default, both slow-log and engine-log are sent to CloudWatch Logs with
-    365-day retention and JSON format. The upstream module creates the log groups.
-    To pre-create log groups externally (e.g. via the cloudwatch module for KMS-encrypted
-    groups or custom retention), set create_cloudwatch_log_group = false and supply
-    the destination group name per entry. Set to {} to disable all logging.
+    Log delivery configuration for slow-log and engine-log.
+
+    Two scenarios are supported:
+      a) null (default): the upstream module creates CloudWatch log groups
+        with distinct names per log type (/aws/elasticache/<id>/slow-log
+        and /aws/elasticache/<id>/engine-log). Retention and KMS key use
+        upstream module defaults (365 days, AWS-managed encryption unless
+        kms_key_arn is set).
+      b) custom map: the caller provides full log_delivery_configuration.
+        Set create_cloudwatch_log_group = true/false based on whether the
+        upstream module should create log groups or they are managed externally.
+
+    Pass {} to disable logging entirely.
+
+    Under no circumstances should the ElastiCache service itself create log groups;
+    ensure create_cloudwatch_log_group is never omitted (defaults to true in the
+    upstream module).
   EOT
   type        = any
-  default = {
-    slow-log = {
-      destination_type                       = "cloudwatch-logs"
-      log_format                             = "json"
-      cloudwatch_log_group_retention_in_days = 365
-    }
-    engine-log = {
-      destination_type                       = "cloudwatch-logs"
-      log_format                             = "json"
-      cloudwatch_log_group_retention_in_days = 365
-    }
-  }
+  default     = null
 }
 
 variable "serverless_cache_usage_limits" {
