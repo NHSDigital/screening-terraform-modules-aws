@@ -298,6 +298,7 @@ Rules:
 
 ## Available modules
 
+<!-- vale off -->
 <!-- BEGIN_AVAILABLE_MODULES -->
 | Module | Wraps | Description |
 | --- | --- | --- |
@@ -306,6 +307,9 @@ Rules:
 | `aws-backup-destination` | — | AWS Backup destination vault |
 | `aws-backup-source` | — | AWS Backup source configuration |
 | `aws-scheduler` | — | EventBridge Scheduler configuration |
+| `cloudwatch-log-metric-filter` | terraform-aws-modules/cloudwatch/aws | CloudWatch log metric filters (emits metrics from log patterns) |
+| `cloudwatch-logs` | terraform-aws-modules/cloudwatch/aws | CloudWatch log groups and streams |
+| `cloudwatch-metric-alarm` | terraform-aws-modules/cloudwatch/aws | CloudWatch metric alarms (single and multi-dimension) |
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `ec2-instance` | — | — |
@@ -343,6 +347,7 @@ Rules:
 | `waf` | — | WAF web ACL with rules |
 
 <!-- END_AVAILABLE_MODULES -->
+<!-- vale on -->
 
 ## Pre-commit hooks
 
