@@ -31,9 +31,9 @@ module "security_hub" {
 
   # Cloud Posse modules still expect namespace/stage style context keys.
   # Our in-repo tags context uses service/environment naming, so map them.
-  context = merge(module.this.context, {
-    namespace = module.this.service
-    stage     = module.this.environment
-    tenant    = module.this.project
-  })
+  # label_order must also be overridden: the cloudposse community module builds
+  # id_context with only its own standard keys (namespace/tenant/environment/
+  # stage/name/attributes). Passing our NHS label_order (service/project/stack…)
+  # causes an "Invalid index" error at plan time.
+  context = local.cloudposse_context
 }
