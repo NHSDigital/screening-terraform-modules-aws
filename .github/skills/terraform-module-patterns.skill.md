@@ -185,7 +185,47 @@ variable "meaningful_name" {
 
 - `data.tf` is mandatory only when data sources exist in the module (for example `data.aws_*`, `data.local_file`, `data.external`).
 - `locals.tf` is mandatory only when the module defines one or more `locals {}` blocks.
-- When present, keep all data sources in `data.tf` and all local values in `locals.tf`.
+- `validations.tf` is mandatory when cross-variable constraints exist (mutual exclusivity, co-required inputs). See below.
+- When present, keep all data sources in `data.tf`, all local values in `locals.tf`, and all cross-variable preconditions in `validations.tf`.
+
+## Cross-Variable Validation Pattern (`validations.tf`)
+
+Individual `variable` validation blocks can only reference the variable they are declared on. For constraints spanning multiple variables, use a `terraform_data` resource in `validations.tf`:
+
+```hcl
+################################################################
+# Input validation
+#
+# Validates cross-variable constraints that cannot be expressed
+# through individual variable validation blocks:
+#
+#   * <constraint 1 — e.g., option_a and option_b are mutually exclusive>
+#   * <constraint 2 — e.g., enable_feature requires feature_config>
+################################################################
+
+resource "terraform_data" "validations" {
+  count = module.this.enabled ? 1 : 0
+
+  lifecycle {
+    precondition {
+      condition     = !(var.option_a && var.option_b != null)
+      error_message = "option_a and option_b are mutually exclusive; set only one."
+    }
+    precondition {
+      condition     = !var.enable_feature || var.feature_config != null
+      error_message = "enable_feature requires feature_config to be set."
+    }
+  }
+}
+```
+
+**Key rules:**
+
+- Gate with `count = module.this.enabled ? 1 : 0` — checks only run when the module is active.
+- `terraform_data` is a Terraform built-in; no extra provider required (available since Terraform 1.4, well within `>= 1.13`).
+- `lifecycle { precondition }` on `module` blocks is **not supported** — always use a `terraform_data` resource.
+- Reference `validations.tf` in the `main.tf` header comment: `# Cross-variable input constraints are enforced in validations.tf.`
+- Document each constraint in a `## Validation` section in `README.md`.
 
 ## Locals Pattern (When Locals Are Needed)
 
@@ -314,6 +354,14 @@ module "example" {
 
 * <Notable naming/default behaviours>
 * <Important constraints>
+
+## Validation
+
+*(Include this section only when `validations.tf` exists.)*
+
+The following constraints are enforced at `plan` time via preconditions in `validations.tf`:
+
+* **<Constraint name>**: <Plain-English description of what is checked and why>.
 ```
 
 ## Security Patterns

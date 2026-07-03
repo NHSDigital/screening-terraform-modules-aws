@@ -264,7 +264,7 @@ module "page_cache" {
 - **Encryption**: Both in-transit (TLS) and at-rest encryption are **enforced and cannot be disabled**. Auth tokens required for Redis/Valkey.
 - **Cluster mode**: Enabled by default within `replication_group` mode. Each shard holds the full dataset; scales out by adding shards.
 - **Replicas**: Default 2 per shard. Set `replicas_per_node_group = 0` only for non-critical single-node deployments.
-- **Logging**: Both slow-log and engine-log delivered to CloudWatch with 365-day retention by default. Override via `log_delivery_configuration`. Pre-create log groups via the CloudWatch module for KMS encryption.
+- **Logging**: Both slow-log and engine-log delivered to CloudWatch by default. Log group names follow the pattern `/aws/elasticache/<id>/slow-log` and `/aws/elasticache/<id>/engine-log`. The upstream module creates these groups automatically in the default scenario (`log_delivery_configuration = null`). Override via `log_delivery_configuration` for custom destinations (Kinesis, custom names, external log group management, or to disable logging entirely).
 - **Snapshots**: Redis/Valkey only (not Memcached). Default 5-day retention. Set `final_snapshot_identifier_prefix` to preserve state on deletion.
 - **Maintenance**: Applied during the configured window (default: Sunday 03:00–05:00 UTC). Use `apply_immediately = true` for emergency patches only.
 
@@ -272,7 +272,7 @@ module "page_cache" {
 
 - Create KMS keys. Use the `kms` module and pass the ARN via `kms_key_arn`.
 - Create security groups. Use the `security-group` module and pass the ID via `security_group_ids`, or set `create_security_group = true` to create one inline via the upstream module.
-- Create CloudWatch log groups with custom KMS encryption. Pass pre-created group names via `log_delivery_configuration`. See the TODO comment in [main.tf](main.tf) for the pattern.
+- Create CloudWatch log groups in this module. That responsibility is delegated to the upstream module (default) or to the caller (custom `log_delivery_configuration`). For KMS encryption, Kinesis Firehose, or pre-created log groups, pass a fully custom `log_delivery_configuration` and set `create_cloudwatch_log_group` appropriately.
 - Manage EC2 instances or ECS task definitions; point them at the cache endpoint outputs.
 - Configure client-side replica read preference. That is an application concern.
 - Perform failover testing or validate backup/restore procedures. Validate separately in lower environments.
@@ -315,8 +315,8 @@ Before deploying, verify:
 |`serverless_endpoint`|serverless|Serverless connection endpoint|
 |`serverless_reader_endpoint`|serverless|Serverless reader endpoint|
 |`security_group_id`|all|First caller-managed SG ID|
-|`cloudwatch_log_group_name`|replication_group, cluster|Primary log group name|
-|`cloudwatch_log_group_arn`|replication_group, cluster|Primary log group ARN|
+|`cloudwatch_log_group_slow_log_name`|replication_group, cluster|CloudWatch log group name for slow logs|
+|`cloudwatch_log_group_engine_log_name`|replication_group, cluster|CloudWatch log group name for engine logs|
 |`snapshot_window`|all|Snapshot window|
 |`maintenance_window`|all|Maintenance window|
 
@@ -379,7 +379,7 @@ No resources.
 | <a name="input_label_order"></a> [label\_order](#input\_label\_order) | The order in which the labels (ID elements) appear in the `id`.<br/>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br/>You can omit any of the 6 labels ("tenant" is the 6th), but at least one must be present. | `list(string)` | `null` | no |
 | <a name="input_label_value_case"></a> [label\_value\_case](#input\_label\_value\_case) | Controls the letter case of ID elements (labels) as included in `id`,<br/>set as tag values, and output by this module individually.<br/>Does not affect values of tags passed in via the `tags` input.<br/>Possible values: `lower`, `title`, `upper` and `none` (no transformation).<br/>Set this to `title` and set `delimiter` to `""` to yield Pascal Case IDs.<br/>Default value: `lower`. | `string` | `null` | no |
 | <a name="input_labels_as_tags"></a> [labels\_as\_tags](#input\_labels\_as\_tags) | Set of labels (ID elements) to include as tags in the `tags` output.<br/>Default is to include all labels.<br/>Tags with empty values will not be included in the `tags` output.<br/>Set to `[]` to suppress all generated tags.<br/>**Notes:**<br/>  The value of the `name` tag, if included, will be the `id`, not the `name`.<br/>  Unlike other `null-label` inputs, the initial setting of `labels_as_tags` cannot be<br/>  changed in later chained modules. Attempts to change it will be silently ignored. | `set(string)` | <pre>[<br/>  "default"<br/>]</pre> | no |
-| <a name="input_log_delivery_configuration"></a> [log\_delivery\_configuration](#input\_log\_delivery\_configuration) | Log delivery configuration passed to the upstream module.<br/>By default, both slow-log and engine-log are sent to CloudWatch Logs with<br/>365-day retention and JSON format. The upstream module creates the log groups.<br/>To pre-create log groups externally (e.g. via the cloudwatch module for KMS-encrypted<br/>groups or custom retention), set create\_cloudwatch\_log\_group = false and supply<br/>the destination group name per entry. Set to {} to disable all logging. | `any` | <pre>{<br/>  "engine-log": {<br/>    "cloudwatch_log_group_retention_in_days": 365,<br/>    "destination_type": "cloudwatch-logs",<br/>    "log_format": "json"<br/>  },<br/>  "slow-log": {<br/>    "cloudwatch_log_group_retention_in_days": 365,<br/>    "destination_type": "cloudwatch-logs",<br/>    "log_format": "json"<br/>  }<br/>}</pre> | no |
+| <a name="input_log_delivery_configuration"></a> [log\_delivery\_configuration](#input\_log\_delivery\_configuration) | Log delivery configuration for slow-log and engine-log.<br/><br/>Two scenarios are supported:<br/>  a) null (default): the upstream module creates CloudWatch log groups<br/>    with distinct names per log type (/aws/elasticache/<id>/slow-log<br/>    and /aws/elasticache/<id>/engine-log). Retention and KMS key use<br/>    upstream module defaults (365 days, AWS-managed encryption unless<br/>    kms\_key\_arn is set).<br/>  b) custom map: the caller provides full log\_delivery\_configuration.<br/>    Set create\_cloudwatch\_log\_group = true/false based on whether the<br/>    upstream module should create log groups or they are managed externally.<br/><br/>Pass {} to disable logging entirely.<br/><br/>Under no circumstances should the ElastiCache service itself create log groups;<br/>ensure create\_cloudwatch\_log\_group is never omitted (defaults to true in the<br/>upstream module). | `any` | `null` | no |
 | <a name="input_maintenance_window"></a> [maintenance\_window](#input\_maintenance\_window) | Time window for routine maintenance (UTC).<br/>Format: ddd:hh24:mi-ddd:hh24:mi (e.g. 'sun:03:00-sun:05:00').<br/>Default: Sunday 03:00-05:00 UTC. | `string` | `"sun:03:00-sun:05:00"` | no |
 | <a name="input_multi_az_enabled"></a> [multi\_az\_enabled](#input\_multi\_az\_enabled) | Enable Multi-AZ failover. Recommended for production deployments. | `bool` | `true` | no |
 | <a name="input_name"></a> [name](#input\_name) | ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.<br/>This is the only ID element not also included as a `tag`.<br/>The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input. | `string` | `null` | no |
@@ -414,8 +414,8 @@ No resources.
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_cloudwatch_log_group_arn"></a> [cloudwatch\_log\_group\_arn](#output\_cloudwatch\_log\_group\_arn) | ARN of the primary CloudWatch log group created by the upstream module. |
-| <a name="output_cloudwatch_log_group_name"></a> [cloudwatch\_log\_group\_name](#output\_cloudwatch\_log\_group\_name) | Name of the primary CloudWatch log group created by the upstream module. |
+| <a name="output_cloudwatch_log_group_engine_log_name"></a> [cloudwatch\_log\_group\_engine\_log\_name](#output\_cloudwatch\_log\_group\_engine\_log\_name) | Name of the CloudWatch log group for ElastiCache engine logs. |
+| <a name="output_cloudwatch_log_group_slow_log_name"></a> [cloudwatch\_log\_group\_slow\_log\_name](#output\_cloudwatch\_log\_group\_slow\_log\_name) | Name of the CloudWatch log group for ElastiCache slow logs. |
 | <a name="output_cluster_address"></a> [cluster\_address](#output\_cluster\_address) | DNS name of the cache cluster (Memcached) or primary endpoint. |
 | <a name="output_cluster_arn"></a> [cluster\_arn](#output\_cluster\_arn) | ARN of the standalone ElastiCache cluster. |
 | <a name="output_cluster_configuration_endpoint"></a> [cluster\_configuration\_endpoint](#output\_cluster\_configuration\_endpoint) | Configuration endpoint for Memcached clusters (auto-discovery). |
