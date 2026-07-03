@@ -17,3 +17,9 @@ output "secret_version_id" {
   description = "The unique identifier of the current version of the secret"
   value       = module.secret.secret_version_id
 }
+
+output "secret_string" {
+  description = "The secret string value. Sensitive — only use where required."
+  sensitive   = true
+  value       = module.secret.secret_string
+}

@@ -29,8 +29,11 @@ pre-commit install --hook-type commit-msg
 ## Before Committing
 
 ```bash
-# Run all hooks locally
+# Run all pre-commit stage hooks locally
 pre-commit run --all-files
+
+# Run the full-history secret scan explicitly when needed
+pre-commit run scan-secrets-whole-history --hook-stage manual --all-files
 
 # Fix any issues reported
 
@@ -44,7 +47,7 @@ git commit -m "type(scope): description"
 - `detect-aws-credentials` — detects embedded secrets
 - `detect-private-key` — detects leaked private keys
 - `scan-secrets-staged-changes` — scans staged changes for secrets (runs on `git commit`)
-- `scan-secrets-whole-history` — scans entire git history for secrets (runs on `pre-commit run --all-files`)
+- `scan-secrets-whole-history` — scans entire git history for secrets (run explicitly with `pre-commit run scan-secrets-whole-history --hook-stage manual --all-files`)
 - `terraform_validate` — ensures modules are syntactically valid
 - `regenerate-dependabot-config` — ensures Dependabot watches all modules
 - `check-available-modules` — ensures README module table is up-to-date
