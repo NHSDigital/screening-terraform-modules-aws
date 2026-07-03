@@ -17,6 +17,17 @@ variable "metric_alarm" {
   })
   default     = null
   description = "Configuration for a single metric alarm. Set to null to skip creation."
+
+  validation {
+    condition = var.metric_alarm == null ? true : contains([
+      "SampleCount",
+      "Average",
+      "Sum",
+      "Minimum",
+      "Maximum"
+    ], var.metric_alarm.statistic)
+    error_message = "metric_alarm.statistic must be one of: SampleCount, Average, Sum, Minimum, Maximum."
+  }
 }
 
 variable "metric_alarms_by_multiple_dimensions" {
@@ -33,6 +44,17 @@ variable "metric_alarms_by_multiple_dimensions" {
   })
   default     = null
   description = "Configuration for metric alarms by multiple dimensions (creates one alarm per dimension combo). Set to null to skip creation."
+
+  validation {
+    condition = var.metric_alarms_by_multiple_dimensions == null ? true : contains([
+      "SampleCount",
+      "Average",
+      "Sum",
+      "Minimum",
+      "Maximum"
+    ], var.metric_alarms_by_multiple_dimensions.statistic)
+    error_message = "metric_alarms_by_multiple_dimensions.statistic must be one of: SampleCount, Average, Sum, Minimum, Maximum."
+  }
 }
 
 variable "alarm_actions" {

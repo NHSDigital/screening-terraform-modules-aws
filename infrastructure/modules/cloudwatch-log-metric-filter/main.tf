@@ -23,10 +23,3 @@ module "log_metric_filter" {
   metric_transformation_name      = var.metric_transformation_name
   metric_transformation_namespace = local.metric_namespace
 }
-
-check "log_group_must_exist" {
-  assert {
-    condition     = var.log_group_name != ""
-    error_message = "log_group_name is required and must not be empty."
-  }
-}

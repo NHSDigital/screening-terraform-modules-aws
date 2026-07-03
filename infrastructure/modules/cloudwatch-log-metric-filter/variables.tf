@@ -17,7 +17,7 @@ variable "log_group_name" {
 variable "pattern" {
   type        = string
   default     = ""
-  description = "Log pattern to filter on (e.g., 'ERROR', '[ERROR]', etc). Empty string matches all events."
+  description = "CloudWatch Logs filter pattern syntax used to match log events (for example a plain term like 'ERROR' or a structured pattern like '[level = \"ERROR\"]'). This is AWS filter pattern syntax, not a regular expression. Empty string matches all events."
 }
 
 variable "metric_transformation_name" {

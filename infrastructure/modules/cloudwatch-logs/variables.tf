@@ -5,16 +5,15 @@
 # context.tf via `module.this`.
 ################################################################
 
-variable "create_log_group" {
-  type        = bool
-  default     = true
-  description = "Whether to create the CloudWatch log group."
-}
+variable "create" {
+  type        = string
+  default     = "LOG_GROUP_ONLY"
+  description = "Creation mode for CloudWatch log resources. Valid values are NOTHING, LOG_GROUP_ONLY, and LOG_GROUP_AND_LOG_STREAM."
 
-variable "create_log_stream" {
-  type        = bool
-  default     = false
-  description = "Whether to create a CloudWatch log stream. Requires create_log_group = true."
+  validation {
+    condition     = contains(["NOTHING", "LOG_GROUP_ONLY", "LOG_GROUP_AND_LOG_STREAM"], var.create)
+    error_message = "create must be one of: NOTHING, LOG_GROUP_ONLY, LOG_GROUP_AND_LOG_STREAM."
+  }
 }
 
 variable "retention_in_days" {
@@ -31,5 +30,5 @@ variable "retention_in_days" {
 variable "kms_key_id" {
   type        = string
   default     = null
-  description = "ARN of KMS key for log group encryption. When null, uses AWS-managed encryption."
+  description = "Optional customer-managed KMS key ARN for CloudWatch log group encryption. When null, CloudWatch Logs uses AWS-managed encryption. Encryption at rest remains enabled either way."
 }

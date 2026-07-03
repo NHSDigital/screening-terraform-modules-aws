@@ -16,7 +16,7 @@ module "log_group" {
   source  = "terraform-aws-modules/cloudwatch/aws//modules/log-group"
   version = "5.7.2"
 
-  create = module.this.enabled && var.create_log_group
+  create = module.this.enabled && local.create_log_group
 
   name              = local.log_group_name
   retention_in_days = var.retention_in_days
@@ -29,15 +29,8 @@ module "log_stream" {
   source  = "terraform-aws-modules/cloudwatch/aws//modules/log-stream"
   version = "5.7.2"
 
-  create = module.this.enabled && var.create_log_stream && var.create_log_group
+  create = module.this.enabled && local.create_log_stream
 
   name           = local.log_stream_name
   log_group_name = module.log_group.cloudwatch_log_group_name
-}
-
-check "log_stream_requires_log_group" {
-  assert {
-    condition     = !var.create_log_stream || var.create_log_group
-    error_message = "create_log_stream requires create_log_group = true"
-  }
 }
