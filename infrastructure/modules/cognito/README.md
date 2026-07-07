@@ -159,7 +159,7 @@ If those become required later, they can be added back with an explicit shared-r
 | <a name="output_client_ids_map"></a> [client\_ids\_map](#output\_client\_ids\_map) | Map of Cognito client names to client IDs. |
 | <a name="output_client_secrets"></a> [client\_secrets](#output\_client\_secrets) | Secrets of any Cognito user pool clients created by this module. |
 | <a name="output_client_secrets_map"></a> [client\_secrets\_map](#output\_client\_secrets\_map) | Map of Cognito client names to client secrets. |
-| <a name="output_secrets_manager_random_passsword_arn"></a> [secrets\_manager\_random\_passsword\_arn](#output\_secrets\_manager\_random\_passsword\_arn) | Deprecated compatibility output from the bespoke BS-Select bootstrap-user flow. This wrapper does not create a bootstrap user secret. |
+| <a name="output_secrets_manager_random_password_arn"></a> [secrets\_manager\_random\_password\_arn](#output\_secrets\_manager\_random\_password\_arn) | Deprecated compatibility output from the bespoke BS-Select bootstrap-user flow. This wrapper does not create a bootstrap user secret. |
 | <a name="output_user_pool_arn"></a> [user\_pool\_arn](#output\_user\_pool\_arn) | ARN of the Cognito user pool. |
 | <a name="output_user_pool_domain_prefix"></a> [user\_pool\_domain\_prefix](#output\_user\_pool\_domain\_prefix) | Configured Cognito domain value. |
 | <a name="output_user_pool_endpoint"></a> [user\_pool\_endpoint](#output\_user\_pool\_endpoint) | Cognito user pool endpoint. |

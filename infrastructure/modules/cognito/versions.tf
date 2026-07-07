@@ -10,7 +10,7 @@ terraform {
     awscc = {
       # Not used directly in this module
       # Used by `lgallard/cognito-user-pool/aws` for managed login branding
-      # Not clear what the minimum version should be
+      # Pinned to the NHS platform provider baseline that supports this usage
       source  = "hashicorp/awscc"
       version = ">= 1.89"
     }

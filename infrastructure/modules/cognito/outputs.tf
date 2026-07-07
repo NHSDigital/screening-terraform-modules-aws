@@ -61,7 +61,7 @@ output "app_client_secrets" {
   sensitive   = true
 }
 
-output "secrets_manager_random_passsword_arn" {
+output "secrets_manager_random_password_arn" {
   description = "Deprecated compatibility output from the bespoke BS-Select bootstrap-user flow. This wrapper does not create a bootstrap user secret."
   value       = null
 }
