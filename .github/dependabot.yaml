@@ -74,6 +74,7 @@ updates:
       - "infrastructure/modules/security-hub"
       - "infrastructure/modules/sns"
       - "infrastructure/modules/sqs"
+      - "infrastructure/modules/ssm-patch-manager"
       - "infrastructure/modules/tags"
       - "infrastructure/modules/vpc"
       - "infrastructure/modules/vpce"

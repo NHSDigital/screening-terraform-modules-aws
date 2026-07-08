@@ -169,6 +169,10 @@ sqs:
   description: "SQS queue with encryption"
   wraps: "—"
 
+ssm-patch-manager:
+  description: "SSM Patch Manager for automated OS patching"
+  wraps: "cloudposse/ssm-patch-manager/aws"
+
 tags:
   description: "Foundation: naming and tagging context module"
   wraps: "—"
