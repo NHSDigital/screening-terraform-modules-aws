@@ -1,15 +1,18 @@
 terraform {
-  required_version = ">= 1.5.7"
+  required_version = ">= 1.13"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 6.47.0"
+      version = ">= 6.42"
     }
 
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.9.0"
+    awscc = {
+      # Not used directly in this module
+      # Used by `lgallard/cognito-user-pool/aws` for managed login branding
+      # Pinned to the NHS platform provider baseline that supports this usage
+      source  = "hashicorp/awscc"
+      version = ">= 1.89"
     }
   }
 }

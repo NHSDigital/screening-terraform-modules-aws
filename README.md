@@ -298,16 +298,22 @@ Rules:
 
 ## Available modules
 
+<!-- vale off -->
 <!-- BEGIN_AVAILABLE_MODULES -->
 | Module | Wraps | Description |
 | --- | --- | --- |
 | `acm` | terraform-aws-modules/acm/aws | AWS Certificate Manager (ACM) certificate management |
+| `alb` | terraform-aws-modules/alb/aws | Application / Network Load Balancer with security baseline |
 | `api-gateway` | — | API Gateway configuration with custom domain and integration |
 | `aws-backup-destination` | — | AWS Backup destination vault |
 | `aws-backup-source` | — | AWS Backup source configuration |
 | `aws-scheduler` | — | EventBridge Scheduler configuration |
+| `cloudwatch-log-metric-filter` | terraform-aws-modules/cloudwatch/aws | CloudWatch log metric filters (emits metrics from log patterns) |
+| `cloudwatch-logs` | terraform-aws-modules/cloudwatch/aws | CloudWatch log groups and streams |
+| `cloudwatch-metric-alarm` | terraform-aws-modules/cloudwatch/aws | CloudWatch metric alarms (single and multi-dimension) |
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
+| `ec2-instance` | — | — |
 | `ecr` | — | ECR repository with security controls |
 | `ecs-cluster` | terraform-aws-modules/ecs/aws//modules/cluster | ECS Fargate cluster |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
@@ -323,6 +329,7 @@ Rules:
 | `parameter_store` | — | SSM Parameter Store configuration |
 | `r53` | terraform-aws-modules/route53/aws | Route 53 DNS Zones, Records, Resolver and Resolver Firewall |
 | `r53-healthcheck` | — | Route 53 health checks |
+| `rds` | terraform-aws-modules/rds/aws | RDS database instance |
 | `rds-database` | — | RDS database (logical) |
 | `rds-gateway-ecs-task` | — | RDS gateway ECS task definition |
 | `rds-instance` | — | RDS instance |
@@ -342,6 +349,7 @@ Rules:
 | `waf` | — | WAF web ACL with rules |
 
 <!-- END_AVAILABLE_MODULES -->
+<!-- vale on -->
 
 ## Pre-commit hooks
 

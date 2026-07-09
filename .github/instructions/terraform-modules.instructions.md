@@ -132,12 +132,14 @@ Every module must contain:
 | `context.tf` | Tags context (copied from `tags/exports/context.tf`) | Yes |
 | `data.tf` | Data sources (e.g., `data.aws_*`, `data.local_file`) | Only if data sources exist |
 | `locals.tf` | Derived/computed values (naming, defaults) | Only if `locals {}` blocks exist |
+| `validations.tf` | Cross-variable `terraform_data` preconditions | Only if cross-variable constraints exist |
 | `README.md` | Usage documentation with examples | Yes |
 
 **Conditional file guidance:**
 
 - **`data.tf`**: Create this file if the module queries external data (e.g., `data.aws_availability_zones`, `data.aws_ami`). Store all data sources here for clarity.
 - **`locals.tf`**: Create this file only if the module defines `locals {}` blocks for computed values, naming logic, or CIDR calculations. If no locals are needed, omit the file entirely.
+- **`validations.tf`**: Create this file when the module needs to enforce constraints that span multiple input variables (e.g., mutual exclusivity, co-required inputs). Use a `terraform_data` resource with `lifecycle { precondition { ... } }` blocks. See the Cross-Variable Validation section below.
 
 For any newly created module, `context.tf` must come from `infrastructure/modules/tags/exports/context.tf`, and the copied file must reference `source = "../tags"`.
 
@@ -175,6 +177,44 @@ variable "recovery_window_in_days" {
   }
 }
 ```
+
+## Cross-Variable Validation (`validations.tf`)
+
+Terraform `validation` blocks can only reference the variable they are declared on. When a constraint spans multiple variables (e.g., mutual exclusivity, co-required inputs), use a `terraform_data` resource with `lifecycle { precondition { ... } }` blocks in a dedicated `validations.tf` file.
+
+```hcl
+################################################################
+# Input validation
+#
+# Validates cross-variable constraints that cannot be expressed
+# through individual variable validation blocks:
+#
+#   * <constraint 1 description>
+#   * <constraint 2 description>
+################################################################
+
+resource "terraform_data" "validations" {
+  count = module.this.enabled ? 1 : 0
+
+  lifecycle {
+    precondition {
+      condition     = !(var.option_a && var.option_b != null)
+      error_message = "option_a and option_b are mutually exclusive; set only one."
+    }
+    precondition {
+      condition     = !var.enable_feature || var.feature_config != null
+      error_message = "enable_feature requires feature_config to be set."
+    }
+  }
+}
+```
+
+**Rules:**
+
+- Gate with `count = module.this.enabled ? 1 : 0` so checks only run when the module is active.
+- `terraform_data` is a built-in resource requiring no extra provider (available since Terraform 1.4).
+- Add a reference in the `main.tf` header comment: `# Cross-variable input constraints are enforced in validations.tf.`
+- Document the constraints in a `## Validation` section in `README.md`.
 
 ## Outputs
 
@@ -220,6 +260,7 @@ Module READMEs should include:
    - Advanced/edge example (e.g., restore-from-snapshot, records-only mode)
 4. **Conventions** section explaining naming, context behaviour, and notable defaults.
 5. **What this module does NOT do** section listing intentional exclusions/guardrails.
+6. **Validation** section (when `validations.tf` exists) listing each precondition constraint in plain English.
 
 READMEs that do not include a `## Usage` section are incomplete and must be updated before merge.
 

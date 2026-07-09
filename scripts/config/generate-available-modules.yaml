@@ -13,6 +13,10 @@ acm:
   description: "AWS Certificate Manager (ACM) certificate management"
   wraps: "terraform-aws-modules/acm/aws"
 
+alb:
+  description: "Application / Network Load Balancer with security baseline"
+  wraps: "terraform-aws-modules/alb/aws"
+
 api-gateway:
   description: "API Gateway configuration with custom domain and integration"
   wraps: "—"
@@ -28,6 +32,22 @@ aws-backup-source:
 aws-scheduler:
   description: "EventBridge Scheduler configuration"
   wraps: "—"
+
+cloudwatch:
+  description: "CloudWatch log groups, streams, metric filters, and alarms"
+  wraps: "terraform-aws-modules/cloudwatch/aws"
+
+cloudwatch-log-metric-filter:
+  description: "CloudWatch log metric filters (emits metrics from log patterns)"
+  wraps: "terraform-aws-modules/cloudwatch/aws"
+
+cloudwatch-logs:
+  description: "CloudWatch log groups and streams"
+  wraps: "terraform-aws-modules/cloudwatch/aws"
+
+cloudwatch-metric-alarm:
+  description: "CloudWatch metric alarms (single and multi-dimension)"
+  wraps: "terraform-aws-modules/cloudwatch/aws"
 
 cognito:
   description: "Cognito user and identity pools"
