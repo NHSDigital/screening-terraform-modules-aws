@@ -1,0 +1,140 @@
+################################################################
+# ECS Service
+#
+# Thin NHS wrapper around the community ECS service submodule
+# (terraform-aws-modules/ecs/aws//modules/service) that
+# enforces the screening platform's baseline controls:
+#
+#   * No public IP: assign_public_ip defaults to false
+#   * ECS-managed tags: enable_ecs_managed_tags defaults to true
+#   * Tag propagation: propagate_tags defaults to TASK_DEFINITION
+#   * Creation gated by module.this.enabled
+#
+# Naming: context.tf via module.this by default; caller may override
+# with var.service_name. Tagging is always via module.this.tags.
+################################################################
+
+module "ecs_service" {
+  source  = "terraform-aws-modules/ecs/aws//modules/service"
+  version = "7.5.0"
+
+  create = module.this.enabled
+  name   = local.service_name
+  tags   = module.this.tags
+
+  alarms                                       = var.alarms
+  assign_public_ip                             = var.assign_public_ip
+  autoscaling_max_capacity                     = var.autoscaling_max_capacity
+  autoscaling_min_capacity                     = var.autoscaling_min_capacity
+  autoscaling_policies                         = var.autoscaling_policies
+  autoscaling_scheduled_actions                = var.autoscaling_scheduled_actions
+  autoscaling_suspended_state                  = var.autoscaling_suspended_state
+  availability_zone_rebalancing                = var.availability_zone_rebalancing
+  capacity_provider_strategy                   = var.capacity_provider_strategy
+  cluster_arn                                  = var.cluster_arn
+  container_definitions                        = var.container_definitions
+  cpu                                          = var.cpu
+  create_iam_role                              = var.create_iam_role
+  create_infrastructure_iam_role               = var.create_infrastructure_iam_role
+  create_security_group                        = var.create_security_group
+  create_service                               = var.create_service
+  create_task_definition                       = var.create_task_definition
+  create_task_exec_iam_role                    = var.create_task_exec_iam_role
+  create_task_exec_policy                      = var.create_task_exec_policy
+  create_tasks_iam_role                        = var.create_tasks_iam_role
+  deployment_circuit_breaker                   = var.deployment_circuit_breaker
+  deployment_configuration                     = var.deployment_configuration
+  deployment_controller                        = var.deployment_controller
+  deployment_maximum_percent                   = var.deployment_maximum_percent
+  deployment_minimum_healthy_percent           = var.deployment_minimum_healthy_percent
+  desired_count                                = var.desired_count
+  enable_autoscaling                           = var.enable_autoscaling
+  enable_ecs_managed_tags                      = var.enable_ecs_managed_tags
+  enable_execute_command                       = var.enable_execute_command
+  enable_fault_injection                       = var.enable_fault_injection
+  ephemeral_storage                            = var.ephemeral_storage
+  external_id                                  = var.external_id
+  force_delete                                 = var.force_delete
+  force_new_deployment                         = var.force_new_deployment
+  health_check_grace_period_seconds            = var.health_check_grace_period_seconds
+  iam_role_arn                                 = var.iam_role_arn
+  iam_role_description                         = var.iam_role_description
+  iam_role_name                                = var.iam_role_name
+  iam_role_path                                = var.iam_role_path
+  iam_role_permissions_boundary                = var.iam_role_permissions_boundary
+  iam_role_statements                          = var.iam_role_statements
+  iam_role_tags                                = var.iam_role_tags
+  iam_role_use_name_prefix                     = var.iam_role_use_name_prefix
+  ignore_task_definition_changes               = var.ignore_task_definition_changes
+  infrastructure_iam_role_arn                  = var.infrastructure_iam_role_arn
+  infrastructure_iam_role_description          = var.infrastructure_iam_role_description
+  infrastructure_iam_role_name                 = var.infrastructure_iam_role_name
+  infrastructure_iam_role_path                 = var.infrastructure_iam_role_path
+  infrastructure_iam_role_permissions_boundary = var.infrastructure_iam_role_permissions_boundary
+  infrastructure_iam_role_tags                 = var.infrastructure_iam_role_tags
+  infrastructure_iam_role_use_name_prefix      = var.infrastructure_iam_role_use_name_prefix
+  ipc_mode                                     = var.ipc_mode
+  launch_type                                  = var.launch_type
+  load_balancer                                = var.load_balancer
+  memory                                       = var.memory
+  network_mode                                 = var.network_mode
+  ordered_placement_strategy                   = var.ordered_placement_strategy
+  pid_mode                                     = var.pid_mode
+  placement_constraints                        = var.placement_constraints
+  platform_version                             = var.platform_version
+  propagate_tags                               = var.propagate_tags
+  proxy_configuration                          = var.proxy_configuration
+  requires_compatibilities                     = var.requires_compatibilities
+  runtime_platform                             = var.runtime_platform
+  scale                                        = var.scale
+  scheduling_strategy                          = var.scheduling_strategy
+  security_group_description                   = var.security_group_description
+  security_group_egress_rules                  = var.security_group_egress_rules
+  security_group_ids                           = var.security_group_ids
+  security_group_ingress_rules                 = var.security_group_ingress_rules
+  security_group_name                          = var.security_group_name
+  security_group_tags                          = var.security_group_tags
+  security_group_use_name_prefix               = var.security_group_use_name_prefix
+  service_connect_configuration                = var.service_connect_configuration
+  service_registries                           = var.service_registries
+  service_tags                                 = var.service_tags
+  sigint_rollback                              = var.sigint_rollback
+  skip_destroy                                 = var.skip_destroy
+  subnet_ids                                   = var.subnet_ids
+  task_definition_arn                          = var.task_definition_arn
+  task_definition_placement_constraints        = var.task_definition_placement_constraints
+  task_exec_iam_policy_path                    = var.task_exec_iam_policy_path
+  task_exec_iam_role_arn                       = var.task_exec_iam_role_arn
+  task_exec_iam_role_description               = var.task_exec_iam_role_description
+  task_exec_iam_role_max_session_duration      = var.task_exec_iam_role_max_session_duration
+  task_exec_iam_role_name                      = var.task_exec_iam_role_name
+  task_exec_iam_role_path                      = var.task_exec_iam_role_path
+  task_exec_iam_role_permissions_boundary      = var.task_exec_iam_role_permissions_boundary
+  task_exec_iam_role_policies                  = var.task_exec_iam_role_policies
+  task_exec_iam_role_tags                      = var.task_exec_iam_role_tags
+  task_exec_iam_role_use_name_prefix           = var.task_exec_iam_role_use_name_prefix
+  task_exec_iam_statements                     = var.task_exec_iam_statements
+  task_exec_secret_arns                        = var.task_exec_secret_arns
+  task_exec_ssm_param_arns                     = var.task_exec_ssm_param_arns
+  task_tags                                    = var.task_tags
+  tasks_iam_role_arn                           = var.tasks_iam_role_arn
+  tasks_iam_role_description                   = var.tasks_iam_role_description
+  tasks_iam_role_max_session_duration          = var.tasks_iam_role_max_session_duration
+  tasks_iam_role_name                          = var.tasks_iam_role_name
+  tasks_iam_role_path                          = var.tasks_iam_role_path
+  tasks_iam_role_permissions_boundary          = var.tasks_iam_role_permissions_boundary
+  tasks_iam_role_policies                      = var.tasks_iam_role_policies
+  tasks_iam_role_statements                    = var.tasks_iam_role_statements
+  tasks_iam_role_tags                          = var.tasks_iam_role_tags
+  tasks_iam_role_use_name_prefix               = var.tasks_iam_role_use_name_prefix
+  timeouts                                     = var.timeouts
+  track_latest                                 = var.track_latest
+  triggers                                     = var.triggers
+  volume                                       = var.volume
+  volume_configuration                         = var.volume_configuration
+  vpc_id                                       = var.vpc_id
+  vpc_lattice_configurations                   = var.vpc_lattice_configurations
+  wait_for_steady_state                        = var.wait_for_steady_state
+  wait_until_stable                            = var.wait_until_stable
+  wait_until_stable_timeout                    = var.wait_until_stable_timeout
+}
