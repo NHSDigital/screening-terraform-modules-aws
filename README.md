@@ -341,6 +341,7 @@ Rules:
 | `security-hub` | — | Security Hub for centralized security findings |
 | `sns` | terraform-aws-modules/sns/aws | SNS topic with encryption and policies |
 | `sqs` | — | SQS queue with encryption |
+| `ssm-parameter` | — | — |
 | `tags` | — | Foundation: naming and tagging context module |
 | `vpc` | terraform-aws-modules/vpc/aws | VPC with subnets, routing, and gateways |
 | `vpce` | — | VPC endpoint (single service) |
