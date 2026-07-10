@@ -4,6 +4,16 @@
 # Naming, tagging and the master `enabled` switch come from
 # context.tf via `module.this`.
 ################################################################
+variable "iam_path" {
+  description = "Default IAM path applied to policies and roles when an entry does not override it. Defaults to `/<service>/<project>/` derived from context."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.iam_path == null || can(regex("^/.*/$", coalesce(var.iam_path, "/")))
+    error_message = "iam_path must start and end with a forward slash, e.g. \"/bcss/\"."
+  }
+}
 
 variable "alarms" {
   description = "Information about the CloudWatch alarms"
@@ -400,12 +410,6 @@ variable "create_infrastructure_iam_role" {
   default     = true
 }
 
-variable "create_security_group" {
-  description = "Determines if a security group is created"
-  type        = bool
-  default     = true
-}
-
 variable "create_service" {
   description = "Determines whether service resource will be created (set to `false` in case you want to create task definition only)"
   type        = bool
@@ -568,12 +572,6 @@ variable "iam_role_name" {
   default     = null
 }
 
-variable "iam_role_path" {
-  description = "IAM role path"
-  type        = string
-  default     = null
-}
-
 variable "iam_role_permissions_boundary" {
   description = "ARN of the policy that is used to set the permissions boundary for the IAM role"
   type        = string
@@ -638,12 +636,6 @@ variable "infrastructure_iam_role_description" {
 
 variable "infrastructure_iam_role_name" {
   description = "Name to use on IAM role created"
-  type        = string
-  default     = null
-}
-
-variable "infrastructure_iam_role_path" {
-  description = "IAM role path"
   type        = string
   default     = null
 }
@@ -789,68 +781,10 @@ variable "scheduling_strategy" {
   default     = null
 }
 
-variable "security_group_description" {
-  description = "Description of the security group created"
-  type        = string
-  default     = null
-}
-
-variable "security_group_egress_rules" {
-  description = "Security group egress rules to add to the security group created"
-  type = map(object({
-    name                         = optional(string)
-    cidr_ipv4                    = optional(string)
-    cidr_ipv6                    = optional(string)
-    description                  = optional(string)
-    from_port                    = optional(string)
-    ip_protocol                  = optional(string, "tcp")
-    prefix_list_id               = optional(string)
-    referenced_security_group_id = optional(string)
-    tags                         = optional(map(string), {})
-    to_port                      = optional(string)
-  }))
-  default = {}
-}
-
 variable "security_group_ids" {
   description = "List of security groups to associate with the task or service"
   type        = list(string)
   default     = []
-}
-
-variable "security_group_ingress_rules" {
-  description = "Security group ingress rules to add to the security group created"
-  type = map(object({
-    name                         = optional(string)
-    cidr_ipv4                    = optional(string)
-    cidr_ipv6                    = optional(string)
-    description                  = optional(string)
-    from_port                    = optional(string)
-    ip_protocol                  = optional(string, "tcp")
-    prefix_list_id               = optional(string)
-    referenced_security_group_id = optional(string)
-    tags                         = optional(map(string), {})
-    to_port                      = optional(string)
-  }))
-  default = {}
-}
-
-variable "security_group_name" {
-  description = "Name to use on security group created"
-  type        = string
-  default     = null
-}
-
-variable "security_group_tags" {
-  description = "A map of additional tags to add to the security group created"
-  type        = map(string)
-  default     = {}
-}
-
-variable "security_group_use_name_prefix" {
-  description = "Determines whether the security group name (`security_group_name`) is used as a prefix"
-  type        = bool
-  default     = true
 }
 
 variable "service_connect_configuration" {
@@ -988,12 +922,6 @@ variable "task_exec_iam_role_name" {
   default     = null
 }
 
-variable "task_exec_iam_role_path" {
-  description = "IAM role path"
-  type        = string
-  default     = null
-}
-
 variable "task_exec_iam_role_permissions_boundary" {
   description = "ARN of the policy that is used to set the permissions boundary for the IAM role"
   type        = string
@@ -1082,12 +1010,6 @@ variable "tasks_iam_role_max_session_duration" {
 
 variable "tasks_iam_role_name" {
   description = "Name to use on IAM role created"
-  type        = string
-  default     = null
-}
-
-variable "tasks_iam_role_path" {
-  description = "IAM role path"
   type        = string
   default     = null
 }

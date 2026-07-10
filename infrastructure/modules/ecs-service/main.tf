@@ -36,7 +36,6 @@ module "ecs_service" {
   cpu                                          = var.cpu
   create_iam_role                              = var.create_iam_role
   create_infrastructure_iam_role               = var.create_infrastructure_iam_role
-  create_security_group                        = var.create_security_group
   create_service                               = var.create_service
   create_task_definition                       = var.create_task_definition
   create_task_exec_iam_role                    = var.create_task_exec_iam_role
@@ -60,7 +59,7 @@ module "ecs_service" {
   iam_role_arn                                 = var.iam_role_arn
   iam_role_description                         = var.iam_role_description
   iam_role_name                                = var.iam_role_name
-  iam_role_path                                = var.iam_role_path
+  iam_role_path                                = local.iam_path
   iam_role_permissions_boundary                = var.iam_role_permissions_boundary
   iam_role_statements                          = var.iam_role_statements
   iam_role_tags                                = var.iam_role_tags
@@ -69,7 +68,7 @@ module "ecs_service" {
   infrastructure_iam_role_arn                  = var.infrastructure_iam_role_arn
   infrastructure_iam_role_description          = var.infrastructure_iam_role_description
   infrastructure_iam_role_name                 = var.infrastructure_iam_role_name
-  infrastructure_iam_role_path                 = var.infrastructure_iam_role_path
+  infrastructure_iam_role_path                 = local.iam_path
   infrastructure_iam_role_permissions_boundary = var.infrastructure_iam_role_permissions_boundary
   infrastructure_iam_role_tags                 = var.infrastructure_iam_role_tags
   infrastructure_iam_role_use_name_prefix      = var.infrastructure_iam_role_use_name_prefix
@@ -88,13 +87,7 @@ module "ecs_service" {
   runtime_platform                             = var.runtime_platform
   scale                                        = var.scale
   scheduling_strategy                          = var.scheduling_strategy
-  security_group_description                   = var.security_group_description
-  security_group_egress_rules                  = var.security_group_egress_rules
   security_group_ids                           = var.security_group_ids
-  security_group_ingress_rules                 = var.security_group_ingress_rules
-  security_group_name                          = var.security_group_name
-  security_group_tags                          = var.security_group_tags
-  security_group_use_name_prefix               = var.security_group_use_name_prefix
   service_connect_configuration                = var.service_connect_configuration
   service_registries                           = var.service_registries
   service_tags                                 = var.service_tags
@@ -108,7 +101,7 @@ module "ecs_service" {
   task_exec_iam_role_description               = var.task_exec_iam_role_description
   task_exec_iam_role_max_session_duration      = var.task_exec_iam_role_max_session_duration
   task_exec_iam_role_name                      = var.task_exec_iam_role_name
-  task_exec_iam_role_path                      = var.task_exec_iam_role_path
+  task_exec_iam_role_path                      = local.iam_path
   task_exec_iam_role_permissions_boundary      = var.task_exec_iam_role_permissions_boundary
   task_exec_iam_role_policies                  = var.task_exec_iam_role_policies
   task_exec_iam_role_tags                      = var.task_exec_iam_role_tags
@@ -121,7 +114,7 @@ module "ecs_service" {
   tasks_iam_role_description                   = var.tasks_iam_role_description
   tasks_iam_role_max_session_duration          = var.tasks_iam_role_max_session_duration
   tasks_iam_role_name                          = var.tasks_iam_role_name
-  tasks_iam_role_path                          = var.tasks_iam_role_path
+  tasks_iam_role_path                          = local.iam_path
   tasks_iam_role_permissions_boundary          = var.tasks_iam_role_permissions_boundary
   tasks_iam_role_policies                      = var.tasks_iam_role_policies
   tasks_iam_role_statements                    = var.tasks_iam_role_statements
