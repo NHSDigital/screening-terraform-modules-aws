@@ -25,7 +25,7 @@ output "user_pool_domain_prefix" {
 
 output "user_pool_hosted_ui_url" {
   description = "Hosted UI URL for the Cognito domain when a default domain prefix is configured."
-  value       = local.domain_name != null ? "https://${local.domain_name}.auth.${var.aws_region}.amazoncognito.com" : null
+  value       = local.domain_name != null ? "https://${local.domain_name}.auth.${data.aws_region.current.region}.amazoncognito.com" : null
 }
 
 output "client_ids" {

@@ -1,19 +1,65 @@
-variable "create" {
-  description = "Determines whether Cognito resources will be created."
-  type        = bool
-  default     = true
-}
+################################################################
+# Naming overrides
+################################################################
 
-variable "name_prefix" {
-  description = "Compatibility alias for older callers. Used as the default user pool and domain prefix when user_pool_name or domain are unset."
+variable "user_pool_name" {
+  description = "Override for the Cognito user pool name. Defaults to `<module.this.id>-users-pool`."
   type        = string
   default     = null
 }
 
 variable "domain" {
-  description = "Optional Cognito user pool domain prefix. Defaults to name_prefix or the resolved user pool name."
+  description = "Optional Cognito user pool domain prefix. Defaults to `module.this.id`."
   type        = string
   default     = null
+}
+
+variable "app_client_name" {
+  description = "Override for the default Cognito app client name. Defaults to `<module.this.id>-users-client`."
+  type        = string
+  default     = null
+}
+
+################################################################
+# User pool configuration
+################################################################
+
+variable "user_pool_tier" {
+  description = "Cognito User Pool tier. LITE avoids iam:PassRole requirements from ESSENTIALS/PLUS threat-protection features. Valid values: LITE, ESSENTIALS, PLUS."
+  type        = string
+  default     = "LITE"
+  validation {
+    condition     = contains(["LITE", "ESSENTIALS", "PLUS"], var.user_pool_tier)
+    error_message = "user_pool_tier must be one of: LITE, ESSENTIALS, PLUS."
+  }
+}
+
+variable "recovery_mechanisms" {
+  description = "Account recovery mechanisms for the user pool. Defaults to email only. Avoid including verified_phone_number unless an explicit sms_configuration SNS caller role is provided — doing so forces iam:PassRole on the caller role which may be denied by restrictive IAM policies."
+  type = list(object({
+    name     = string
+    priority = number
+  }))
+  default = [
+    {
+      name     = "verified_email"
+      priority = 1
+    }
+  ]
+}
+
+variable "password_policy" {
+  description = "Password policy for the Cognito user pool."
+  type = object({
+    minimum_length                   = optional(number, 8)
+    require_lowercase                = optional(bool, true)
+    require_numbers                  = optional(bool, true)
+    require_symbols                  = optional(bool, true)
+    require_uppercase                = optional(bool, true)
+    temporary_password_validity_days = optional(number, 7)
+    password_history_size            = optional(number, 0)
+  })
+  default = {}
 }
 
 variable "deletion_protection" {
@@ -44,6 +90,10 @@ variable "attribute_names" {
   default     = ["acr", "amr", "email", "idassurancelevel", "nhsid_nrbac_roles", "bcss_username", "sid", "uid"]
 }
 
+################################################################
+# Application clients
+################################################################
+
 variable "app_clients" {
   description = "List of Cognito application clients to create. This wrapper intentionally supports the shared-resources OAuth client pattern rather than the full upstream clients surface."
   type = list(object({
@@ -54,8 +104,8 @@ variable "app_clients" {
     generate_secret                               = optional(bool, true)
     auth_session_validity                         = optional(number, 3)
     enable_propagate_additional_user_context_data = optional(bool, false)
-    id_token_validity                             = optional(number)
-    refresh_token_validity                        = optional(number)
+    id_token_validity                             = optional(number, 1)    # hours (Cognito default unit)
+    refresh_token_validity                        = optional(number, 30)   # days  (Cognito default unit)
     prevent_user_existence_errors                 = optional(string)
     enable_token_revocation                       = optional(bool, true)
   }))
@@ -68,6 +118,16 @@ variable "app_clients" {
     ])
     error_message = "Each app_clients.default_redirect_uri must also appear in app_clients.callback_urls."
   }
+}
+
+################################################################
+# Bootstrap users
+################################################################
+
+variable "create" {
+  description = "Determines whether Cognito resources will be created."
+  type        = bool
+  default     = true
 }
 
 variable "bootstrap_users" {

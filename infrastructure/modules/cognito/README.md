@@ -12,13 +12,11 @@ Secrets Manager password flow.
 ## Design choices
 
 * Uses the upstream `lgallard/cognito-user-pool/aws` module pinned to `4.0.2`
-* Derives the user pool name from `user_pool_name`, then `name_prefix`, then the
-  shared context-derived module ID
+* Derives the user pool name from `var.user_pool_name`, falling back to
+  `<module.this.id>-users-pool`
 * Creates a Cognito domain by default, following the prior module behaviour
 * Enables `ignore_schema_changes = true` by default because this is recommended
   for new Cognito deployments with custom schemas
-* Keeps a small compatibility layer for legacy inputs such as `name_prefix` and
-  `attribute_names`
 * Narrows application client configuration to an `app_clients` interface instead
   of exposing the upstream generic `clients`, `resource_servers`, `user_groups`,
   and `identity_providers` inputs directly
@@ -27,9 +25,11 @@ Secrets Manager password flow.
 
 ## Usage
 
+### Minimal
+
 ```hcl
 module "cognito" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cognito?ref=main"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cognito?ref=vX.Y.Z"
 
   name        = "cognito"
   project     = "shared"
@@ -40,32 +40,113 @@ module "cognito" {
       callback_urls        = ["https://example.internal/login/oauth2/code/nhs-identity"]
       logout_urls          = ["https://example.internal/logout"]
       default_redirect_uri = "https://example.internal/login/oauth2/code/nhs-identity"
+      generate_secret      = true
+    },
+  ]
+}
+```
 
-      allowed_oauth_flows_user_pool_client = true
-      allowed_oauth_flows                  = ["code"]
-      allowed_oauth_scopes = [
-        "email",
-        "openid",
-        "profile",
-        "aws.cognito.signin.user.admin",
-      ]
-      supported_identity_providers = ["COGNITO"]
-      generate_secret              = true
-    }
+### Common production-style
+
+```hcl
+module "cognito" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cognito?ref=vX.Y.Z"
+
+  name        = "bcss"
+  project     = "screening"
+  environment = "prod"
+  context     = module.this.context
+
+  deletion_protection = "ACTIVE"
+  mfa_configuration   = "OPTIONAL"
+
+  app_clients = [
+    {
+      name                   = "bcss-web-client"
+      callback_urls          = ["https://bcss.nhs.net/login/oauth2/code/nhs-identity"]
+      logout_urls            = ["https://bcss.nhs.net/logout"]
+      default_redirect_uri   = "https://bcss.nhs.net/login/oauth2/code/nhs-identity"
+      generate_secret        = true
+      id_token_validity      = 60
+      refresh_token_validity = 8
+    },
+  ]
+}
+```
+
+### Advanced — custom naming with bootstrap users
+
+```hcl
+module "cognito" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cognito?ref=vX.Y.Z"
+
+  name        = "bcss"
+  project     = "screening"
+  environment = "training"
+  context     = module.this.context
+
+  user_pool_name  = "training-users-pool"
+  domain          = "bcss-training"
+  app_client_name = "training-web-client"
+
+  app_clients = [
+    {
+      callback_urls        = ["https://training.bcss.nhs.net/login/oauth2/code/nhs-identity"]
+      logout_urls          = ["https://training.bcss.nhs.net/logout"]
+      default_redirect_uri = "https://training.bcss.nhs.net/login/oauth2/code/nhs-identity"
+      generate_secret      = true
+    },
   ]
 
   bootstrap_users = [
     {
       uuid               = "11111111-1111-1111-1111-111111111111"
-      bcss_username      = "test.user"
+      bcss_username      = "training.user.1"
       id_assurance_level = "3"
       rbac_role          = "[{activities=[BS-Select], activity_codes=[B1808]}]"
-    }
+      user_password      = "InitialPass1!"
+    },
+    {
+      uuid               = "22222222-2222-2222-2222-222222222222"
+      bcss_username      = "training.user.2"
+      id_assurance_level = "3"
+      rbac_role          = "[{activities=[BS-Select], activity_codes=[B1808]}]"
+    },
   ]
 }
 ```
 
-## Current defaults inherited from the old module
+## Conventions
+
+### Naming
+
+All names derive from `module.this.id` (provided via `context.tf`) but can be
+overridden individually:
+
+|Resource|Default|Override variable|
+|---|---|---|
+|User pool name|`<module.this.id>-users-pool`|`var.user_pool_name`|
+|Domain prefix|`<module.this.id>`|`var.domain`|
+|App client name|`<module.this.id>-users-client`|`var.app_client_name`|
+
+### Application clients
+
+All clients receive the following hardcoded settings regardless of caller input:
+
+- `allowed_oauth_flows = ["code"]`
+- `allowed_oauth_flows_user_pool_client = true`
+- `allowed_oauth_scopes = ["email", "openid", "profile", "aws.cognito.signin.user.admin"]`
+- `explicit_auth_flows = ["ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH", "ALLOW_USER_PASSWORD_AUTH"]`
+- `supported_identity_providers = ["COGNITO"]`
+- `access_token_validity = 60` (minutes)
+
+### Schema changes
+
+`ignore_schema_changes = true` is hardcoded. Cognito does not support removing
+custom attributes after creation; enabling drift-detection would cause unnecessary
+plan noise on every run.
+
+## Enforced defaults
 
 * `auto_verified_attributes = ["email"]`
 * `mfa_configuration = "OFF"`
