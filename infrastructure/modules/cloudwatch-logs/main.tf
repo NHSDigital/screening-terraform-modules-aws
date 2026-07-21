@@ -27,7 +27,7 @@ module "log_group" {
   source  = "terraform-aws-modules/cloudwatch/aws//modules/log-group"
   version = "5.7.2"
 
-  create = module.this.enabled
+  create = module.log_group_label.enabled
 
   name              = local.log_group_name
   retention_in_days = var.retention_in_days
@@ -39,7 +39,7 @@ module "log_group" {
 }
 
 module "log_stream" {
-  for_each = module.this.enabled ? toset(var.stream_names) : toset([])
+  for_each = module.log_group_label.enabled ? toset(var.stream_names) : toset([])
 
   source  = "terraform-aws-modules/cloudwatch/aws//modules/log-stream"
   version = "5.7.2"
