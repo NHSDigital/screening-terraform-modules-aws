@@ -4,22 +4,31 @@
 # Thin NHS wrapper around the community secrets-manager module
 # that enforces the screening platform's baseline controls:
 #
-#   * Naming:        derived from context labels via module.this.id
-#   * Tagging:       all NHS-required tags applied automatically
+#   * Naming:        derived from context labels via module.secret_label.id
+#   * Tagging:       all NHS-required tags applied via module.secret_label.tags
 #   * Public policy: always blocked (block_public_policy = true)
-#   * Enabled flag:  create = module.this.enabled
+#   * Enabled flag:  create = module.secret_label.enabled
 #
 # Inputs intentionally NOT exposed (hardcoded below):
 #   - block_public_policy → always true; callers cannot override
 #
 # Cross-variable input constraints are enforced in validations.tf.
 ################################################################
+module "secret_label" {
+  source = "../tags"
+
+  # Allow forward slashes for hierarchical secret names
+  regex_replace_chars = "/[^a-zA-Z0-9-_\\/]/"
+
+  context = module.this.context
+}
+
 
 module "secret" {
   source  = "terraform-aws-modules/secrets-manager/aws"
   version = "2.1.0"
 
-  create = module.this.enabled
+  create = module.secret_label.enabled
 
   # Naming — always derived from context labels
   name = local.secret_name
@@ -49,5 +58,5 @@ module "secret" {
   rotation_rules      = var.rotation_rules
 
   # Tags — automatically populated from context
-  tags = module.this.tags
+  tags = module.secret_label.tags
 }

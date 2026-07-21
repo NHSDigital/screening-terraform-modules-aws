@@ -115,7 +115,7 @@ module "rotated_password" {
 - `random_password_override_special` overrides the default special character set used during password generation.
 - `rotate_immediately` controls whether rotation fires immediately (`true`) or waits for the next scheduled window (`false`); only relevant when `enable_rotation = true`.
 - `create_policy` defaults to `false`; set to `true` and provide `policy_statements` to attach a resource-based policy.
-- Secret names are derived from `module.this.id` for consistency with other screening modules.
+- Secret names are derived from `module.secret_label.id` (hierarchical, forward-slash safe) for consistency with other screening modules.
 
 ## What this module does NOT do
 
@@ -153,6 +153,7 @@ The following constraints are enforced at `plan` time via preconditions in `vali
 | Name | Source | Version |
 | ---- | ------ | ------- |
 | <a name="module_secret"></a> [secret](#module\_secret) | terraform-aws-modules/secrets-manager/aws | 2.1.0 |
+| <a name="module_secret_label"></a> [secret\_label](#module\_secret\_label) | ../tags | n/a |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
@@ -201,7 +202,7 @@ The following constraints are enforced at `plan` time via preconditions in `vali
 | <a name="input_rotate_immediately"></a> [rotate\_immediately](#input\_rotate\_immediately) | When enable\_rotation is true, specifies whether to rotate the secret immediately or wait until the next scheduled rotation window. Defaults to immediate rotation when not set. | `bool` | `null` | no |
 | <a name="input_rotation_lambda_arn"></a> [rotation\_lambda\_arn](#input\_rotation\_lambda\_arn) | ARN of the Lambda function that rotates the secret. Required when enable\_rotation is true. | `string` | `""` | no |
 | <a name="input_rotation_rules"></a> [rotation\_rules](#input\_rotation\_rules) | Rotation schedule for the secret. Provide either automatically\_after\_days or a schedule\_expression (cron/rate). Required when enable\_rotation is true. | <pre>object({<br/>    automatically_after_days = optional(number)<br/>    duration                 = optional(string)<br/>    schedule_expression      = optional(string)<br/>  })</pre> | `null` | no |
-| <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | Optional explicit name for the secret. When null, the name is derived from context labels via module.this.id. | `string` | `null` | no |
+| <a name="input_secret_name"></a> [secret\_name](#input\_secret\_name) | Optional explicit name for the secret. When null, the name is derived from context labels via module.secret\_label.id. | `string` | `null` | no |
 | <a name="input_secret_string"></a> [secret\_string](#input\_secret\_string) | The secret value to store as a plaintext string. Use jsonencode() to store structured data such as database credentials. Mutually exclusive with secret\_string\_wo. | `string` | `null` | no |
 | <a name="input_secret_string_wo"></a> [secret\_string\_wo](#input\_secret\_string\_wo) | Write-only variant of secret\_string. The value is accepted by Terraform but never stored in state, making it safer for production secrets. Use jsonencode() for structured data. Mutually exclusive with secret\_string. | `string` | `null` | no |
 | <a name="input_secret_string_wo_version"></a> [secret\_string\_wo\_version](#input\_secret\_string\_wo\_version) | Trigger value used alongside secret\_string\_wo. Increment this (e.g. a timestamp or counter) whenever the secret value changes, so Terraform knows to push the new value. | `string` | `null` | no |

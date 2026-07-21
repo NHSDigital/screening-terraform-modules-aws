@@ -2,11 +2,12 @@
 # Secrets Manager-specific inputs.
 #
 # Naming, tagging and the master `enabled` switch come from
-# context.tf via `module.this`.
+# context.tf via `module.this`, and are processed by `module.secret_label`
+# to provide hierarchical naming support (forward-slash safe).
 #
 # Inputs NOT exposed here (opinionated defaults hardcoded in main.tf):
 #   - block_public_policy  → always true
-#   - name / name_prefix   → derived from module.this.id via locals.tf
+#   - name / name_prefix   → derived from module.secret_label.id via locals.tf
 #   - secret_binary        → not supported; use secret_string
 #   - replica              → replication not required for this use case
 #   - version_stages       → low-value for standard use cases
@@ -19,7 +20,7 @@
 variable "secret_name" {
   type        = string
   default     = null
-  description = "Optional explicit name for the secret. When null, the name is derived from context labels via module.this.id."
+  description = "Optional explicit name for the secret. When null, the name is derived from context labels via module.secret_label.id."
 }
 
 ################################################################

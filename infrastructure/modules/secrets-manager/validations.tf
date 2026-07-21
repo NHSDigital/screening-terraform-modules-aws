@@ -11,7 +11,7 @@
 ################################################################
 
 resource "terraform_data" "validations" {
-  count = module.this.enabled ? 1 : 0
+  count = module.secret_label.enabled ? 1 : 0
 
   lifecycle {
     precondition {
