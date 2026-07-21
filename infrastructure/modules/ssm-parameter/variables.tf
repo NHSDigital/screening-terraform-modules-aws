@@ -39,14 +39,14 @@ variable "overwrite" {
   default     = null
 }
 
-variable "path" {
-  description = "Path part of the name of the parameter. Defaults to `/<service>/<project>/<environment>` derived from context."
+variable "parameter_name" {
+  description = "Optional override for the full SSM parameter name (e.g., `/bcss/prod/myapp/config`). When provided, this takes precedence over the context-derived name. If not specified, the parameter name is derived from context as `/<service>/<project>/<environment>/<stack>/<name>`."
   type        = string
   default     = null
 
   validation {
-    condition     = var.path == null || can(regex("^/", coalesce(var.path, "/")))
-    error_message = "path must start with a forward slash, e.g. \"/bcss\"."
+    condition     = var.parameter_name == null || can(regex("^/", coalesce(var.parameter_name, "/")))
+    error_message = "parameter_name must start with a forward slash, e.g. \"/bcss/prod/myapp/config\"."
   }
 }
 

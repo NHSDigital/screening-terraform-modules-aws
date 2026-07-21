@@ -97,6 +97,7 @@ No providers.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
+| <a name="module_ssm_param_label"></a> [ssm\_param\_label](#module\_ssm\_param\_label) | ../tags | n/a |
 | <a name="module_ssm_parameter"></a> [ssm\_parameter](#module\_ssm\_parameter) | terraform-aws-modules/ssm-parameter/aws | 2.1.0 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
@@ -132,7 +133,7 @@ No resources.
 | <a name="input_on_off_pattern"></a> [on\_off\_pattern](#input\_on\_off\_pattern) | Used to turn resources on and off based on a time pattern | `string` | `"n/a"` | no |
 | <a name="input_overwrite"></a> [overwrite](#input\_overwrite) | Overwrite an existing parameter. If not specified, defaults to `false` during create operations to avoid overwriting existing resources and then `true` for all subsequent operations once the resource is managed by Terraform | `bool` | `null` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | The name and or NHS.net email address of the service owner | `string` | `"None"` | no |
-| <a name="input_path"></a> [path](#input\_path) | Path part of the name of the parameter. Defaults to `/<service>/<project>/<environment>` derived from context. | `string` | `null` | no |
+| <a name="input_parameter_name"></a> [parameter\_name](#input\_parameter\_name) | Optional override for the full SSM parameter name (e.g., `/bcss/prod/myapp/config`). When provided, this takes precedence over the context-derived name. If not specified, the parameter name is derived from context as `/<service>/<project>/<environment>/<stack>/<name>`. | `string` | `null` | no |
 | <a name="input_project"></a> [project](#input\_project) | ID element. A project identifier, indicating the name or role of the project the resource is for, such as `website` or `api` | `string` | `null` | no |
 | <a name="input_public_facing"></a> [public\_facing](#input\_public\_facing) | Whether this resource is public facing | `bool` | `false` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br/>Characters matching the regex will be removed from the ID elements.<br/>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
