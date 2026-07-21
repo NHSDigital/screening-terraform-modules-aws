@@ -317,6 +317,7 @@ Rules:
 | `ecr` | — | ECR repository with security controls |
 | `ecs-cluster` | terraform-aws-modules/ecs/aws//modules/cluster | ECS Fargate cluster |
 | `ecs-service` | terraform-aws-modules/ecs/aws//modules/service | ECS service and task definition |
+| `efs` | terraform-aws-modules/efs/aws | EFS file system with access points and mount targets |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
 | `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |

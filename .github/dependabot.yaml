@@ -50,6 +50,7 @@ updates:
       - "infrastructure/modules/ecr"
       - "infrastructure/modules/ecs-cluster"
       - "infrastructure/modules/ecs-service"
+      - "infrastructure/modules/efs"
       - "infrastructure/modules/elasticache"
       - "infrastructure/modules/github-config"
       - "infrastructure/modules/guardduty"
