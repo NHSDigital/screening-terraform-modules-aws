@@ -39,7 +39,7 @@ module "role_label" {
 
 module "policies" {
   source   = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  version  = "6.6.0"
+  version  = "6.6.1"
   for_each = module.this.enabled ? var.policies : {}
 
   name        = module.policy_label[each.key].id
@@ -63,7 +63,7 @@ module "policies" {
 
 module "roles" {
   source   = "terraform-aws-modules/iam/aws//modules/iam-role"
-  version  = "6.6.0"
+  version  = "6.6.1"
   for_each = module.this.enabled ? var.roles : {}
 
   name            = module.role_label[each.key].id

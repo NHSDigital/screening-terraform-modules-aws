@@ -124,13 +124,13 @@ module "lambda_with_layers" {
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.55.0 |
 
 ## Modules
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_lambda_function"></a> [lambda\_function](#module\_lambda\_function) | terraform-aws-modules/lambda/aws | 8.7.0 |
+| <a name="module_lambda_function"></a> [lambda\_function](#module\_lambda\_function) | terraform-aws-modules/lambda/aws | 8.8.0 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
