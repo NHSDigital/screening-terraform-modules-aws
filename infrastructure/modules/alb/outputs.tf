@@ -28,17 +28,22 @@ output "listeners" {
   value       = module.alb.listeners
 }
 
+output "listener_rules" {
+  description = "Map of listener rules created and their attributes. Useful for conditional routing and advanced traffic patterns."
+  value       = module.alb.listener_rules
+}
+
 output "target_groups" {
   description = "Map of target groups created and their attributes. ECS tasks reference target_group ARNs from here."
   value       = module.alb.target_groups
 }
 
 output "security_group_id" {
-  description = "ID of the security group created for the load balancer."
+  description = "ID of the first security group supplied via var.security_groups (not created by this module; caller-supplied)."
   value       = module.alb.security_group_id
 }
 
 output "security_group_arn" {
-  description = "ARN of the security group created for the load balancer."
+  description = "ARN of the first security group supplied via var.security_groups (not created by this module; caller-supplied)."
   value       = module.alb.security_group_arn
 }

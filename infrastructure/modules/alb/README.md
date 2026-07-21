@@ -12,11 +12,15 @@ Thin NHS wrapper around [terraform-aws-modules/alb/aws](https://registry.terrafo
 | `desync_mitigation_mode` | `defensive` (default for ALB) | Mitigates HTTP request smuggling attacks; set to `strictest` for highest security |
 | `xff_header_processing_mode` | `append` (default for ALB) | Controls how X-Forwarded-For headers are handled to prevent spoofing |
 
+| Access logs for internet-facing | Strongly recommended via validation | Internet-facing ALBs/NLBs should log to S3 for security compliance and auditing |
+| HTTPS listeners require certificate | Enforced at apply time | All HTTPS/TLS listeners must provide `certificate_arn`; HTTP listeners use automatic redirect |
+
 ## What this module does NOT do
 
 - **Does not create security groups.** Callers must define security groups and pass IDs via `var.security_groups`. This enforces explicit security group management and prevents accidental exposure.
-- **Does not validate listener/target group definitions.** Callers define listeners and target groups directly; it is the caller's responsibility to ensure listeners use HTTPS with TLS 1.2+ for production.
-- **Does not manage certificates.** Supply your own ACM certificate ARNs in listener definitions.
+- **Does not validate listener/target group definitions.** Callers define listeners and target groups directly. HTTPS and TLS listeners **must** include `certificate_arn` in their configuration. HTTP listeners automatically redirect to HTTPS if `enable_http_https_redirect = true` (default).
+- **Does not manage certificates.** Supply your own ACM certificate ARNs in listener definitions for any HTTPS/TLS protocol listeners.
+- **Does not create Route53 DNS records.** Use the [r53 module](../../modules/r53) with the ALB's `dns_name` and `zone_id` outputs to create DNS aliases pointing to the load balancer.
 
 ## Usage Examples
 
@@ -545,6 +549,18 @@ module "alb_custom" {
 }
 ```
 
+## Terraform Validation Rules
+
+This module enforces several validation constraints via `terraform_data` preconditions. These are checked during `terraform plan` and will fail fast if violated:
+
+| Validation | Condition | Resolution |
+|---|---|---|
+| **Subnet count** | Consumer-controlled | Subnet count is not enforced at module level, allowing flexibility for development/cost-optimized environments (single AZ) or production (multi-AZ). Consumer should specify based on HA requirements. |
+| **Internet-facing requires access logs** | `internal == true OR access_logs != null` | Either set `internal = true` for internal LBs, or enable access logging via the `access_logs` variable for internet-facing ALBs/NLBs (compliance requirement). |
+| **HTTPS listeners require certificate** | Each HTTPS/TLS listener must have `certificate_arn` | Provide a valid ACM certificate ARN in listener configuration. Example: `certificate_arn = data.aws_acm_certificate.selected.arn` |
+| **Security groups required** | `length(var.security_groups) > 0` | Pass at least one pre-created security group ID via `var.security_groups`. |
+| **ALB-only settings** | ALB-specific variables only valid for `load_balancer_type = "application"` | Settings like `enable_http2`, `desync_mitigation_mode`, `preserve_host_header`, and `xff_header_processing_mode` are ALB-only. Set to `null` or default values for NLB. |
+
 ## Security Group Requirements
 
 **Important:** This module does NOT create security groups. Callers must create and supply security groups via `var.security_groups`.
@@ -661,9 +677,10 @@ For **NLB (network load balancer):**
 | <a name="output_arn_suffix"></a> [arn\_suffix](#output\_arn\_suffix) | ARN suffix of the load balancer. Used with CloudWatch metrics. |
 | <a name="output_dns_name"></a> [dns\_name](#output\_dns\_name) | DNS name of the load balancer. Used by Route53 alias records. |
 | <a name="output_id"></a> [id](#output\_id) | ID of the load balancer (same as ARN). |
+| <a name="output_listener_rules"></a> [listener\_rules](#output\_listener\_rules) | Map of listener rules created and their attributes. Useful for conditional routing and advanced traffic patterns. |
 | <a name="output_listeners"></a> [listeners](#output\_listeners) | Map of listeners created and their attributes. ECS tasks use this for depends\_on. |
-| <a name="output_security_group_arn"></a> [security\_group\_arn](#output\_security\_group\_arn) | ARN of the security group created for the load balancer. |
-| <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | ID of the security group created for the load balancer. |
+| <a name="output_security_group_arn"></a> [security\_group\_arn](#output\_security\_group\_arn) | ARN of the first security group supplied via var.security\_groups (not created by this module; caller-supplied). |
+| <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | ID of the first security group supplied via var.security\_groups (not created by this module; caller-supplied). |
 | <a name="output_target_groups"></a> [target\_groups](#output\_target\_groups) | Map of target groups created and their attributes. ECS tasks reference target\_group ARNs from here. |
 | <a name="output_zone_id"></a> [zone\_id](#output\_zone\_id) | Hosted zone ID of the load balancer. Used by Route53 alias records. |
 <!-- END_TF_DOCS -->

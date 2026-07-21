@@ -9,6 +9,11 @@
 resource "terraform_data" "validation" {
   lifecycle {
     precondition {
+      condition     = var.internal || var.access_logs != null
+      error_message = "Internet-facing ALB/NLB should have access_logs enabled for security compliance, auditing, and troubleshooting. Set access_logs block or set internal = true."
+    }
+
+    precondition {
       condition     = length(var.security_groups) > 0
       error_message = "var.security_groups must contain at least one security group ID. Callers must pre-create and supply security groups explicitly."
     }
