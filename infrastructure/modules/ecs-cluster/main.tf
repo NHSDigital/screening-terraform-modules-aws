@@ -7,7 +7,11 @@
 #   * Creation is gated by module.this.enabled
 #   * Naming and tagging are enforced via context.tf
 #   * CloudWatch Container Insights enabled by default
-#   * ECS Exec logging uses an explicit CloudWatch Log Group
+#   * ECS Exec logging supports two destination options (KMS encrypted):
+#     - CloudWatch Logs: Log group created separately via cloudwatch-logs module
+#     - S3: Bucket with encryption enabled (managed by caller)
+#   * At least one log destination REQUIRED if ECS Exec enabled
+#   * Cross-variable validation rules enforced in validations.tf
 #
 # Naming and tagging are derived from context.tf via module.this.
 ################################################################
@@ -23,18 +27,19 @@ module "ecs_cluster" {
 
   configuration = local.cluster_configuration
 
-  # The CloudWatch Log Group is created only when ECS Exec is enabled.
-  # Consider moving the CloudWatch Log Group creation to a separate module
-  # so that it can be created independently of the ECS cluster.
-  create_cloudwatch_log_group            = var.enable_execute_command
-  cloudwatch_log_group_name              = local.cloudwatch_log_group_name
-  cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_kms_key_id
-  cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_retention_in_days
-  cloudwatch_log_group_class             = var.cloudwatch_log_group_class
+  # CloudWatch Log Group is optional (if using CloudWatch for ECS Exec logs).
+  # When provided, it MUST be pre-created via the cloudwatch-logs module.
+  # Do not create it here; only reference the pre-created log group.
+  # Encryption (kms_key_id) is mandatory for security compliance.
+  # S3 logging is supported as an alternative. See validations.tf for constraints.
+  create_cloudwatch_log_group = false
 
   cluster_capacity_providers         = var.cluster_capacity_providers
   default_capacity_provider_strategy = var.default_capacity_provider_strategy
   service_connect_defaults           = var.service_connect_defaults
+
+  # Container Insights setting is configured in local.cluster_settings
+  # based on var.enable_container_insights; no need to set it again here.
 
   # Keep the module focused on the cluster itself; callers should
   # manage IAM/security group resources separately in dedicated modules.
