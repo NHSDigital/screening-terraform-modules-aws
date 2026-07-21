@@ -103,8 +103,8 @@ variable "desync_mitigation_mode" {
   description = "HTTP request desync mitigation mode. Valid values: 'off', 'defensive', 'strictest', 'monitor'. Only valid for ALB. 'defensive' is the AWS default and recommended for security. See https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#desync-mitigation-mode"
 
   validation {
-    condition     = contains(["off", "defensive", "strictest", "monitor"], var.desync_mitigation_mode)
-    error_message = "desync_mitigation_mode must be one of: off, defensive, strictest, monitor."
+    condition     = (var.load_balancer_type != "application" && var.desync_mitigation_mode == null) || (var.load_balancer_type == "application" && contains(["off", "defensive", "strictest", "monitor"], var.desync_mitigation_mode))
+    error_message = "desync_mitigation_mode must be one of: off, defensive, strictest, monitor (ALB only). For NLB, omit this variable or set to null."
   }
 }
 
