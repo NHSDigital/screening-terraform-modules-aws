@@ -7,11 +7,16 @@
 #   * Deletion protection: enabled by default; set enable_deletion_protection = false for non-prod
 #   * Invalid header fields: always dropped (ALB only)
 #   * HTTP→HTTPS redirect: automatic on port 80 for ALBs (disable with enable_http_https_redirect = false)
-#   * Naming:  derived from context labels via module.this.id
+#   * Naming: derived from context labels via module.this.id
 #   * Tagging: all NHS-required tags applied automatically
 #   * Enabled flag: create = module.this.enabled
+#   * Security groups: REQUIRED caller-supplied list (not created by this module)
+#   * Desync mitigation: ALB-only, configurable for HTTP desync attack protection
+#   * HTTP/2: ALB-only, enabled by default
+#   * XFF header processing: ALB-only, controlled for request header validation
 #
 # Inputs intentionally NOT exposed (hardcoded below):
+#   - create_security_group → always false (use var.security_groups)
 #   - drop_invalid_header_fields → always true (ALB); null (NLB)
 ################################################################
 
@@ -38,11 +43,28 @@ module "alb" {
   drop_invalid_header_fields = var.load_balancer_type == "application" ? true : null
 
   # ----------------------------------------------------------------
-  # Security group rules — caller-supplied so both ALB (HTTP+HTTPS)
-  # and NLB (TCP) patterns are supported.
+  # Security groups — REQUIRED caller-supplied list.
+  # create_security_group is hardcoded false to enforce that callers
+  # pre-create security groups with explicit ingress/egress rules.
   # ----------------------------------------------------------------
-  security_group_ingress_rules = var.security_group_ingress_rules
-  security_group_egress_rules  = var.security_group_egress_rules
+  create_security_group = false
+  security_groups       = var.security_groups
+
+  # ----------------------------------------------------------------
+  # ALB-specific security settings.
+  # Desync mitigation: prevents HTTP request smuggling attacks.
+  # HTTP/2: improves connection efficiency (ALB only).
+  # XFF header processing: validates X-Forwarded-For headers (ALB only).
+  # Idle timeout: connection timeout in seconds (ALB/NLB).
+  # Preserve host header: maintains original Host header from client (ALB only).
+  # Cross-zone load balancing: distribute traffic across AZs.
+  # ----------------------------------------------------------------
+  desync_mitigation_mode           = var.load_balancer_type == "application" ? var.desync_mitigation_mode : null
+  enable_http2                     = var.load_balancer_type == "application" ? var.enable_http2 : null
+  xff_header_processing_mode       = var.load_balancer_type == "application" ? var.xff_header_processing_mode : null
+  idle_timeout                     = var.idle_timeout
+  preserve_host_header             = var.load_balancer_type == "application" ? var.preserve_host_header : null
+  enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
 
   # ----------------------------------------------------------------
   # Access logging to a caller-supplied S3 bucket.

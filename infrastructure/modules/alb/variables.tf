@@ -5,6 +5,7 @@
 # context.tf via `module.this`.
 #
 # Inputs intentionally NOT exposed (hardcoded in main.tf):
+#   - create_security_group → always false (use var.security_groups)
 #   - enable_deletion_protection → always true
 #   - drop_invalid_header_fields → always true for ALB
 ################################################################
@@ -33,42 +34,17 @@ variable "subnets" {
 
 variable "vpc_id" {
   type        = string
-  description = "ID of the VPC in which the load balancer security group will be created."
+  description = "ID of the VPC in which the load balancer will be created."
 }
 
-variable "security_group_ingress_rules" {
-  type        = any
-  default     = {}
+variable "security_groups" {
+  type        = list(string)
   description = <<-EOT
-    Map of ingress rules to add to the load balancer security group.
-    Each key is a logical name; each value is an object describing the rule.
+    List of security group IDs to attach to the load balancer.
+    REQUIRED — callers must pre-create security groups with appropriate ingress/egress rules.
+    This enforces explicit security group management and prevents accidental exposure.
     Example:
-      security_group_ingress_rules = {
-        https = {
-          from_port   = 443
-          to_port     = 443
-          ip_protocol = "tcp"
-          description = "HTTPS from internet"
-          cidr_ipv4   = "0.0.0.0/0"
-        }
-      }
-  EOT
-}
-
-variable "security_group_egress_rules" {
-  type        = any
-  default     = {}
-  description = <<-EOT
-    Map of egress rules to add to the load balancer security group.
-    Example:
-      security_group_egress_rules = {
-        https_out = {
-          from_port   = 443
-          to_port     = 443
-          ip_protocol = "tcp"
-          cidr_ipv4   = "0.0.0.0/0"
-        }
-      }
+      security_groups = [aws_security_group.alb.id]
   EOT
 }
 
@@ -119,4 +95,55 @@ variable "enable_http_https_redirect" {
   type        = bool
   default     = true
   description = "When true, automatically adds a port-80 HTTP-to-HTTPS (301) redirect listener. Only applies when load_balancer_type is 'application'. Set to false if you are defining your own HTTP listener or the ALB is not serving HTTPS traffic."
+}
+
+variable "desync_mitigation_mode" {
+  type        = string
+  default     = "defensive"
+  description = "HTTP request desync mitigation mode. Valid values: 'off', 'defensive', 'strictest', 'monitor'. Only valid for ALB. 'defensive' is the AWS default and recommended for security. See https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#desync-mitigation-mode"
+
+  validation {
+    condition     = contains(["off", "defensive", "strictest", "monitor"], var.desync_mitigation_mode)
+    error_message = "desync_mitigation_mode must be one of: off, defensive, strictest, monitor."
+  }
+}
+
+variable "idle_timeout" {
+  type        = number
+  default     = 60
+  description = "Time in seconds that a connection is allowed to be idle. Valid range: 1–4000. Defaults to 60. Apply to both ALB and NLB."
+
+  validation {
+    condition     = var.idle_timeout >= 1 && var.idle_timeout <= 4000
+    error_message = "idle_timeout must be between 1 and 4000."
+  }
+}
+
+variable "preserve_host_header" {
+  type        = bool
+  default     = false
+  description = "When true, ALB preserves the original Host header from the client request instead of rewriting it. Only valid for ALB. Defaults to false."
+}
+
+variable "xff_header_processing_mode" {
+  type        = string
+  default     = "append"
+  description = "How the ALB handles X-Forwarded-For headers. Valid values: 'append', 'replace', 'remove'. 'append' is AWS default. Only valid for ALB."
+
+  validation {
+    condition     = contains(["append", "replace", "remove"], var.xff_header_processing_mode)
+    error_message = "xff_header_processing_mode must be one of: append, replace, remove."
+  }
+}
+
+variable "enable_http2" {
+  type        = bool
+  default     = true
+  description = "When true, HTTP/2 is enabled on the ALB. Improves connection efficiency. Only valid for ALB. Defaults to true."
+}
+
+variable "enable_cross_zone_load_balancing" {
+  type        = bool
+  default     = true
+  description = "When true, cross-zone load balancing distributes traffic across all registered targets in all enabled AZs. Defaults to true. Incurs additional data transfer costs but provides better availability."
 }

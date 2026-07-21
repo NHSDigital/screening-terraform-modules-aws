@@ -6,13 +6,56 @@ Thin NHS wrapper around [terraform-aws-modules/alb/aws](https://registry.terrafo
 
 | Setting | Value | Reason |
 |---|---|---|
-| `drop_invalid_header_fields` | `true` (ALB only) | Prevents HTTP header injection attacks |
+| `create_security_group` | `false` (hardcoded) | Callers **must** pre-create and supply security groups explicitly, enforcing deliberate ingress/egress rule design |
+| `drop_invalid_header_fields` | `true` (ALB only) | Prevents HTTP header injection attacks on Application Load Balancers |
+| `enable_deletion_protection` | `true` (default) | Prevents accidental deletion in production; set to `false` for non-production only |
+| `desync_mitigation_mode` | `defensive` (default for ALB) | Mitigates HTTP request smuggling attacks; set to `strictest` for highest security |
+| `xff_header_processing_mode` | `append` (default for ALB) | Controls how X-Forwarded-For headers are handled to prevent spoofing |
 
-## Usage
+## What this module does NOT do
 
-### Internet-facing ALB with HTTPS
+- **Does not create security groups.** Callers must define security groups and pass IDs via `var.security_groups`. This enforces explicit security group management and prevents accidental exposure.
+- **Does not validate listener/target group definitions.** Callers define listeners and target groups directly; it is the caller's responsibility to ensure listeners use HTTPS with TLS 1.2+ for production.
+- **Does not manage certificates.** Supply your own ACM certificate ARNs in listener definitions.
+
+## Usage Examples
+
+### 1. Internet-facing ALB with HTTPS (Minimal)
 
 ```hcl
+# 1. Create security group with explicit rules
+resource "aws_security_group" "alb" {
+  name_prefix = "alb-"
+  vpc_id      = data.aws_vpc.selected.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    description = "HTTP from internet — auto-redirected to HTTPS"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    description = "HTTPS from internet"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    description = "Allow all outbound traffic to targets"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = module.this.tags
+}
+
+# 2. Create the ALB, passing the security group
 module "alb" {
   source = "../../modules/alb"
 
@@ -21,175 +64,512 @@ module "alb" {
   name        = "bcss-web"
   label_order = ["service", "environment", "stack", "name"]
 
-  vpc_id  = data.aws_vpc.selected.id
-  subnets = data.aws_subnets.public.ids
+  load_balancer_type = "application"
+  internal           = false
+  vpc_id             = data.aws_vpc.selected.id
+  subnets            = data.aws_subnets.public.ids
 
-  access_logs = {
-    bucket  = module.logs_bucket.id
-    prefix  = terraform.workspace
-    enabled = true
-  }
+  # REQUIRED: pass pre-created security groups
+  security_groups = [aws_security_group.alb.id]
 
-  security_group_ingress_rules = {
-    http = {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      description = "HTTP from internet — redirected to HTTPS by listener"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-    https = {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      description = "HTTPS from internet"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-  }
+  # Automatic HTTP → HTTPS redirect enabled by default
+  enable_http_https_redirect = true
 
-  security_group_egress_rules = {
-    https_out = {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      description = "HTTPS to targets"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-  }
-
-  # HTTP → HTTPS redirect on port 80 is added automatically by this module.
+  # Define only HTTPS listener; HTTP redirect is automatic
   listeners = {
     https = {
       port            = 443
       protocol        = "HTTPS"
-      ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
-      certificate_arn = local.acm_certificate_arn
-      forward = {
-        target_group_key = "web"
+      certificate_arn = data.aws_acm_certificate.selected.arn
+      forward         = {
+        target_groups = ["app"]
       }
     }
   }
 
   target_groups = {
-    web = {
-      port        = 443
-      protocol    = "HTTPS"
+    app = {
+      name_prefix = "app-"
+      protocol    = "HTTP"
+      port        = 8080
       target_type = "ip"
+
       health_check = {
-        protocol            = "HTTPS"
-        path                = "/health"
-        matcher             = "200"
+        enabled             = true
         healthy_threshold   = 2
-        unhealthy_threshold = 2
-        interval            = 60
+        unhealthy_threshold = 3
+        timeout             = 5
+        interval            = 30
+        path                = "/"
+        matcher             = "200-399"
       }
     }
   }
+
+  enable_deletion_protection = true
+
+  tags = module.this.tags
 }
 ```
 
-### ALB with WAF association
+### 2. Internal ALB for ECS microservices
 
 ```hcl
-module "alb" {
+resource "aws_security_group" "internal_alb" {
+  name_prefix = "internal-alb-"
+  vpc_id      = data.aws_vpc.selected.id
+
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    description     = "HTTP from VPC"
+    cidr_blocks     = [data.aws_vpc.selected.cidr_block]
+  }
+
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    description     = "HTTPS from VPC"
+    cidr_blocks     = [data.aws_vpc.selected.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    description = "Allow all outbound"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = module.this.tags
+}
+
+module "internal_alb" {
   source = "../../modules/alb"
 
   context = module.this.context
-  name    = "bcss-web"
+  name    = "microservices"
 
-  vpc_id  = data.aws_vpc.selected.id
-  subnets = data.aws_subnets.public.ids
+  load_balancer_type = "application\"
+  internal           = true  # Internal (private) ALB
+  vpc_id             = data.aws_vpc.selected.id
+  subnets            = data.aws_subnets.private.ids
 
-  listeners     = { ... }
-  target_groups = { ... }
+  security_groups = [aws_security_group.internal_alb.id]
 
-  web_acl_arn = module.waf.web_acl_arn
+  listeners = {
+    https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = data.aws_acm_certificate.internal.arn
+      default_action  = {
+        type             = "forward"
+        target_group_key = "api"
+      }
+      rules = [
+        {
+          priority = 10
+          conditions = [
+            {
+              path_pattern = {
+                values = ["/api/*"]
+              }
+            }
+          ]
+          actions = [
+            {
+              type             = "forward"
+              target_group_key = "api"
+            }
+          ]
+        },
+        {
+          priority = 20
+          conditions = [
+            {
+              path_pattern = {
+                values = ["/admin/*"]
+              }
+            }
+          ]
+          actions = [
+            {
+              type             = "forward"
+              target_group_key = "admin"
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  target_groups = {
+    api = {
+      name_prefix = "api-"
+      protocol    = "HTTP"
+      port        = 8080
+      target_type = "ip"
+      health_check = {
+        enabled           = true
+        path              = "/health"
+        matcher           = "200"
+      }
+    }
+    admin = {
+      name_prefix = "admin-"
+      protocol    = "HTTP"
+      port        = 9000
+      target_type = "ip"
+      health_check = {
+        enabled           = true
+        path              = "/admin/health"
+        matcher           = "200"
+      }
+    }
+  }
+
+  enable_deletion_protection = true
+  tags = module.this.tags
 }
 ```
 
-### Internal NLB
+### 3. Network Load Balancer (NLB) for TCP traffic
 
 ```hcl
+resource "aws_security_group" "nlb" {
+  name_prefix = "nlb-"
+  vpc_id      = data.aws_vpc.selected.id
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    description = "MySQL from private subnets"
+    cidr_blocks = [data.aws_vpc.selected.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = module.this.tags
+}
+
 module "nlb" {
   source = "../../modules/alb"
 
   context = module.this.context
-  name    = "internal-nlb"
+  name    = "database-lb"
 
-  load_balancer_type = "network"
+  load_balancer_type = "network\"
   internal           = true
   vpc_id             = data.aws_vpc.selected.id
   subnets            = data.aws_subnets.private.ids
 
-  security_group_ingress_rules = {
-    tcp = {
-      from_port   = 8080
-      to_port     = 8080
-      ip_protocol = "tcp"
-      description = "Internal TCP traffic"
-      cidr_ipv4   = data.aws_vpc.selected.cidr_block
-    }
-  }
-
-  security_group_egress_rules = {
-    tcp_out = {
-      from_port   = 8080
-      to_port     = 8080
-      ip_protocol = "tcp"
-      cidr_ipv4   = data.aws_vpc.selected.cidr_block
-    }
-  }
+  security_groups = [aws_security_group.nlb.id]
 
   listeners = {
-    tcp = {
-      port     = 8080
-      protocol = "TCP"
-      forward  = { target_group_key = "service" }
+    mysql = {
+      port            = 3306
+      protocol        = "TCP"
+      target_group_key = "mysql"
     }
   }
 
   target_groups = {
-    service = {
-      port        = 8080
+    mysql = {
+      name_prefix = "mysql-"
       protocol    = "TCP"
-      target_type = "ip"
-      health_check = {
-        protocol = "TCP"
-        port     = "8080"
-      }
+      port        = 3306
+      target_type = "instance\"
     }
   }
+
+  idle_timeout = 3600  # NLB TCP: longer idle timeout for database connections
+
+  tags = module.this.tags
 }
 ```
 
+### 4. ALB with WAF integration
+
+```hcl
+resource "aws_security_group" "waf_alb" {
+  name_prefix = "waf-alb-"
+  vpc_id      = data.aws_vpc.selected.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = module.this.tags
+}
+
+data "aws_wafv2_web_acl" "owasp" {
+  name  = "OWASP-baseline"
+  scope = "REGIONAL"
+}
+
+module "alb_with_waf" {
+  source = "../../modules/alb"
+
+  context = module.this.context
+  name    = "production"
+
+  load_balancer_type = "application"
+  internal           = false
+  vpc_id             = data.aws_vpc.selected.id
+  subnets            = data.aws_subnets.public.ids
+
+  security_groups = [aws_security_group.waf_alb.id]
+
+  # Attach WAFv2 Web ACL
+  web_acl_arn = data.aws_wafv2_web_acl.owasp.arn
+
+  listeners = {
+    https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = data.aws_acm_certificate.selected.arn
+      forward = {
+        target_groups = ["app"]
+      }
+    }
+  }
+
+  target_groups = {
+    app = {
+      name_prefix = "app-"
+      protocol    = "HTTP"
+      port        = 80
+      target_type = "instance"
+    }
+  }
+
+  # Stricter desync mitigation for WAF-protected ALB
+  desync_mitigation_mode = "strictest"
+
+  enable_deletion_protection = true
+  tags = module.this.tags
+}
+```
+
+### 5. ALB with access logging
+
+```hcl
+# Create S3 bucket for logs (with proper permissions)
+resource "aws_s3_bucket" "alb_logs" {
+  bucket_prefix = "alb-logs-"
+  tags          = module.this.tags
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_security_group" "alb_logs" {
+  name_prefix = "alb-logs-"
+  vpc_id      = data.aws_vpc.selected.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = module.this.tags
+}
+
+module "alb_logged" {
+  source = "../../modules/alb"
+
+  context = module.this.context
+  name    = "logged"
+
+  load_balancer_type = "application"
+  internal           = false
+  vpc_id             = data.aws_vpc.selected.id
+  subnets            = data.aws_subnets.public.ids
+
+  security_groups = [aws_security_group.alb_logs.id]
+
+  # Enable access logging to S3
+  access_logs = {
+    bucket  = aws_s3_bucket.alb_logs.id
+    prefix  = "${terraform.workspace}/alb"
+    enabled = true
+  }
+
+  listeners = {
+    https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = data.aws_acm_certificate.selected.arn
+      forward = {
+        target_groups = ["app"]
+      }
+    }
+  }
+
+  target_groups = {
+    app = {
+      name_prefix = "app-"
+      protocol    = "HTTP"
+      port        = 80
+      target_type = "instance"
+    }
+  }
+
+  enable_deletion_protection = true
+  tags = module.this.tags
+}
+```
+
+### 6. ALB with custom security settings
+
+```hcl
+resource "aws_security_group" "custom_alb" {
+  name_prefix = "custom-alb-"
+  vpc_id      = data.aws_vpc.selected.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/8"]  # Internal CIDR only
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/8"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = module.this.tags
+}
+
+module "alb_custom" {
+  source = "../../modules/alb"
+
+  context = module.this.context
+  name    = "custom-security"
+
+  load_balancer_type = "application"
+  internal           = true
+  vpc_id             = data.aws_vpc.selected.id
+  subnets            = data.aws_subnets.private.ids
+
+  security_groups = [aws_security_group.custom_alb.id]
+
+  # Longest idle timeout for long-lived connections
+  idle_timeout = 3600
+
+  # Preserve original Host header from client
+  preserve_host_header = true
+
+  # Remove X-Forwarded-For headers (strict security)
+  xff_header_processing_mode = "remove"
+
+  # Disable HTTP/2 for compatibility (if needed)
+  enable_http2 = false
+
+  # Disable cross-zone to reduce costs (trade availability for cost)
+  enable_cross_zone_load_balancing = false
+
+  listeners = {
+    https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = data.aws_acm_certificate.internal.arn
+      forward = {
+        target_groups = ["legacy"]
+      }
+    }
+  }
+
+  target_groups = {
+    legacy = {
+      name_prefix = "legacy-"
+      protocol    = "HTTP"
+      port        = 8080
+      target_type = "instance"
+    }
+  }
+
+  enable_deletion_protection = false  # Non-prod: allow deletion
+  tags = module.this.tags
+}
+```
+
+## Security Group Requirements
+
+**Important:** This module does NOT create security groups. Callers must create and supply security groups via `var.security_groups`.
+
+### Required ingress rules
+
+For **ALB (application load balancer):**
+- Port 80 (HTTP): Required if using automatic HTTP→HTTPS redirect
+- Port 443 (HTTPS): Required for HTTPS traffic
+
+For **NLB (network load balancer):**
+- The port(s) specified in listener definitions (typically 80, 443, or custom TCP ports)
+
+### Required egress rules
+
+- All protocols to target port range (minimum egress to reach registered targets)
+- Example: `0.0.0.0/0` on all protocols for maximum flexibility
+
 ## Conventions
 
-* The load balancer name is derived from `module.this.id` and cannot be overridden — pass `context`, `name`, and `label_order` to control the generated name.
-* `internal` defaults to `false` (internet-facing). Set `internal = true` for ALBs and NLBs that should only be reachable from within the VPC.
-* `enable_deletion_protection` defaults to `true`. Set it to `false` for non-production environments where the load balancer needs to be freely destroyed.
-* HTTP-to-HTTPS redirect on port 80 is added automatically for ALBs (`enable_http_https_redirect = true` by default). Set to `false` if you need custom HTTP listener behaviour or the ALB is not serving HTTPS traffic. Does not apply to NLBs.
-* Security group rules are caller-supplied via `security_group_ingress_rules` and `security_group_egress_rules`. This supports both ALB (HTTP/HTTPS) and NLB (TCP/TLS) patterns without constraining port numbers.
-* Access logging is optional. Supply an S3 bucket ARN via `access_logs` to enable it. NHS production environments should always enable access logging.
-* For NLBs, `drop_invalid_header_fields` is set to `null` automatically — this argument is only valid for ALBs.
-
-## What this module does NOT do
-
-* Create SSL/TLS certificates — use the `acm` module and pass the certificate ARN into `listeners`.
-* Create an S3 bucket for access logs — use the `s3-bucket` module and pass the bucket ID via `access_logs.bucket`.
-* Create Route53 DNS records — create an alias record pointing to `module.alb.dns_name` and `module.alb.zone_id` in your stack.
-* Create a WAF Web ACL — use the `waf` module and pass the ARN via `web_acl_arn`.
-* Enforce a minimum TLS policy — callers must specify `ssl_policy` on HTTPS listeners; use `ELBSecurityPolicy-TLS13-1-2-Res-2021-06` or later.
-
-## Outputs
-
-| Name | Description | Used by |
-|---|---|---|
-| `arn` | ARN of the load balancer | WAF ACL association |
-| `dns_name` | DNS name of the load balancer | Route53 alias records |
-| `zone_id` | Hosted zone ID of the load balancer | Route53 alias records |
-| `listeners` | Map of listeners and their attributes | ECS task `depends_on` |
-| `target_groups` | Map of target groups and their attributes | ECS task `target_group_arn` |
-| `security_group_id` | ID of the load balancer security group | ECS task security group rules |
+- **Naming:** Load balancer names are derived from context labels via `module.this.id`
+- **Tagging:** All resources (ALB, listeners, target groups) inherit NHS-required tags from context
+- **Security groups:** Must be pre-created and passed to this module explicitly
+- **Listeners:** Define HTTP, HTTPS, or protocol-specific listeners; HTTP→HTTPS redirect is automatic for ALB (can be disabled)
+- **Target groups:** Pass through to the upstream module with full customization
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
@@ -203,7 +583,9 @@ module "nlb" {
 
 ## Providers
 
-No providers.
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -214,7 +596,9 @@ No providers.
 
 ## Resources
 
-No resources.
+| Name | Type |
+| ---- | ---- |
+| [terraform_data.validation](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
@@ -230,11 +614,15 @@ No resources.
 | <a name="input_data_type"></a> [data\_type](#input\_data\_type) | The tag data\_type | `string` | `"None"` | no |
 | <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to be used between ID elements.<br/>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
 | <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br/>Map of maps. Keys are names of descriptors. Values are maps of the form<br/>`{<br/>    format = string<br/>    labels = list(string)<br/>}`<br/>(Type is `any` so the map values can later be enhanced to provide additional options.)<br/>`format` is a Terraform format string to be passed to the `format()` function.<br/>`labels` is a list of labels, in order, to pass to `format()` function.<br/>Label values will be normalized before being passed to `format()` so they will be<br/>identical to how they appear in `id`.<br/>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
+| <a name="input_desync_mitigation_mode"></a> [desync\_mitigation\_mode](#input\_desync\_mitigation\_mode) | HTTP request desync mitigation mode. Valid values: 'off', 'defensive', 'strictest', 'monitor'. Only valid for ALB. 'defensive' is the AWS default and recommended for security. See https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#desync-mitigation-mode | `string` | `"defensive"` | no |
+| <a name="input_enable_cross_zone_load_balancing"></a> [enable\_cross\_zone\_load\_balancing](#input\_enable\_cross\_zone\_load\_balancing) | When true, cross-zone load balancing distributes traffic across all registered targets in all enabled AZs. Defaults to true. Incurs additional data transfer costs but provides better availability. | `bool` | `true` | no |
 | <a name="input_enable_deletion_protection"></a> [enable\_deletion\_protection](#input\_enable\_deletion\_protection) | When true, deletion protection is enabled on the load balancer. Set to false for non-production environments where the load balancer needs to be freely destroyed. | `bool` | `true` | no |
+| <a name="input_enable_http2"></a> [enable\_http2](#input\_enable\_http2) | When true, HTTP/2 is enabled on the ALB. Improves connection efficiency. Only valid for ALB. Defaults to true. | `bool` | `true` | no |
 | <a name="input_enable_http_https_redirect"></a> [enable\_http\_https\_redirect](#input\_enable\_http\_https\_redirect) | When true, automatically adds a port-80 HTTP-to-HTTPS (301) redirect listener. Only applies when load\_balancer\_type is 'application'. Set to false if you are defining your own HTTP listener or the ALB is not serving HTTPS traffic. | `bool` | `true` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used to indicate role, e.g. 'prd', 'dev', 'test', 'preprod', 'prod', 'uat' | `string` | `null` | no |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br/>Set to `0` for unlimited length.<br/>Set to `null` for keep the existing setting, which defaults to `0`.<br/>Does not affect `id_full`. | `number` | `null` | no |
+| <a name="input_idle_timeout"></a> [idle\_timeout](#input\_idle\_timeout) | Time in seconds that a connection is allowed to be idle. Valid range: 1–4000. Defaults to 60. Apply to both ALB and NLB. | `number` | `60` | no |
 | <a name="input_internal"></a> [internal](#input\_internal) | When true, the load balancer is internal (private). When false, it is internet-facing. Defaults to false. | `bool` | `false` | no |
 | <a name="input_label_key_case"></a> [label\_key\_case](#input\_label\_key\_case) | Controls the letter case of the `tags` keys (label names) for tags generated by this module.<br/>Does not affect keys of tags passed in via the `tags` input.<br/>Possible values: `lower`, `title`, `upper`.<br/>Default value: `title`. | `string` | `null` | no |
 | <a name="input_label_order"></a> [label\_order](#input\_label\_order) | The order in which the labels (ID elements) appear in the `id`.<br/>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br/>You can omit any of the 6 labels ("tenant" is the 6th), but at least one must be present. | `list(string)` | `null` | no |
@@ -245,12 +633,12 @@ No resources.
 | <a name="input_name"></a> [name](#input\_name) | ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.<br/>This is the only ID element not also included as a `tag`.<br/>The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input. | `string` | `null` | no |
 | <a name="input_on_off_pattern"></a> [on\_off\_pattern](#input\_on\_off\_pattern) | Used to turn resources on and off based on a time pattern | `string` | `"n/a"` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | The name and or NHS.net email address of the service owner | `string` | `"None"` | no |
+| <a name="input_preserve_host_header"></a> [preserve\_host\_header](#input\_preserve\_host\_header) | When true, ALB preserves the original Host header from the client request instead of rewriting it. Only valid for ALB. Defaults to false. | `bool` | `false` | no |
 | <a name="input_project"></a> [project](#input\_project) | ID element. A project identifier, indicating the name or role of the project the resource is for, such as `website` or `api` | `string` | `null` | no |
 | <a name="input_public_facing"></a> [public\_facing](#input\_public\_facing) | Whether this resource is public facing | `bool` | `false` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br/>Characters matching the regex will be removed from the ID elements.<br/>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
 | <a name="input_region"></a> [region](#input\_region) | ID element \_(Rarely used, not included by default)\_.  Usually an abbreviation of the selected AWS region e.g. 'uw2', 'ew2' or 'gbl' for resources like IAM roles that have no region | `string` | `null` | no |
-| <a name="input_security_group_egress_rules"></a> [security\_group\_egress\_rules](#input\_security\_group\_egress\_rules) | Map of egress rules to add to the load balancer security group.<br/>Example:<br/>  security\_group\_egress\_rules = {<br/>    https\_out = {<br/>      from\_port   = 443<br/>      to\_port     = 443<br/>      ip\_protocol = "tcp"<br/>      cidr\_ipv4   = "0.0.0.0/0"<br/>    }<br/>  } | `any` | `{}` | no |
-| <a name="input_security_group_ingress_rules"></a> [security\_group\_ingress\_rules](#input\_security\_group\_ingress\_rules) | Map of ingress rules to add to the load balancer security group.<br/>Each key is a logical name; each value is an object describing the rule.<br/>Example:<br/>  security\_group\_ingress\_rules = {<br/>    https = {<br/>      from\_port   = 443<br/>      to\_port     = 443<br/>      ip\_protocol = "tcp"<br/>      description = "HTTPS from internet"<br/>      cidr\_ipv4   = "0.0.0.0/0"<br/>    }<br/>  } | `any` | `{}` | no |
+| <a name="input_security_groups"></a> [security\_groups](#input\_security\_groups) | List of security group IDs to attach to the load balancer.<br/>REQUIRED — callers must pre-create security groups with appropriate ingress/egress rules.<br/>This enforces explicit security group management and prevents accidental exposure.<br/>Example:<br/>  security\_groups = [aws\_security\_group.alb.id] | `list(string)` | n/a | yes |
 | <a name="input_service"></a> [service](#input\_service) | ID element. Usually an abbreviation of your service directorate name, e.g. 'bcss' or 'csms', to help ensure generated IDs are globally unique | `string` | `null` | no |
 | <a name="input_service_category"></a> [service\_category](#input\_service\_category) | The tag service\_category | `string` | `"n/a"` | no |
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
@@ -260,9 +648,10 @@ No resources.
 | <a name="input_target_groups"></a> [target\_groups](#input\_target\_groups) | Map of target group configurations to create. Passed directly to the upstream module.<br/>See https://registry.terraform.io/modules/terraform-aws-modules/alb/aws/latest<br/>for full schema documentation. | `any` | `{}` | no |
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to this module path. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC in which the load balancer security group will be created. | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC in which the load balancer will be created. | `string` | n/a | yes |
 | <a name="input_web_acl_arn"></a> [web\_acl\_arn](#input\_web\_acl\_arn) | ARN of a WAFv2 Web ACL to associate with the load balancer. Only valid for ALB. When null, no WAF association is created. | `string` | `null` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
+| <a name="input_xff_header_processing_mode"></a> [xff\_header\_processing\_mode](#input\_xff\_header\_processing\_mode) | How the ALB handles X-Forwarded-For headers. Valid values: 'append', 'replace', 'remove'. 'append' is AWS default. Only valid for ALB. | `string` | `"append"` | no |
 
 ## Outputs
 
