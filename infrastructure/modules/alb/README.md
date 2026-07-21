@@ -5,7 +5,7 @@ Thin NHS wrapper around [terraform-aws-modules/alb/aws](https://registry.terrafo
 ## What this module enforces
 
 | Setting | Value | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `create_security_group` | `false` (hardcoded) | Callers **must** pre-create and supply security groups explicitly, enforcing deliberate ingress/egress rule design |
 | `drop_invalid_header_fields` | `true` (ALB only) | Prevents HTTP header injection attacks on Application Load Balancers |
 | `enable_deletion_protection` | `true` (default) | Prevents accidental deletion in production; set to `false` for non-production only |
@@ -554,7 +554,7 @@ module "alb_custom" {
 This module enforces several validation constraints via `terraform_data` preconditions. These are checked during `terraform plan` and will fail fast if violated:
 
 | Validation | Condition | Resolution |
-|---|---|---|
+| --- | --- | --- |
 | **Subnet count** | Consumer-controlled | Subnet count is not enforced at module level, allowing flexibility for development/cost-optimized environments (single AZ) or production (multi-AZ). Consumer should specify based on HA requirements. |
 | **Internet-facing requires access logs** | `internal == true OR access_logs != null` | Either set `internal = true` for internal LBs, or enable access logging via the `access_logs` variable for internet-facing ALBs/NLBs (compliance requirement). |
 | **HTTPS listeners require certificate** | Each HTTPS/TLS listener must have `certificate_arn` | Provide a valid ACM certificate ARN in listener configuration. Example: `certificate_arn = data.aws_acm_certificate.selected.arn` |
