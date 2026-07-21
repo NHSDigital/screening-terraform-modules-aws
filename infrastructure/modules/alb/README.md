@@ -568,10 +568,12 @@ This module enforces several validation constraints via `terraform_data` precond
 ### Required ingress rules
 
 For **ALB (application load balancer):**
+
 - Port 80 (HTTP): Required if using automatic HTTP→HTTPS redirect
 - Port 443 (HTTPS): Required for HTTPS traffic
 
 For **NLB (network load balancer):**
+
 - The port(s) specified in listener definitions (typically 80, 443, or custom TCP ports)
 
 ### Required egress rules
