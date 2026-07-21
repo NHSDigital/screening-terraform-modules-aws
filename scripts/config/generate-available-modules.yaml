@@ -69,6 +69,10 @@ ecs-service:
   description: "ECS service and task definition"
   wraps: "terraform-aws-modules/ecs/aws//modules/service"
 
+efs:
+  description: "EFS file system with access points and mount targets"
+  wraps: "terraform-aws-modules/efs/aws"
+
 elasticache:
   description: "ElastiCache cluster (Redis/Memcached)"
   wraps: "—"
