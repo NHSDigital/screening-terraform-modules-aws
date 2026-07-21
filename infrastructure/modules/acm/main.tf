@@ -43,6 +43,6 @@ module "acm" {
   dns_ttl                                   = var.dns_ttl
 
   # ----------------------------------------------------------------
-  region = module.this.region
+  region = var.aws_region
   tags   = module.this.tags
 }
