@@ -1,8 +1,15 @@
 ################################################################
-# SSM Parameter with context-derived naming and tagging
+# SSM Parameter
 #
-# This module uses the label/tags module to generate hierarchical
-# parameter names with forward slashes (e.g., /service/project/env/stack/name)
+# Thin NHS wrapper around the community ssm-parameter module
+# that enforces the screening platform's baseline controls:
+#
+#   * Naming:        derived from context labels via module.ssm_param_label.id
+#   * Tagging:       all NHS-required tags applied via module.ssm_param_label.tags
+#   * SecureString:  KMS key_id is mandatory (enforced via validation)
+#   * Enabled flag:  create = module.ssm_param_label.enabled
+#
+# Cross-variable input constraints are enforced in validations.tf.
 ################################################################
 
 module "ssm_param_label" {

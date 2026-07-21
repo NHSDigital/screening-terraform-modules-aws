@@ -1,28 +1,29 @@
 # SSM Parameter
 
-NHS Screening wrapper around the community
+Thin NHS wrapper around the community
 [`terraform-aws-modules/ssm-parameter/aws`](https://registry.terraform.io/modules/terraform-aws-modules/ssm-parameter/aws/latest)
-module that consumes the shared `context.tf` for naming and tagging.
+module that enforces the screening platform's baseline controls for parameter naming, tagging, and encryption.
 
 ## What this module enforces
 
-| Control | How it is enforced |
-| --- | --- |
-| Naming consistency | Parameter name is derived from context labels; path-style names are normalised to start with `/` |
-| Tagging consistency | Tags are always sourced from `module.this.tags` |
-| SecureString guardrail | `key_id` is mandatory when `type = "SecureString"` via variable validation |
+| Control | How it is enforced | Impact |
+| --- | --- | --- |
+| Naming consistency | Parameter name is derived from context labels; path-style names always start with `/` | Ensures hierarchical organisation across teams |
+| Tagging consistency | All tags sourced from `module.this.tags` (NHS-standard set) | Ensures billing, compliance, and governance controls |
+| KMS encryption for secrets | `key_id` is **mandatory** when `type = "SecureString"` | No unencrypted secrets in SSM; prevents accidental exposure |
+| Sensitive value protection | `value` and `values` marked `sensitive = true` in Terraform | Prevents secrets from appearing in logs/state diffs |
+| Creation gating | `create = module.ssm_param_label.enabled` | Allows disabling entire module via context |
 
 ## Usage
 
-### Minimal string parameter
+### 1. Minimal string parameter
 
 ```hcl
 module "app_config_parameter" {
   source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
 
-  service     = "bcss"
-  project     = "api"
-  environment = "development"
+  context     = module.this.context
+  stack       = "api"
   name        = "log-level"
 
   type  = "String"
@@ -30,54 +31,202 @@ module "app_config_parameter" {
 }
 ```
 
-### Production SecureString parameter with customer-managed KMS key
+### 2. JSON-encoded SecureString parameter with KMS encryption (production)
+
+Stores structured secrets (e.g., database credentials) encrypted with a customer-managed KMS key:
 
 ```hcl
-module "database_password_parameter" {
+module "database_credentials" {
   source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
 
-  service     = "bcss"
-  project     = "database"
-  environment = "prod"
-  name        = "db-password"
+  context     = module.this.context
+  stack       = "database"
+  name        = "credentials"
 
   type   = "SecureString"
-  value  = var.db_password
-  key_id = module.kms.key_arn
+  key_id = module.kms.key_arn  # Required — KMS key is mandatory for SecureString
+
+  # Store structured secrets as JSON — safer than flat strings
+  value = jsonencode({
+    engine   = "postgres"
+    host     = module.rds.endpoint
+    port     = 5432
+    username = "admin"
+    password = var.db_admin_password  # Use var with sensitive = true
+  })
+
+  description = "RDS Aurora credentials (JSON format)"
 }
 ```
 
-### Path-style parameter with value change ignored
+Output usage in consumer stack:
 
 ```hcl
-module "shared_api_endpoint" {
+locals {
+  db_creds = jsondecode(module.ssm.parameter_value)
+}
+
+resource "aws_db_instance" "main" {
+  db_name  = "screening_db"
+  username = local.db_creds.username
+  password = local.db_creds.password
+  # ...
+}
+```
+
+### 3. API key as SecureString
+
+```hcl
+module "third_party_api_key" {
   source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
 
-  service     = "bcss"
-  project     = "platform"
-  environment = "prod"
-  name        = "shared/api/base-url"
+  context     = module.this.context
+  stack       = "integration"
+  name        = "third-party-api-key"
 
-  type                 = "String"
-  value                = "https://api.example.nhs.uk"
+  type   = "SecureString"
+  key_id = module.kms.key_arn
+
+  value = var.api_key  # Passed from vars with sensitive = true
+  description = "API key for third-party supplier integration (encrypted with KMS)"
+
+  # Set to true when rotation Lambda updates the value outside Terraform
   ignore_value_changes = true
+}
+```
+
+### 4. StringList parameter (comma-separated values)
+
+```hcl
+module "allowed_ip_addresses" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
+
+  context     = module.this.context
+  stack       = "security"
+  name        = "allowed-ips"
+
+  type   = "StringList"
+  values = ["10.0.0.0/8", "192.168.0.0/16"]  # Will be JSON-encoded by upstream module
+
+  description = "Allowed source IP ranges for VPN/bastion access"
+}
+```
+
+### 5. Parameter with external value management (Secrets Rotation)
+
+When a rotation Lambda manages the secret value outside Terraform:
+
+```hcl
+module "rotated_api_secret" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
+
+  context     = module.this.context
+  stack       = "integration"
+  name        = "rotated-secret"
+
+  type   = "SecureString"
+  key_id = module.kms.key_arn
+
+  value = var.initial_secret_value
+
+  # Prevent Terraform from overwriting rotated values on apply
+  ignore_value_changes = true
+
+  description = "API secret that is auto-rotated every 30 days by Lambda"
+}
+```
+
+### 6. Path-style hierarchical parameter
+
+Store related configuration under a hierarchical path:
+
+```hcl
+module "app_database_config" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
+
+  context     = module.this.context
+  stack       = "application"
+  name        = "database/connection"  # Results in: /<service>/<project>/<environment>/<stack>/database/connection
+
+  type  = "String"
+  value = jsonencode({
+    pool_size   = 10
+    timeout     = 30
+    retry_count = 3
+  })
+
+  description = "Application database connection pool configuration"
+}
+```
+
+### 7. Write-only parameter (never stored in Terraform state)
+
+For production secrets where state exposure is a compliance risk:
+
+```hcl
+module "production_secret" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
+
+  context     = module.this.context
+  stack       = "production"
+  name        = "api-secret"
+
+  type   = "SecureString"
+  key_id = module.kms.key_arn
+
+  # Use value_wo_version instead of value — secret is never stored in Terraform state
+  # Increment value_wo_version whenever the secret value changes to force Terraform to update
+  value_wo_version = timestamp()  # or use a counter: var.secret_version_counter
+
+  description = "Production API secret (never stored in state)"
 }
 ```
 
 ## Conventions
 
-* The parameter name comes from context labels. If `name` contains `/`, the module ensures the final parameter name is fully qualified (starts with `/`).
-* `type` must be one of `String`, `StringList`, or `SecureString`.
-* When using `SecureString`, you must provide `key_id`.
-* `values` are JSON-encoded by the upstream module when storing list-style values.
-* Set `ignore_value_changes = true` when values are managed outside Terraform and should not be reconciled on every apply.
+- **Naming:** Parameter names are derived from context labels (`<service>/<project>/<environment>/<stack>/<name>`). All names are fully qualified starting with `/`. Override with `parameter_name` if custom naming is required.
+- **Type selection:**
+  - `String` — for plaintext configuration (URLs, counts, feature flags, etc.)
+  - `StringList` — for comma-separated lists; the module JSON-encodes the values for you
+  - `SecureString` — for sensitive values (passwords, API keys, tokens); **requires `key_id`**
+- **SecureString encryption (MANDATORY):** When `type = "SecureString"`, you **must** provide a `key_id` (KMS key ARN or ID). This is enforced at `terraform plan` time and prevents unencrypted secrets.
+- **Sensitive values:** Use Terraform variables with `sensitive = true` when passing secret values:
+
+  ```hcl
+  variable "db_password" {
+    type      = string
+    sensitive = true
+  }
+  ```
+
+- **External value management:** Set `ignore_value_changes = true` when values are rotated by Lambda or other automation. This prevents Terraform from reverting externally-updated values on `apply`.
+- **Write-only secrets:** Use `value_wo_version` (instead of `value`) for compliance-sensitive deployments where secrets must never be stored in Terraform state. Increment the trigger value to force updates.
 
 ## What this module does NOT do
 
-* Create or manage a KMS key. Provide an existing key ARN/ID via `key_id` for `SecureString` parameters.
-* Manage parameter policies (for example expiration, no-change notifications, or advanced policy lifecycle controls).
-* Resolve secrets from external systems. The caller must provide `value`, `values`, or `value_wo_version`.
-* Manage IAM permissions for reading/writing parameters. Attach IAM policies in consumer stacks/modules.
+- **Create KMS keys:** Provide an existing key ARN/ID via `key_id` for `SecureString` parameters; create keys separately using the `kms` module.
+- **Manage parameter policies:** IAM policy attachment, resource-based policies, or access controls are caller responsibility.
+- **Rotate secrets automatically:** Configure rotation using `aws_ssm_parameter` + Lambda directly in consumer stacks if needed. Set `ignore_value_changes = true` to prevent Terraform conflicts.
+- **Resolve secrets from external systems:** The caller must explicitly provide `value`, `values`, or `value_wo_version` — no automatic fetching from Vault, Secrets Manager, or other sources.
+- **Create IAM permissions:** Attach policies to roles/users who need to read/write parameters; this module creates the parameter only.
+- **Share parameters across AWS accounts:** SSM parameters are account-scoped; use AWS Secrets Manager for cross-account sharing or cross-stack references.
+
+## Validation
+
+The following constraints are enforced at `plan` time and prevent invalid configurations before any resources are created:
+
+### Variable-Level Validation
+
+- **Type validation:** `type` must be `String`, `StringList`, or `SecureString` (enforced in variables.tf)
+- **KMS key requirement:** When `type = "SecureString"`, `key_id` is mandatory (enforced in variables.tf)
+- **Parameter name format:** `parameter_name` must start with `/` if overridden (enforced in variables.tf)
+
+### Cross-Variable Validation (enforced in validations.tf)
+
+- **Value mutual exclusivity:** Cannot set both `value` and `values` at the same time — specify only one source
+- **Write-only scope:** `value_wo_version` (version trigger) is only valid when `type = "SecureString"`
+- **Required value source:** At least one of `value`, `values`, or `value_wo_version` must be provided (cannot omit all three)
+- **At least one value source**: One of `value`, `values`, or `value_wo_version` must be provided. Using all three is invalid.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
@@ -91,7 +240,9 @@ module "shared_api_endpoint" {
 
 ## Providers
 
-No providers.
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -103,7 +254,9 @@ No providers.
 
 ## Resources
 
-No resources.
+| Name | Type |
+| ---- | ---- |
+| [terraform_data.validations](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
@@ -148,9 +301,9 @@ No resources.
 | <a name="input_tier"></a> [tier](#input\_tier) | Parameter tier to assign to the parameter. If not specified, will use the default parameter tier for the region. Valid tiers are Standard, Advanced, and Intelligent-Tiering. Downgrading an Advanced tier parameter to Standard will recreate the resource | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_type"></a> [type](#input\_type) | Type of the parameter. Valid types are `String`, `StringList` and `SecureString` | `string` | n/a | yes |
-| <a name="input_value"></a> [value](#input\_value) | Value of the parameter | `string` | `null` | no |
+| <a name="input_value"></a> [value](#input\_value) | Value of the parameter. Can contain secrets such as database passwords or API keys. | `string` | `null` | no |
 | <a name="input_value_wo_version"></a> [value\_wo\_version](#input\_value\_wo\_version) | Value of the parameter. This value is always marked as sensitive in the Terraform plan output, regardless of type. Additionally, write-only values are never stored to state. `value_wo_version` can be used to trigger an update and is required with this argument | `number` | `null` | no |
-| <a name="input_values"></a> [values](#input\_values) | List of values of the parameter (will be jsonencoded to store as string natively in SSM) | `list(string)` | `[]` | no |
+| <a name="input_values"></a> [values](#input\_values) | List of values of the parameter (will be jsonencoded to store as string natively in SSM). Can contain secrets. | `list(string)` | `[]` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 
 ## Outputs

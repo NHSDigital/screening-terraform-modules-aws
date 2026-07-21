@@ -67,9 +67,10 @@ variable "type" {
 }
 
 variable "value" {
-  description = "Value of the parameter"
+  description = "Value of the parameter. Can contain secrets such as database passwords or API keys."
   type        = string
   default     = null
+  sensitive   = true
 }
 
 variable "value_wo_version" {
@@ -79,7 +80,8 @@ variable "value_wo_version" {
 }
 
 variable "values" {
-  description = "List of values of the parameter (will be jsonencoded to store as string natively in SSM)"
+  description = "List of values of the parameter (will be jsonencoded to store as string natively in SSM). Can contain secrets."
   type        = list(string)
   default     = []
+  sensitive   = true
 }
