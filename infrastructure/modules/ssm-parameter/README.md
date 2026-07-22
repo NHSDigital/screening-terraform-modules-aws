@@ -8,7 +8,7 @@ module that enforces the screening platform's baseline controls for parameter na
 
 | Control | How it is enforced | Impact |
 | --- | --- | --- |
-| Naming consistency | Parameter name is derived from context labels; path-style names always start with `/` | Ensures hierarchical organisation across teams |
+| Naming consistency | Parameter name is derived from context labels; when `delimiter = "/"`, names are path-style and start with `/` | Ensures hierarchical organisation across teams |
 | Tagging consistency | All tags sourced from `module.this.tags` (NHS-standard set) | Ensures billing, compliance, and governance controls |
 | KMS encryption for secrets | `key_id` is **mandatory** when `type = "SecureString"` | No unencrypted secrets in SSM; prevents accidental exposure |
 | Sensitive value protection | `value` and `values` marked `sensitive = true` in Terraform | Prevents secrets from appearing in logs/state diffs |
@@ -182,9 +182,55 @@ module "production_secret" {
 }
 ```
 
+## Naming Effect: Standard vs Path-Style
+
+The `delimiter` setting determines whether parameter names include leading `/` and use `/` as separators.
+
+### Path-style naming with `delimiter = "/"`
+
+When you set `delimiter = "/"`, the parameter name includes a leading `/` and uses `/` throughout:
+
+```hcl
+module "path_style_parameter" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
+
+  context     = module.this.context
+  delimiter   = "/"  # Path-style naming
+  stack       = "api"
+  name        = "config"
+
+  type  = "String"
+  value = "prod-value"
+}
+
+# Results in parameter name: /bcss/screening/prod/api/config
+# (assuming context: service=bcss, project=screening, environment=prod)
+```
+
+### Standard naming (default delimiter: `-`)
+
+Without explicit `delimiter`, names use the default hyphen separator and no leading `/`:
+
+```hcl
+module "standard_parameter" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-parameter?ref=<tag>"
+
+  context     = module.this.context
+  # delimiter not set — uses default "-"
+  stack       = "api"
+  name        = "config"
+
+  type  = "String"
+  value = "prod-value"
+}
+
+# Results in parameter name: bcss-screening-prod-api-config
+# (no leading /)
+```
+
 ## Conventions
 
-- **Naming:** Parameter names are derived from context labels (`<service>/<project>/<environment>/<stack>/<name>`). All names are fully qualified starting with `/`. Override with `parameter_name` if custom naming is required.
+- **Naming:** Parameter names are derived from context labels. When `delimiter = "/"`, names are path-style with a leading `/` (e.g., `/bcss/prod/app/config`). When using the default delimiter, names are hyphen-separated without a leading `/` (e.g., `bcss-prod-app-config`). Override with `parameter_name` if custom naming is required.
 - **Type selection:**
   - `String` — for plaintext configuration (URLs, counts, feature flags, etc.)
   - `StringList` — for comma-separated lists; the module JSON-encodes the values for you

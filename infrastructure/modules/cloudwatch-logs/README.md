@@ -7,7 +7,7 @@ NHS Screening wrapper around the [terraform-aws-modules/CloudWatch/aws](https://
 | Control | How it is enforced |
 | --- | --- |
 | Log group | Always created when `module.this.enabled = true`; logging is mandatory by design |
-| Naming convention | Log group name follows NHS pattern: `/<service>/<project>/<environment>/<stack>/<name>` (derived from context); forward slashes preserved |
+| Naming convention | Log group name derived from context; when `delimiter = "/"`, names are path-style with leading `/` (e.g., `/<service>/<project>/<environment>/<stack>/<name>`); forward slashes preserved |
 | Encryption at rest | Always enabled; AWS-managed encryption by default, or customer-managed KMS when `kms_key_id` is provided |
 | Retention policy | Configurable; defaults to 30 days; only AWS-approved retention values accepted |
 | Stream management | Optional; streams only created when `stream_names` is non-empty; use `for_each` for stable iteration |
@@ -22,7 +22,7 @@ NHS Screening wrapper around the [terraform-aws-modules/CloudWatch/aws](https://
 
 ```hcl
 module "app_logs" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=v1.0.0"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=<tag>"
 
   context = module.this.context
 
@@ -42,7 +42,7 @@ output "ecs_log_group" {
 
 ```hcl
 module "audit_logs" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=v1.0.0"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=<tag>"
 
   context = module.this.context
 
@@ -55,7 +55,7 @@ module "audit_logs" {
 
 ```hcl
 module "worker_logs" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=v1.0.0"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=<tag>"
 
   context = module.this.context
 
@@ -71,7 +71,7 @@ module "worker_logs" {
 
 ```hcl
 module "archive_logs" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=v1.0.0"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=<tag>"
 
   context = module.this.context
 
@@ -81,13 +81,53 @@ module "archive_logs" {
 }
 ```
 
+### Path-style naming with `delimiter = "/"`
+
+When you set `delimiter = "/"`, log group names include a leading `/` and use `/` throughout:
+
+```hcl
+module "path_style_logs" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=<tag>"
+
+  context   = module.this.context
+  delimiter = "/"  # Path-style naming
+  stack     = "api"
+  name      = "events"
+
+  retention_in_days = 30
+}
+
+# Results in log group name: /bcss/screening/prod/api/events
+# (assuming context: service=bcss, project=screening, environment=prod)
+```
+
+### Standard naming (default delimiter: `-`)
+
+Without explicit `delimiter`, log group names use the default hyphen separator:
+
+```hcl
+module "standard_logs" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/cloudwatch-logs?ref=<tag>"
+
+  context = module.this.context
+  # delimiter not set — uses default "-"
+  stack   = "api"
+  name    = "events"
+
+  retention_in_days = 30
+}
+
+# Results in log group name: bcss-screening-prod-api-events
+# (no leading /)
+```
+
 ## Conventions
 
 ### Naming
 
-- **Log group name**: Defaults to `/<service>/<project>/<environment>/<stack>/<name>` derived from `module.this.context`.
-  - Forward slashes are preserved (e.g., `/bcss/website/prod/api/events`).
-  - Override with `log_group_name` variable if custom naming is needed; must start with `/`.
+- **Log group name**: Derived from context labels (`<service>/<project>/<environment>/<stack>/<name>`). When `delimiter = "/"`, names are path-style with a leading `/` (e.g., `/bcss/website/prod/api/events`). When using the default delimiter, names are hyphen-separated without a leading `/` (e.g., `bcss-website-prod-api-events`).
+  - Forward slashes are preserved in context-derived names when `delimiter = "/"`.
+  - Override with `log_group_name` variable if custom naming is needed.
 - **Stream names**: Each stream name in `stream_names` becomes a separate CloudWatch log stream within the group.
   - Valid characters: alphanumeric, `.`, `-`, `_`, `/`, `#`.
   - Example: `stream_names = ["application", "error", "audit"]` creates 3 streams.

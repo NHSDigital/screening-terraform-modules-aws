@@ -103,6 +103,60 @@ module "rotated_password" {
 }
 ```
 
+## Naming Effect: Standard vs Path-Style
+
+The `delimiter` setting determines whether secret names include leading `/` and use `/` as separators.
+
+### Path-style naming with `delimiter = "/"`
+
+When you set `delimiter = "/"`, secret names include a leading `/` and use `/` throughout:
+
+```hcl
+module "path_style_secret" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
+
+  context     = module.this.context
+  delimiter   = "/"  # Path-style naming
+  stack       = "database"
+  name        = "credentials"
+
+  description = "Database credentials"
+  kms_key_id  = module.kms.key_arn
+  secret_string = jsonencode({
+    username = "admin"
+    password = var.db_password
+  })
+}
+
+# Results in secret name: /bcss/screening/prod/database/credentials
+# (assuming context: service=bcss, project=screening, environment=prod)
+```
+
+### Standard naming (default delimiter: `-`)
+
+Without explicit `delimiter`, secret names use the default hyphen separator:
+
+```hcl
+module "standard_secret" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/secrets-manager?ref=<tag>"
+
+  context = module.this.context
+  # delimiter not set — uses default "-"
+  stack   = "database"
+  name    = "credentials"
+
+  description   = "Database credentials"
+  kms_key_id    = module.kms.key_arn
+  secret_string = jsonencode({
+    username = "admin"
+    password = var.db_password
+  })
+}
+
+# Results in secret name: bcss-screening-prod-database-credentials
+# (no leading /)
+```
+
 ## Conventions
 
 - `block_public_policy` is always `true` and cannot be overridden — public access to secrets is never permitted.
@@ -115,7 +169,7 @@ module "rotated_password" {
 - `random_password_override_special` overrides the default special character set used during password generation.
 - `rotate_immediately` controls whether rotation fires immediately (`true`) or waits for the next scheduled window (`false`); only relevant when `enable_rotation = true`.
 - `create_policy` defaults to `false`; set to `true` and provide `policy_statements` to attach a resource-based policy.
-- Secret names are derived from `module.secret_label.id` (hierarchical, forward-slash safe) for consistency with other screening modules.
+- **Secret naming**: Derived from context labels. When `delimiter = "/"`, names are path-style with a leading `/` (e.g., `/bcss/screening/prod/db/credentials`); when using the default delimiter, names are hyphen-separated without a leading `/` (e.g., `bcss-screening-prod-db-credentials`). Override with `secret_name` if custom naming is required.
 
 ## What this module does NOT do
 
