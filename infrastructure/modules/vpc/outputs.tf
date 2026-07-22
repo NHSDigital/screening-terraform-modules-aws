@@ -164,15 +164,6 @@ output "flow_log_iam_role_arn" {
 }
 
 ################################################################
-# VPC Endpoints
-################################################################
-
-output "vpc_endpoints" {
-  description = "Map of VPC endpoints created, keyed by the logical name."
-  value       = module.vpc_endpoints.endpoints
-}
-
-################################################################
 # Edge route table
 ################################################################
 

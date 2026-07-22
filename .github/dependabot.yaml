@@ -78,6 +78,7 @@ updates:
       - "infrastructure/modules/sqs"
       - "infrastructure/modules/ssm-parameter"
       - "infrastructure/modules/tags"
+      - "infrastructure/modules/vpc-endpoint"
       - "infrastructure/modules/vpc"
       - "infrastructure/modules/vpce"
       - "infrastructure/modules/vpces"

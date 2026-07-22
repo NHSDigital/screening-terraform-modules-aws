@@ -181,12 +181,16 @@ vpc:
   description: "VPC with subnets, routing, and gateways"
   wraps: "terraform-aws-modules/vpc/aws"
 
+vpc-endpoint:
+  description: "VPC endpoints (Interface and Gateway) with policies"
+  wraps: "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+
 vpce:
-  description: "VPC endpoint (single service)"
+  description: "VPC endpoint (single service) (legacy)"
   wraps: "—"
 
 vpces:
-  description: "VPC endpoints (multiple services)"
+  description: "VPC endpoints (multiple services) (legacy)"
   wraps: "—"
 
 waf:

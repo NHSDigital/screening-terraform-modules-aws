@@ -238,39 +238,3 @@ module "flow_log" {
   tags = module.this.tags
 }
 
-################################################################
-# VPC Endpoints
-#
-# Uses the standalone vpc-endpoints submodule from
-# terraform-aws-modules/vpc/aws.
-#
-# Interface endpoints default to intra subnets (no internet
-# route needed – they use AWS PrivateLink). Override per-endpoint
-# with subnet_ids inside the endpoints map.
-#
-# Gateway endpoints (S3, DynamoDB) are attached to route tables
-# specified per-endpoint via route_table_ids.
-#
-# Security groups are NOT managed here – callers should create
-# them at the stack level using the security-group module and
-# pass security_group_ids per-endpoint.
-################################################################
-
-module "vpc_endpoints" {
-  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "6.6.1"
-
-  create = module.this.enabled && var.create_vpc_endpoints
-
-  vpc_id = module.vpc.vpc_id
-
-  # Default subnet placement: intra (no internet route)
-  subnet_ids = module.vpc.intra_subnets
-
-  # Security groups are managed at the stack level
-  create_security_group = false
-
-  endpoints = var.vpc_endpoints
-
-  tags = module.this.tags
-}

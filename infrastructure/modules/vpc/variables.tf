@@ -307,37 +307,4 @@ variable "iam_role_tags" {
 
 ################################################################
 # VPC Endpoints
-################################################################
 
-variable "create_vpc_endpoints" {
-  description = "Whether to create VPC endpoints."
-  type        = bool
-  default     = true
-}
-
-variable "vpc_endpoints" {
-  description = <<-EOT
-    Map of VPC endpoints to create. Each key is a logical name,
-    each value is passed through to the upstream vpc-endpoints
-    submodule.
-
-    Interface endpoints are placed in intra subnets by default.
-    Security groups must be created at the stack level and passed
-    per-endpoint via `security_group_ids`.
-
-    Gateway endpoints require `service_type = "Gateway"` and
-    `route_table_ids`.
-
-    Supported per-endpoint attributes:
-      service             - AWS service name (e.g. "s3", "ecr.api")
-      service_type        - "Interface" (default) or "Gateway"
-      policy              - JSON endpoint policy document
-      subnet_ids          - Override default intra subnets
-      security_group_ids  - Security group IDs for this endpoint
-      private_dns_enabled - Enable private DNS (Interface only)
-      route_table_ids     - Route table IDs (Gateway only)
-      tags                - Per-endpoint tags
-  EOT
-  type        = any
-  default     = {}
-}
