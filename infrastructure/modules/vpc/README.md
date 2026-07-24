@@ -48,18 +48,98 @@ Subnet CIDRs are auto-calculated from the VPC CIDR across the first three availa
 
 ## Usage
 
+### Standard VPC (all subnet tiers)
+
 ```terraform
 module "vpc" {
   source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
 
-  environment = "dev"
+  environment = "prod"
   service     = "bcss"
   name        = "vpc"
 
   vpc_cidr           = "10.0.0.0/16"
-  single_nat_gateway = true  # cost saving for non-prod
+  single_nat_gateway = false  # one NAT per AZ for HA
 
   flow_log_kms_key_id = aws_kms_key.cloudwatch.arn  # optional encryption
+}
+```
+
+### Database VPC (intra subnets only, /24 CIDR)
+
+Minimal VPC for databases with no internet access. Uses /26 intra subnets (64 IPs × 3 AZs).
+
+```terraform
+module "database_vpc" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "prod"
+  service     = "bcss"
+  name        = "database"
+
+  vpc_cidr = "10.1.0.0/24"
+
+  # Intra subnets only — disable other tiers
+  create_firewall_subnets = false
+  create_public_subnets   = false
+  create_private_subnets  = false
+  create_intra_subnets    = true
+
+  # Adjust subnet prefix for /24 VPC (must be larger than /24, e.g., /26, /27, /28)
+  intra_subnet_prefix = 26
+
+  enable_flow_log            = true
+  flow_log_retention_in_days = 30
+}
+```
+
+### Network Firewall routing (firewall + public subnets only)
+
+For centralized Network Firewall inspection. Public subnets route outbound traffic via firewall VPCE (not IGW).
+
+```terraform
+module "vpc_nfw" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "prod"
+  service     = "bcss"
+  name        = "nfw"
+
+  vpc_cidr = "10.0.0.0/16"
+
+  # Firewall + public only — disable private and intra
+  create_firewall_subnets = true
+  create_public_subnets   = true
+  create_private_subnets  = false
+  create_intra_subnets    = false
+
+  enable_network_firewall = true  # enables firewall routing mode
+
+  # Inject 0.0.0.0/0 → firewall VPCE into public route tables at stack level
+}
+```
+
+### Minimal public-only scenario
+
+For simple public-facing resources without private egress.
+
+```terraform
+module "vpc_public" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "dev"
+  service     = "test"
+  name        = "public"
+
+  vpc_cidr = "10.0.0.0/16"
+
+  # Public subnets only
+  create_firewall_subnets = false
+  create_public_subnets   = true
+  create_private_subnets  = false
+  create_intra_subnets    = false
+
+  map_public_ip_on_launch = true  # auto-assign public IPs
 }
 ```
 
@@ -68,6 +148,10 @@ module "vpc" {
 | Variable | Description | Default |
 | --- | --- | --- |
 | `vpc_cidr` | VPC CIDR block (/16 to /28 per AWS limits) | Required |
+| `create_firewall_subnets` | Whether to create firewall subnets (required for Network Firewall routing mode) | `true` |
+| `create_public_subnets` | Whether to create public subnets (internet-facing resources, NAT gateways) | `true` |
+| `create_private_subnets` | Whether to create private subnets (NAT-routed workloads with internet access) | `true` |
+| `create_intra_subnets` | Whether to create intra subnets (no internet access) | `true` |
 | `availability_zones` | Explicit AZs for subnet placement; defaults to the first three available AZs | `null` |
 | `single_nat_gateway` | Use one shared NAT instead of per-AZ | `false` |
 | `enable_flow_log` | Enable VPC flow logs | `true` |
