@@ -54,6 +54,37 @@ variable "availability_zones" {
   default     = null
 }
 
+################################################################
+# Subnet type creation flags
+#
+# Control which subnet tiers are created.  When a subnet type
+# is disabled, its prefix and CIDR calculations are skipped.
+################################################################
+
+variable "create_firewall_subnets" {
+  description = "Whether to create firewall subnets (required for Network Firewall routing mode)."
+  type        = bool
+  default     = true
+}
+
+variable "create_public_subnets" {
+  description = "Whether to create public subnets (internet-facing resources, NAT gateways)."
+  type        = bool
+  default     = true
+}
+
+variable "create_private_subnets" {
+  description = "Whether to create private subnets (workloads with outbound internet access via NAT gateway)."
+  type        = bool
+  default     = true
+}
+
+variable "create_intra_subnets" {
+  description = "Whether to create intra subnets (no internet access)."
+  type        = bool
+  default     = true
+}
+
 variable "firewall_subnet_prefix" {
   description = "Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix. It is highly recommended to use /28 for firewall subnets to minimize wasted IPs."
   type        = number

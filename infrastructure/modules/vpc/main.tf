@@ -75,22 +75,22 @@ module "vpc" {
 
 check "subnet_prefix_vs_vpc_prefix" {
   assert {
-    condition     = var.firewall_subnet_prefix > local.vpc_prefix_length
+    condition     = !var.create_firewall_subnets || var.firewall_subnet_prefix > local.vpc_prefix_length
     error_message = "firewall_subnet_prefix (/${var.firewall_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
   }
 
   assert {
-    condition     = var.public_subnet_prefix > local.vpc_prefix_length
+    condition     = !var.create_public_subnets || var.public_subnet_prefix > local.vpc_prefix_length
     error_message = "public_subnet_prefix (/${var.public_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
   }
 
   assert {
-    condition     = var.private_subnet_prefix > local.vpc_prefix_length
+    condition     = !var.create_private_subnets || var.private_subnet_prefix > local.vpc_prefix_length
     error_message = "private_subnet_prefix (/${var.private_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
   }
 
   assert {
-    condition     = var.intra_subnet_prefix > local.vpc_prefix_length
+    condition     = !var.create_intra_subnets || var.intra_subnet_prefix > local.vpc_prefix_length
     error_message = "intra_subnet_prefix (/${var.intra_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
   }
 }
