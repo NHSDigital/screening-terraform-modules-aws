@@ -76,6 +76,11 @@ resource "terraform_data" "validations" {
     }
 
     precondition {
+      condition     = !var.enable_nat_gateway || var.create_private_subnets
+      error_message = "enable_nat_gateway = true requires create_private_subnets = true. For database-only or intra-only VPCs without private subnets, set enable_nat_gateway = false."
+    }
+
+    precondition {
       condition     = length(var.firewall_subnets) == 0 || length(var.firewall_subnets) == local.az_count
       error_message = "firewall_subnets must be empty or have exactly ${local.az_count} entries (one per AZ); found ${length(var.firewall_subnets)}."
     }

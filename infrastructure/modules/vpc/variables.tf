@@ -164,8 +164,14 @@ variable "intra_subnets" {
 # NAT Gateway
 ################################################################
 
+variable "enable_nat_gateway" {
+  description = "Provision NAT Gateway(s) for private subnet internet egress. Not applicable if private subnets are disabled. Set to false for database-only VPCs with no internet-routed workloads."
+  type        = bool
+  default     = true
+}
+
 variable "single_nat_gateway" {
-  description = "Provision a single shared NAT Gateway instead of one per AZ. Saves cost but reduces availability."
+  description = "Provision a single shared NAT Gateway instead of one per AZ. Saves cost but reduces availability. Requires enable_nat_gateway = true and create_private_subnets = true."
   type        = bool
   default     = false
 }

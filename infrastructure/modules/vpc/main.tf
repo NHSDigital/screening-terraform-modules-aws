@@ -40,7 +40,7 @@ module "vpc" {
   create_multiple_public_route_tables = var.enable_network_firewall
 
   # NAT gateway configuration
-  enable_nat_gateway     = true
+  enable_nat_gateway     = var.enable_nat_gateway
   single_nat_gateway     = var.single_nat_gateway
   one_nat_gateway_per_az = !var.single_nat_gateway
 
