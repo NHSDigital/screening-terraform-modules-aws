@@ -25,5 +25,5 @@ module "vpc_endpoints" {
   # Use merged endpoints map to apply default security_group_id where needed
   endpoints = local.endpoints_merged
 
-  tags = var.tags
+  tags = module.this.tags
 }
