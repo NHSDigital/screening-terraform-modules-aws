@@ -30,7 +30,16 @@ locals {
       try(v.subnet_ids, null) == null &&
       length(var.subnet_ids) > 0 ?
       { subnet_ids = var.subnet_ids } :
-      {}
+      {},
+      # Merge tags: inject a default Name tag of "${module.this.id}-${key}"
+      # Consumer can override by setting `name` on the endpoint object.
+      # Per-endpoint tags from v.tags are preserved alongside the injected Name.
+      {
+        tags = merge(
+          try(v.tags, {}),
+          { Name = try(v.name, "${module.this.id}-${replace(k, ".", "-")}") }
+        )
+      }
     )
   }
 }

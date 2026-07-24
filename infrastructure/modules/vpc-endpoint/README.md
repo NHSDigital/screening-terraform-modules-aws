@@ -10,7 +10,7 @@ Thin wrapper around the community [`terraform-aws-modules/vpc/aws//modules/vpc-e
 | Default security groups | Single `security_group_id` can default all Interface endpoints; per-endpoint override via `security_group_ids` |
 | Endpoint policies | Module passes through optional policies for both Gateway (S3/DynamoDB) and Interface (SNS, SQS, etc.) endpoints; caller responsible for restrictive policies |
 | Subnet isolation | Default placement in intra subnets (no internet route); can override per-endpoint |
-| Consistent tagging | All resources tagged via `var.tags`; no additional tagging logic |
+| Consistent tagging | All resources inherit `var.tags`; each endpoint also gets a default `Name` tag of `${module.this.id}-${endpoint_key}` unless overridden per-endpoint |
 
 ## What this module provides
 
@@ -20,9 +20,32 @@ Thin wrapper around the community [`terraform-aws-modules/vpc/aws//modules/vpc-e
 - **Default subnets** — Single `var.subnet_ids` applies to all endpoints unless overridden per-endpoint
 - **Per-endpoint overrides** — `security_group_ids`, `subnet_ids`, and `policy` customizable per endpoint
 - **Per-endpoint policies** — Optional endpoint policies for both Gateway and Interface endpoints (recommended for security)
-- **Consistent tagging** — All resources tagged via `var.tags`
+- **Consistent tagging** — All resources inherit `var.tags`, and each endpoint gets a default `Name` tag with an optional per-endpoint override
 
 ## Usage
+
+### Endpoint naming
+
+This wrapper adds a per-endpoint `Name` tag automatically:
+
+- Default: `${module.this.id}-${replace(endpoint_key, ".", "-")}`
+- Override: set `name` on the endpoint object
+
+This is applied by injecting `Name` into the per-endpoint `tags` map before calling the upstream module.
+
+### Advanced upstream attributes
+
+This wrapper passes most per-endpoint settings through to the upstream module unchanged. In addition to the common examples below, you can also use upstream-supported attributes such as:
+
+- `auto_accept`
+- `dns_options`
+- `ip_address_type`
+- `service_endpoint`
+- `service_region`
+- `subnet_configurations`
+- `tags`
+
+The key constraint from this wrapper is that every endpoint object must still include `service`.
 
 ### Example 1: Minimal Interface endpoints with default security group
 
@@ -39,12 +62,36 @@ module "vpc_endpoints" {
       service      = "ecr.api"
       service_type = "Interface"
       # Inherits security_group_id from var.security_group_id
+      # Name tag defaults to "${module.this.id}-ecr_api"
     }
 
     ecr_dkr = {
-      service      = "ecr.api"
+      service      = "ecr.dkr"
       service_type = "Interface"
       # Inherits security_group_id from var.security_group_id
+      # Name tag defaults to "${module.this.id}-ecr_dkr"
+    }
+  }
+
+  tags = var.tags
+}
+```
+
+### Example 1a: Override the endpoint `Name` tag
+
+```hcl
+module "vpc_endpoints" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc-endpoint?ref=v7.0.0"
+
+  vpc_id            = module.vpc.vpc_id
+  subnet_ids        = module.vpc.intra_subnet_ids
+  security_group_id = aws_security_group.vpc_endpoints.id
+
+  endpoints = {
+    secretsmanager = {
+      service      = "secretsmanager"
+      service_type = "Interface"
+      name         = "platform-secrets-endpoint"
     }
   }
 
@@ -147,7 +194,7 @@ module "vpc_endpoints" {
 }
 ```
 
-### Example 5: Interface endpoint with user-defined IP address (static ENI placement)
+### Example 5: Interface endpoint with explicit DNS options and endpoint-specific tags
 
 ```hcl
 module "vpc_endpoints" {
@@ -158,13 +205,19 @@ module "vpc_endpoints" {
   security_group_id = aws_security_group.interface_endpoints.id
 
   endpoints = {
-    ecr_api = {
-      service      = "ecr.api"
-      service_type = "Interface"
-      # Fixed IPs in specific subnet (single AZ, lower cost)
-      subnet_ids = [module.vpc.intra_subnet_ids[0]]
+    logs = {
+      service             = "logs"
+      service_type        = "Interface"
+      name                = "central-cloudwatch-logs-endpoint"
+      subnet_ids          = slice(module.vpc.intra_subnet_ids, 0, 2)
       private_dns_enabled = true
-      # Optional: specify exact private IPs via network_interface_ids if needed
+      dns_options = {
+        dns_record_ip_type = "ipv4"
+      }
+      tags = {
+        Purpose = "application-observability"
+        Tier    = "shared"
+      }
     }
   }
 
@@ -172,7 +225,86 @@ module "vpc_endpoints" {
 }
 ```
 
-### Example 6: PrivateLink to RDS with policy and security group
+### Example 6: Interface endpoint with fixed private IPs via subnet configurations
+
+```hcl
+module "vpc_endpoints" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc-endpoint?ref=v7.0.0"
+
+  vpc_id            = module.vpc.vpc_id
+  subnet_ids        = slice(module.vpc.intra_subnet_ids, 0, 2)
+  security_group_id = aws_security_group.interface_endpoints.id
+
+  endpoints = {
+    ec2 = {
+      service             = "ec2"
+      service_type        = "Interface"
+      private_dns_enabled = true
+      ip_address_type     = "ipv4"
+      subnet_configurations = [
+        {
+          subnet_id = module.vpc.intra_subnet_ids[0]
+          ipv4      = "10.20.10.10"
+        },
+        {
+          subnet_id = module.vpc.intra_subnet_ids[1]
+          ipv4      = "10.20.20.10"
+        }
+      ]
+    }
+  }
+
+  tags = var.tags
+}
+```
+
+### Example 7: Dual S3 endpoints for VPC and inbound resolver traffic
+
+```hcl
+module "vpc_endpoints" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc-endpoint?ref=v7.0.0"
+
+  vpc_id            = module.vpc.vpc_id
+  subnet_ids        = module.vpc.intra_subnet_ids
+  security_group_id = aws_security_group.interface_endpoints.id
+
+  endpoints = {
+    s3_gateway = {
+      service         = "s3"
+      service_type    = "Gateway"
+      route_table_ids = module.vpc.private_route_table_ids
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [{
+          Effect    = "Allow"
+          Principal = "*"
+          Action    = ["s3:GetObject"]
+          Resource  = "arn:aws:s3:::my-ingestion-bucket/*"
+        }]
+      })
+    }
+
+    s3_interface = {
+      service             = "s3"
+      service_type        = "Interface"
+      private_dns_enabled = true
+      dns_options = {
+        dns_record_ip_type                             = "ipv4"
+        private_dns_only_for_inbound_resolver_endpoint = true
+      }
+      tags = {
+        Purpose = "on-prem-s3-resolution"
+      }
+    }
+  }
+
+  tags = var.tags
+}
+```
+
+This pattern follows the AWS provider guidance for services that support both Gateway and Interface endpoints: VPC traffic uses the Gateway endpoint, while traffic entering through Route 53 Resolver inbound endpoints can use the Interface endpoint.
+
+### Example 8: PrivateLink to RDS with policy and security group
 
 ```hcl
 module "vpc_endpoints" {
@@ -217,7 +349,7 @@ resource "aws_security_group" "rds_endpoint" {
 }
 ```
 
-### Example 7: PrivateLink to EC2 with policy and security group
+### Example 9: PrivateLink to EC2 with policy and security group
 
 ```hcl
 module "vpc_endpoints" {
@@ -260,7 +392,7 @@ resource "aws_security_group" "ec2_endpoint" {
 }
 ```
 
-### Example 8: PrivateLink to NLB with policy, security group, and private DNS
+### Example 10: PrivateLink to ELB API with policy, security group, and private DNS
 
 ```hcl
 module "vpc_endpoints" {
@@ -312,7 +444,7 @@ resource "aws_security_group" "nlb_endpoint" {
 }
 ```
 
-### Example 9: Complex: Multiple endpoint types with mixed defaults and overrides
+### Example 11: Complex: Multiple endpoint types with mixed defaults and overrides
 
 ```hcl
 module "vpc_endpoints" {
@@ -422,14 +554,16 @@ module "vpc_endpoints" {
 
 | Type | Required attributes | Optional attributes |
 | --- | --- | --- |
-| Interface | `service`, and either per-endpoint `security_group_ids` OR `var.security_group_id` | `subnet_ids`, `policy`, `private_dns_enabled`, `tags` |
-| Gateway | `service`, `route_table_ids` | `policy`, `tags` |
+| Interface | `service`, and either per-endpoint `security_group_ids` OR `var.security_group_id` | `auto_accept`, `dns_options`, `ip_address_type`, `policy`, `private_dns_enabled`, `service_endpoint`, `service_region`, `subnet_configurations`, `subnet_ids`, `tags`, `name` |
+| Gateway | `service`, `route_table_ids` | `policy`, `tags`, `name` |
 
 ### Naming and variable precedence
 
-This module is a pass-through wrapper with no complex naming logic. The caller is responsible for:
+The caller is responsible for endpoint keys and service selection. This wrapper also applies endpoint naming conventions:
 
 - **Endpoint logical names**: Use clear, descriptive keys in the `endpoints` map (e.g., `ecr_api`, `s3`, `secretsmanager`)
+- **Endpoint `Name` tag**: Defaults to `${module.this.id}-${replace(endpoint_key, ".", "-")}`
+- **Endpoint `Name` override**: Set `name` on an endpoint to override only that endpoint's `Name` tag
 - **Service names**: AWS service names (e.g., `s3`, `ecr.api`, `ecr.dkr`) are passed directly to the upstream module
 - **Subnet placement**: Default to `intra_subnet_ids` (no internet route); override per-endpoint via `subnet_ids` for cost optimization
 
@@ -490,7 +624,7 @@ endpoints = {
 
 Without policies, any IAM principal in your account (or federated users) can access any S3 bucket or service through the endpoint.
 
-**Interface endpoints do NOT support policies.** Instead, they use security groups for access control (see below).
+**Some Interface endpoints also support policies**, but support is service-specific. Treat security groups as the primary network control, and only rely on endpoint policies where the AWS service documentation explicitly supports them.
 
 ### Security groups for Interface endpoints
 
@@ -535,7 +669,7 @@ resource "aws_security_group" "secrets_endpoints" {
 - **Does NOT create IAM policies** — IAM permissions to consume endpoints are the caller's responsibility
 - **Does NOT enforce endpoint policies** — Endpoints default to open access; you must supply restrictive policies
 - **Does NOT manage route table associations** — For Gateway endpoints, you pass existing route tables
-- **Does NOT apply custom naming or labels** — Service/endpoint names are passed through as-is
+- **Does NOT rename AWS service identifiers** — `service` values are passed through to the upstream module; only the resource `Name` tag is defaulted/overridable
 - **Does NOT create DNS records** — Private DNS for Interface endpoints is configured via `private_dns_enabled`; caller owns Route53 setup if needed
 - **Does NOT manage VPCs or subnets** — Caller must provide `vpc_id` and `subnet_ids` from the VPC module
 
