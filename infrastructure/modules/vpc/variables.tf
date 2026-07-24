@@ -253,6 +253,25 @@ variable "manage_default_network_acl" {
 }
 
 ################################################################
+# VPC Block Public Access
+#
+# Account-wide Block Public Access (enabling/disabling the policy
+# itself) must be managed at the account level using the
+# aws_vpc_block_public_access_options resource — NOT in this module:
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_block_public_access_options
+#
+# This module only exposes per-VPC subnet-level exclusions, allowing
+# specific subnets (e.g., public subnets with legitimate internet
+# access) to be exempt from an account-wide block.
+################################################################
+
+variable "vpc_block_public_access_exclusions" {
+  description = "Map of exclusions to the account-wide VPC Block Public Access policy. Use to exempt specific subnets (e.g., public subnets) when account-wide blocking is enabled. See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_block_public_access_options"
+  type        = map(any)
+  default     = {}
+}
+
+################################################################
 # Subnet tags
 ################################################################
 

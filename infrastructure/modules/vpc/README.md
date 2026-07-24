@@ -283,6 +283,7 @@ module "vpc_public" {
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
+| <a name="input_vpc_block_public_access_exclusions"></a> [vpc\_block\_public\_access\_exclusions](#input\_vpc\_block\_public\_access\_exclusions) | Map of exclusions to the account-wide VPC Block Public Access policy. Use to exempt specific subnets (e.g., public subnets) when account-wide blocking is enabled. See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_block_public_access_options | `map(any)` | `{}` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The IPv4 CIDR block for the VPC (AWS allows /16 to /28 netmask). Subnet CIDR blocks are auto-calculated from this VPC CIDR using the *\_subnet\_prefix variables. | `string` | n/a | yes |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 

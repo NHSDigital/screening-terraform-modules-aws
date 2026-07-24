@@ -71,6 +71,16 @@ module "vpc" {
   private_subnet_tags = var.private_subnet_tags
   intra_subnet_tags   = var.intra_subnet_tags
 
+  # VPC Block Public Access exclusions
+  #
+  # Account-wide VPC Block Public Access (aws_vpc_block_public_access_options) must be
+  # managed outside this module, at the account level:
+  # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_block_public_access_options
+  #
+  # Per-VPC subnet exclusions can be specified here to exempt specific subnets from the
+  # account-wide block (e.g., public subnets that legitimately need internet access).
+  vpc_block_public_access_exclusions = length(var.vpc_block_public_access_exclusions) > 0 ? var.vpc_block_public_access_exclusions : {}
+
   # Exclude "Name" — the community module sets its own Name tags on all resources
   tags = { for k, v in module.this.tags : k => v if k != "Name" }
 }
