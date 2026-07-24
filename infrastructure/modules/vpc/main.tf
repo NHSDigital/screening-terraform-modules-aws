@@ -10,6 +10,8 @@
 #   intra     – no internet route                  (default /23)
 #
 # Naming and tagging are derived from context.tf via module.this.
+#
+# Cross-variable input constraints are enforced in validations.tf.
 ################################################################
 
 module "vpc" {
@@ -71,28 +73,6 @@ module "vpc" {
 
   # Exclude "Name" — the community module sets its own Name tags on all resources
   tags = { for k, v in module.this.tags : k => v if k != "Name" }
-}
-
-check "subnet_prefix_vs_vpc_prefix" {
-  assert {
-    condition     = !var.create_firewall_subnets || var.firewall_subnet_prefix > local.vpc_prefix_length
-    error_message = "firewall_subnet_prefix (/${var.firewall_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
-  }
-
-  assert {
-    condition     = !var.create_public_subnets || var.public_subnet_prefix > local.vpc_prefix_length
-    error_message = "public_subnet_prefix (/${var.public_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
-  }
-
-  assert {
-    condition     = !var.create_private_subnets || var.private_subnet_prefix > local.vpc_prefix_length
-    error_message = "private_subnet_prefix (/${var.private_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
-  }
-
-  assert {
-    condition     = !var.create_intra_subnets || var.intra_subnet_prefix > local.vpc_prefix_length
-    error_message = "intra_subnet_prefix (/${var.intra_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
-  }
 }
 
 ################################################################
@@ -237,4 +217,3 @@ module "flow_log" {
 
   tags = module.this.tags
 }
-

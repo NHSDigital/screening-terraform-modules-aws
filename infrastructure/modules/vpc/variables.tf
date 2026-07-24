@@ -86,46 +86,46 @@ variable "create_intra_subnets" {
 }
 
 variable "firewall_subnet_prefix" {
-  description = "Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix. It is highly recommended to use /28 for firewall subnets to minimize wasted IPs."
+  description = "Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc_cidr when auto-calculating. Used only when firewall_subnets list is empty; when explicit firewall_subnets are provided, this value is ignored. Highly recommended: /28 to minimize wasted IPs."
   type        = number
   default     = 28
 
   validation {
-    condition     = length(var.firewall_subnets) == 0 ? (var.firewall_subnet_prefix >= 16 && var.firewall_subnet_prefix <= 28) : true
-    error_message = "Subnet prefix must be between /16 and /28 per AWS limits."
+    condition     = var.firewall_subnet_prefix >= 16 && var.firewall_subnet_prefix <= 28
+    error_message = "firewall_subnet_prefix must be between /16 and /28 per AWS limits."
   }
 }
 
 variable "public_subnet_prefix" {
-  description = "Prefix length for public subnets (e.g. 24 = /24, 256 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix."
+  description = "Prefix length for public subnets (e.g. 24 = /24, 256 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc_cidr when auto-calculating. Used only when public_subnets list is empty; when explicit public_subnets are provided, this value is ignored."
   type        = number
   default     = 24
 
   validation {
-    condition     = length(var.public_subnets) == 0 ? (var.public_subnet_prefix >= 16 && var.public_subnet_prefix <= 28) : true
-    error_message = "Subnet prefix must be between /16 and /28 per AWS limits."
+    condition     = var.public_subnet_prefix >= 16 && var.public_subnet_prefix <= 28
+    error_message = "public_subnet_prefix must be between /16 and /28 per AWS limits."
   }
 }
 
 variable "private_subnet_prefix" {
-  description = "Prefix length for private subnets with NAT (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix."
+  description = "Prefix length for private subnets with NAT (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc_cidr when auto-calculating. Used only when private_subnets list is empty; when explicit private_subnets are provided, this value is ignored."
   type        = number
   default     = 23
 
   validation {
-    condition     = length(var.private_subnets) == 0 ? (var.private_subnet_prefix >= 16 && var.private_subnet_prefix <= 28) : true
-    error_message = "Subnet prefix must be between /16 and /28 per AWS limits."
+    condition     = var.private_subnet_prefix >= 16 && var.private_subnet_prefix <= 28
+    error_message = "private_subnet_prefix must be between /16 and /28 per AWS limits."
   }
 }
 
 variable "intra_subnet_prefix" {
-  description = "Prefix length for intra subnets with no internet route (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix."
+  description = "Prefix length for intra subnets with no internet route (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc_cidr when auto-calculating. Used only when intra_subnets list is empty; when explicit intra_subnets are provided, this value is ignored."
   type        = number
   default     = 23
 
   validation {
-    condition     = length(var.intra_subnets) == 0 ? (var.intra_subnet_prefix >= 16 && var.intra_subnet_prefix <= 28) : true
-    error_message = "Subnet prefix must be between /16 and /28 per AWS limits."
+    condition     = var.intra_subnet_prefix >= 16 && var.intra_subnet_prefix <= 28
+    error_message = "intra_subnet_prefix must be between /16 and /28 per AWS limits."
   }
 }
 
@@ -338,4 +338,3 @@ variable "iam_role_tags" {
 
 ################################################################
 # VPC Endpoints
-
