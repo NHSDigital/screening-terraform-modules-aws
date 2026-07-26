@@ -341,6 +341,7 @@ Rules:
 | `secrets-manager` | terraform-aws-modules/secrets-manager/aws | Secrets Manager for secure secret storage |
 | `security-group` | terraform-aws-modules/security-group/aws | Security group with ingress and egress rules |
 | `security-hub` | — | Security Hub for centralized security findings |
+| `ses` | — | — |
 | `sns` | terraform-aws-modules/sns/aws | SNS topic with encryption and policies |
 | `sqs` | — | SQS queue with encryption |
 | `ssm-parameter` | — | — |
