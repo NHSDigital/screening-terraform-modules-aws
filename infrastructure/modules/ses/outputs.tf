@@ -22,4 +22,3 @@ output "custom_from_domain" {
   description = "The custom MAIL FROM domain (e.g. mail.example.nhs.uk). Empty when custom_from_subdomain is not set."
   value       = module.ses.custom_from_domain
 }
-
