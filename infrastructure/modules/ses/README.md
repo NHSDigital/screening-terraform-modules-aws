@@ -8,6 +8,9 @@ Thin NHS wrapper around [cloudposse/ses/aws](https://registry.terraform.io/modul
 | --- | --- | --- |
 | `iam_create_access_key` | `false` | IAM access keys must never be stored in Terraform state |
 | `iam_create_ses_smtp_password` | `false` | SMTP passwords must never be stored in Terraform state |
+| `ses_user_enabled` | `false` | ECS tasks authenticate via IAM roles, not IAM users |
+| `ses_group_enabled` | `false` | ECS tasks authenticate via IAM roles, not IAM groups |
+| `custom_from_behavior_on_mx_failure` | `UseDefaultValue` | Sensible default; falls back to amazonses.com on MX failure |
 
 ## Provider requirements
 
@@ -67,7 +70,7 @@ module "ses" {
 }
 ```
 
-### With IAM group for sending
+### Domain identity with custom MAIL FROM
 
 ```hcl
 module "ses" {
@@ -76,29 +79,31 @@ module "ses" {
   context = module.this.context
   name    = "ses"
 
-  domain  = "example.nhs.uk"
-  zone_id = module.r53.zone_id
+  domain  = "${var.environment}.bcss.nhs.uk"
+  zone_id = module.r53.hosted_zone_ids["public"]
 
   verify_domain     = true
   verify_dkim       = true
-  ses_group_enabled = true
+  create_spf_record = true
+
+  custom_from_subdomain          = ["mail"]
+  custom_from_dns_record_enabled = true
 }
 ```
 
 ## Conventions
 
 * The SES domain identity name is the `domain` value itself; it is not derived from context labels.
-* The IAM group name is always derived from `module.this.id` (context labels) to align with NHS naming conventions.
 * `verify_domain`, `verify_dkim`, `create_spf_record`, and `custom_from_dns_record_enabled` all require `zone_id` to be set — the module will fail at plan time if they are enabled without one.
-* `ses_user_enabled` and `ses_group_enabled` both default to `false`; opt in explicitly when a sending identity is required.
-* IAM access keys and SMTP passwords are hardcoded to never be stored in Terraform state — distribute credentials out-of-band via the AWS console or CLI after creation.
+* IAM access keys and SMTP passwords are hardcoded to never be stored in Terraform state.
+* IAM user and group creation are hardcoded off. Grant SES sending permissions to ECS task IAM roles directly via `ses:SendRawEmail` on the domain identity ARN.
 * Every AWS account starts in SES Sandbox mode. Sending to unverified addresses requires a production access request via AWS Support.
 
 ## What this module does NOT do
 
 * Move the account out of SES Sandbox mode — raise an AWS Support request to enable production sending.
 * Create or manage Route53 hosted zones — provide an existing zone ID via `zone_id`.
-* Store IAM credentials — access keys and SMTP passwords must be retrieved and distributed out-of-band.
+* Create IAM users or groups — grant `ses:SendRawEmail` on the domain identity ARN directly to ECS task roles.
 * Configure SES sending quotas, suppression lists, or configuration sets — manage those resources separately.
 * Create an SES email identity for individual addresses — this module handles domain identities only.
 

@@ -23,17 +23,3 @@ output "custom_from_domain" {
   value       = module.ses.custom_from_domain
 }
 
-output "user_arn" {
-  description = "The ARN of the IAM user created for SES sending. Empty when ses_user_enabled is false."
-  value       = module.ses.user_arn
-}
-
-output "user_name" {
-  description = "The name of the IAM user created for SES sending. Empty when ses_user_enabled is false."
-  value       = module.ses.user_name
-}
-
-output "ses_group_name" {
-  description = "The name of the IAM group created for SES sending. Empty when ses_group_enabled is false."
-  value       = module.ses.ses_group_name
-}
