@@ -9,6 +9,8 @@
 #   - copy_tags_to_snapshot = true   (snapshots must carry the same tags)
 #   - auto_minor_version_upgrade = false (teams keep instances in sync with prod)
 #   - create_db_subnet_group = true  (subnet group always managed by this module)
+#
+# Cross-variable input constraints are enforced in validations.tf.
 # ----------------------------------------------------------------------------
 
 module "rds" {
@@ -66,6 +68,12 @@ module "rds" {
   # Monitoring
   monitoring_interval    = var.monitoring_interval
   create_monitoring_role = module.this.enabled && var.monitoring_interval > 0
+
+  # CloudWatch log exports
+  enabled_cloudwatch_logs_exports        = var.enabled_cloudwatch_logs_exports
+  create_cloudwatch_log_group            = var.create_cloudwatch_log_group
+  cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_retention_in_days
+  cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_kms_key_id
 
   # Availability and backup
   multi_az                   = var.multi_az

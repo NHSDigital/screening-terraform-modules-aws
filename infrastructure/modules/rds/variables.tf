@@ -117,7 +117,7 @@ variable "manage_master_user_password" {
 }
 
 variable "master_user_secret_kms_key_id" {
-  description = "The key ARN, key ID, alias ARN or alias name for the KMS key to encrypt the master user password secret in Secrets Manager. If not specified, the default KMS key for your Amazon Web Services account is used"
+  description = "The key ARN, key ID, alias ARN or alias name for the KMS key to encrypt the master user password secret in Secrets Manager. Required when manage_master_user_password is true. AWS-managed keys are not acceptable per platform policy."
   type        = string
   default     = null
 }
@@ -205,18 +205,33 @@ variable "backup_retention_period" {
   description = "Number of days to retain automated backups. Must be between 0 and 35"
   type        = number
   default     = 7
+
+  validation {
+    condition     = var.backup_retention_period >= 0 && var.backup_retention_period <= 35
+    error_message = "backup_retention_period must be between 0 and 35."
+  }
 }
 
 variable "backup_window" {
   description = "Daily UTC time range for automated backups (e.g. '23:00-23:30'). Must not overlap with maintenance_window"
   type        = string
   default     = "23:00-23:30"
+
+  validation {
+    condition     = can(regex("^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$", var.backup_window))
+    error_message = "backup_window must be in HH:MM-HH:MM format (e.g. '23:00-23:30')."
+  }
 }
 
 variable "maintenance_window" {
   description = "Weekly maintenance window (e.g. 'Sun:00:00-Sun:03:00')"
   type        = string
   default     = "Sun:00:00-Sun:03:00"
+
+  validation {
+    condition     = can(regex("^(Mon|Tue|Wed|Thu|Fri|Sat|Sun):[0-9]{2}:[0-9]{2}-(Mon|Tue|Wed|Thu|Fri|Sat|Sun):[0-9]{2}:[0-9]{2}$", var.maintenance_window))
+    error_message = "maintenance_window must be in Ddd:HH:MM-Ddd:HH:MM format (e.g. 'Sun:00:00-Sun:03:00')."
+  }
 }
 
 variable "skip_final_snapshot" {
@@ -305,4 +320,43 @@ variable "timeouts" {
     delete = optional(string)
   })
   default = null
+}
+
+# ----------------------------------------------------------------------------
+# CloudWatch log exports
+# ----------------------------------------------------------------------------
+
+variable "enabled_cloudwatch_logs_exports" {
+  description = "List of log types to export to CloudWatch Logs. Valid values by engine: postgres = ['postgresql', 'upgrade'], mysql = ['audit', 'error', 'general', 'slowquery'], oracle = ['alert', 'audit', 'listener', 'oemagent', 'trace'], sqlserver = ['agent', 'error']. Leave empty to disable."
+  type        = list(string)
+  default     = []
+}
+
+variable "create_cloudwatch_log_group" {
+  description = <<-EOT
+    When true (default), the module creates one CloudWatch log group per log type exported.
+    Log groups are named: /aws/rds/instance/<identifier>/<log_type>
+
+    Set to false when the log groups are pre-created at consumer level — for example,
+    when you need a specific resource policy, cross-account sharing, or to have the
+    log group managed by a central logging stack. The log groups must exist before the
+    RDS instance is created and must follow the naming convention above.
+
+    When false, cloudwatch_log_group_kms_key_id is not required by this module
+    (encryption is the caller's responsibility on the pre-existing log groups).
+  EOT
+  type        = bool
+  default     = true
+}
+
+variable "cloudwatch_log_group_retention_in_days" {
+  description = "Number of days to retain CloudWatch log groups created for RDS log exports."
+  type        = number
+  default     = 30
+}
+
+variable "cloudwatch_log_group_kms_key_id" {
+  description = "ARN of the customer-managed KMS key to encrypt CloudWatch log groups. Required when create_cloudwatch_log_group is true and enabled_cloudwatch_logs_exports is non-empty. AWS-managed keys are not acceptable per platform policy. Not used when create_cloudwatch_log_group is false."
+  type        = string
+  default     = null
 }

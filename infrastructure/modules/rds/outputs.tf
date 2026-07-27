@@ -68,3 +68,10 @@ output "enhanced_monitoring_iam_role_arn" {
   description = "ARN of the Enhanced Monitoring IAM role. Empty when monitoring_interval is 0"
   value       = module.rds.enhanced_monitoring_iam_role_arn
 }
+
+# CloudWatch log groups
+
+output "cloudwatch_log_group_arns" {
+  description = "Map of CloudWatch log group names to ARNs, keyed by log type. Empty when enabled_cloudwatch_logs_exports is not set."
+  value       = try(module.rds.db_instance_cloudwatch_log_groups, {})
+}
