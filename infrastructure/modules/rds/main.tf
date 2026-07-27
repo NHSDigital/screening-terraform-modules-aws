@@ -43,9 +43,10 @@ module "rds" {
   port     = var.port
 
   # Credentials
-  manage_master_user_password = var.manage_master_user_password
-  password_wo                 = var.password_wo
-  password_wo_version         = var.password_wo_version
+  manage_master_user_password   = var.manage_master_user_password
+  master_user_secret_kms_key_id = var.master_user_secret_kms_key_id
+  password_wo                   = var.password_wo
+  password_wo_version           = var.password_wo_version
 
   # Networking
   publicly_accessible    = false
