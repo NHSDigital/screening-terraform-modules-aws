@@ -7,6 +7,8 @@
 ################################################################
 
 resource "terraform_data" "validation" {
+  count = module.this.enabled ? 1 : 0
+
   lifecycle {
     precondition {
       condition     = var.internal || var.access_logs != null
