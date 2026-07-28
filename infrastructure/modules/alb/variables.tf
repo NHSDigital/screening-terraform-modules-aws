@@ -99,12 +99,12 @@ variable "enable_http_https_redirect" {
 
 variable "desync_mitigation_mode" {
   type        = string
-  default     = "defensive"
-  description = "HTTP request desync mitigation mode. Valid values: 'off', 'defensive', 'strictest', 'monitor'. Only valid for ALB. 'defensive' is the AWS default and recommended for security. See https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#desync-mitigation-mode"
+  default     = null
+  description = "HTTP request desync mitigation mode. Valid values: 'off', 'defensive', 'strictest', 'monitor'. ALB only. When null, this module applies 'defensive' automatically for ALB and passes null for NLB. See https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#desync-mitigation-mode"
 
   validation {
-    condition     = (var.load_balancer_type != "application" && var.desync_mitigation_mode == null) || (var.load_balancer_type == "application" && contains(["off", "defensive", "strictest", "monitor"], var.desync_mitigation_mode))
-    error_message = "desync_mitigation_mode must be one of: off, defensive, strictest, monitor (ALB only). For NLB, omit this variable or set to null."
+    condition     = var.desync_mitigation_mode == null || contains(["off", "defensive", "strictest", "monitor"], var.desync_mitigation_mode)
+    error_message = "desync_mitigation_mode must be one of: off, defensive, strictest, monitor, or null."
   }
 }
 
@@ -121,25 +121,25 @@ variable "idle_timeout" {
 
 variable "preserve_host_header" {
   type        = bool
-  default     = false
-  description = "When true, ALB preserves the original Host header from the client request instead of rewriting it. Only valid for ALB. Defaults to false."
+  default     = null
+  description = "When true, ALB preserves the original Host header from the client request instead of rewriting it. ALB only. When null, this module applies false automatically for ALB and passes null for NLB."
 }
 
 variable "xff_header_processing_mode" {
   type        = string
-  default     = "append"
-  description = "How the ALB handles X-Forwarded-For headers. Valid values: 'append', 'replace', 'remove'. 'append' is AWS default. Only valid for ALB."
+  default     = null
+  description = "How the ALB handles X-Forwarded-For headers. Valid values: 'append', 'replace', 'remove'. ALB only. When null, this module applies 'append' automatically for ALB and passes null for NLB."
 
   validation {
-    condition     = contains(["append", "replace", "remove"], var.xff_header_processing_mode)
-    error_message = "xff_header_processing_mode must be one of: append, replace, remove."
+    condition     = var.xff_header_processing_mode == null || contains(["append", "replace", "remove"], var.xff_header_processing_mode)
+    error_message = "xff_header_processing_mode must be one of: append, replace, remove, or null."
   }
 }
 
 variable "enable_http2" {
   type        = bool
-  default     = true
-  description = "When true, HTTP/2 is enabled on the ALB. Improves connection efficiency. Only valid for ALB. Defaults to true."
+  default     = null
+  description = "When true, HTTP/2 is enabled on the ALB. Improves connection efficiency. ALB only. When null, this module applies true automatically for ALB and passes null for NLB."
 }
 
 variable "enable_cross_zone_load_balancing" {

@@ -21,7 +21,7 @@ resource "terraform_data" "validation" {
     }
 
     precondition {
-      condition     = !var.enable_http2 || var.load_balancer_type == "application"
+      condition     = var.enable_http2 == null || !var.enable_http2 || var.load_balancer_type == "application"
       error_message = "var.enable_http2 is only valid for ALB (load_balancer_type = 'application'). Set enable_http2 = false for NLB or change load_balancer_type to 'application'."
     }
 
@@ -31,12 +31,12 @@ resource "terraform_data" "validation" {
     }
 
     precondition {
-      condition     = var.preserve_host_header == false || var.load_balancer_type == "application"
+      condition     = var.preserve_host_header == null || var.preserve_host_header == false || var.load_balancer_type == "application"
       error_message = "var.preserve_host_header is only valid for ALB (load_balancer_type = 'application'). Set preserve_host_header = false for NLB or change load_balancer_type to 'application'."
     }
 
     precondition {
-      condition     = var.xff_header_processing_mode == "append" || var.load_balancer_type == "application"
+      condition     = var.xff_header_processing_mode == null || var.xff_header_processing_mode == "append" || var.load_balancer_type == "application"
       error_message = "var.xff_header_processing_mode is only valid for ALB (load_balancer_type = 'application'). Use default (append) or change load_balancer_type to 'application'."
     }
   }

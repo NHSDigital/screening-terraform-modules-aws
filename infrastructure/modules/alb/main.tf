@@ -40,7 +40,7 @@ module "alb" {
   # the upstream module does not error.
   # ----------------------------------------------------------------
   enable_deletion_protection = var.enable_deletion_protection
-  drop_invalid_header_fields = var.load_balancer_type == "application" ? true : null
+  drop_invalid_header_fields = local.effective_drop_invalid_header_fields
 
   # ----------------------------------------------------------------
   # Security groups — REQUIRED caller-supplied list.
@@ -59,11 +59,11 @@ module "alb" {
   # Preserve host header: maintains original Host header from client (ALB only).
   # Cross-zone load balancing: distribute traffic across AZs.
   # ----------------------------------------------------------------
-  desync_mitigation_mode           = var.load_balancer_type == "application" ? var.desync_mitigation_mode : null
-  enable_http2                     = var.load_balancer_type == "application" ? var.enable_http2 : null
-  xff_header_processing_mode       = var.load_balancer_type == "application" ? var.xff_header_processing_mode : null
+  desync_mitigation_mode           = local.effective_desync_mitigation_mode
+  enable_http2                     = local.effective_enable_http2
+  xff_header_processing_mode       = local.effective_xff_header_processing_mode
   idle_timeout                     = var.idle_timeout
-  preserve_host_header             = var.load_balancer_type == "application" ? var.preserve_host_header : null
+  preserve_host_header             = local.effective_preserve_host_header
   enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
 
   # ----------------------------------------------------------------
