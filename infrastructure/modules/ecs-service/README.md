@@ -10,6 +10,7 @@ the shared `context.tf` for naming and tagging.
 |Control|How it is enforced|
 |---|---|
 |No public IP|`assign_public_ip` defaults to `false`; tasks run on private subnets|
+|Security groups|Caller must provide security group IDs via `security_group_ids`; `create_security_group = false` prevents default SG creation|
 |ECS-managed tags|`enable_ecs_managed_tags` defaults to `true`; AWS propagates resource tags to tasks|
 |Tag propagation|`propagate_tags` defaults to `TASK_DEFINITION` so tasks inherit service tags|
 |Creation gate|`create = module.this.enabled`; no resources are created when the module is disabled|

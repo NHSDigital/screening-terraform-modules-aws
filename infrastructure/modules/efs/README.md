@@ -11,7 +11,7 @@ the shared `context.tf` for naming and tagging.
 |---|---|
 |Encryption at rest|KMS encryption is mandatory; `var.kms_key_arn` is required|
 |Encryption in transit|TLS is always required; non-secure transport is denied by default|
-|Security groups|Mount targets require explicit security groups from the caller; no defaults|
+|Security groups|Mount targets require explicit security groups from the caller; `create_security_group = false` prevents default SG creation|
 |Destructive operations|Delete operations are denied by default; must be explicitly allowed via policy|
 |Tagging|All EFS resources tagged via `module.this.tags`|
 |Creation gate|Resource creation gated by `module.this.enabled`|

@@ -48,7 +48,8 @@ module "efs" {
   # ----------------------------------------------------------------
   # Mount targets: caller must provide security group(s) and subnets.
   # ----------------------------------------------------------------
-  mount_targets = var.mount_targets
+  mount_targets         = var.mount_targets
+  create_security_group = false
 
   # ----------------------------------------------------------------
   # Backup policy (optional).

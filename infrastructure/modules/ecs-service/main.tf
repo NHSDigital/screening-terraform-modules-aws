@@ -36,6 +36,7 @@ module "ecs_service" {
   cpu                                          = var.cpu
   create_iam_role                              = var.create_iam_role
   create_infrastructure_iam_role               = var.create_infrastructure_iam_role
+  create_security_group                        = false
   create_service                               = var.create_service
   create_task_definition                       = var.create_task_definition
   create_task_exec_iam_role                    = var.create_task_exec_iam_role
