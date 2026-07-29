@@ -220,9 +220,9 @@ module "replicated_efs" {
 }
 ```
 
-### Secure EFS with TLS 1.2 enforcement and IP restrictions
+### Secure EFS with TLS 1.2 enforcement
 
-Enforce strong TLS version and restrict access to specific network ranges.
+Enforce strong TLS version via file system policy controls.
 
 ```hcl
 module "secure_efs" {
@@ -235,9 +235,8 @@ module "secure_efs" {
 
   kms_key_arn = module.efs_kms.key_arn
 
-  # Enforce TLS 1.2 minimum and restrict to VPC CIDR
+  # Enforce TLS 1.2 minimum
   require_tls_version = "1.2"
-  allowed_source_ips  = ["10.0.0.0/8"]  # Your VPC CIDR
 
   # Prevent accidental deletion (must explicitly allow in custom policy)
   deny_destructive_operations = true
@@ -342,9 +341,8 @@ module "production_efs" {
     destination = "eu-west-1"
   }
 
-  # Security: enforce TLS 1.2 and restrict to VPC
+  # Security: enforce TLS 1.2
   require_tls_version = "1.2"
-  allowed_source_ips  = ["10.0.0.0/8"]
 
   # Access control: application isolation via access points
   access_points = {
@@ -421,9 +419,15 @@ This module automatically adds security-focused policy statements to the EFS fil
 | Statement | Default | Purpose |
 | --- | --- | --- |
 | `DenyUnsecureTransport` | Enabled | Denies all EFS operations over non-TLS connections (`aws:SecureTransport = false`) |
+| `AccessedViaMountTarget` | Enabled (with `deny_unsecure_transport`) | Allows EFS client mount/write/root actions only when accessed via mount targets |
 | `DenyOldTLSVersion` | Disabled | Denies operations using TLS versions older than specified via `var.require_tls_version` |
-| `DenyUnauthorizedSourceIPs` | Disabled | Restricts EFS access to specific CIDR blocks via `var.allowed_source_ips` |
 | `DenyDestructiveOperations` | Enabled | Denies `DeleteFileSystem`, `DeleteAccessPoint`, etc. by default (callers must explicitly allow via custom policy) |
+
+All default policy statements are assembled from conditional `aws_iam_policy_document` data sources and merged into `local.default_policy_statement` before attachment.
+This produces a single combined file system policy document.
+
+Resource scoping: default statements target the created file system ARN, not `*`.
+Using `*` works functionally in an EFS file system policy, but scoping to the concrete file system ARN is preferred for least privilege and clearer intent.
 
 ### Controlling Policy Statements
 
@@ -431,16 +435,12 @@ This module automatically adds security-focused policy statements to the EFS fil
 # Require TLS 1.2 or higher
 require_tls_version = "1.2"
 
-# Restrict to specific VPC CIDR blocks
-allowed_source_ips = ["10.0.0.0/8", "172.16.0.0/12"]
-
 # Disable automatic deny of destructive operations (not recommended)
 deny_destructive_operations = false
 
 # Disable all automatic policy statements
 deny_unsecure_transport = false
 require_tls_version     = null
-allowed_source_ips      = []
 ```
 
 ### Custom Policy Statements
@@ -457,7 +457,7 @@ file_system_policy = jsonencode({
         AWS = "arn:aws:iam::ACCOUNT:role/AdminRole"
       }
       Action   = ["elasticfilesystem:DeleteFileSystem"]
-      Resource = "*"
+      Resource = "arn:aws:elasticfilesystem:eu-west-2:ACCOUNT_ID:file-system/fs-EXAMPLE"
     }
   ]
 })
