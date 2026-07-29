@@ -42,9 +42,18 @@ Subnet CIDRs are auto-calculated from the VPC CIDR across the first three availa
 
 - **Naming and tagging** via `context.tf` / `module.this` (tags module v2.5.0)
 - **NAT gateways** — one per AZ by default, with `single_nat_gateway` option for cost savings
-- **VPC Flow Logs** — enabled by default, sending to CloudWatch Logs with a 365-day retention. Implemented as standalone resources (upstream deprecated flow logs in v6.x, removing in v7.0.0)
+- **VPC Flow Logs** — enabled by default with destination type configurable as `cloud-watch-logs` or `s3`, implemented via the upstream standalone flow-log submodule
 - **Security defaults** — default security group adopted and stripped of all rules
 - **Firewall subnets** — standalone resources (upstream module has no firewall tier)
+
+## Flow Logs
+
+Flow logs are consumer-managed in this wrapper.
+
+- Set `flow_log_destination_type` to `cloud-watch-logs` or `s3`
+- Always provide `flow_log_destination_arn`
+- For `cloud-watch-logs`, also provide `flow_log_cloudwatch_iam_role_arn`
+- For `s3`, do not set `flow_log_cloudwatch_iam_role_arn`
 
 ## Usage
 
@@ -61,7 +70,27 @@ module "vpc" {
   vpc_cidr           = "10.0.0.0/16"
   single_nat_gateway = false  # one NAT per AZ for HA
 
-  flow_log_kms_key_id = aws_kms_key.cloudwatch.arn  # optional encryption
+  # Recommended: consumer-managed CloudWatch destination + IAM role
+  flow_log_destination_type        = "cloud-watch-logs"
+  flow_log_destination_arn         = aws_cloudwatch_log_group.vpc_flow_logs.arn
+  flow_log_cloudwatch_iam_role_arn = aws_iam_role.vpc_flow_logs.arn
+}
+```
+
+### VPC with consumer-managed S3 flow-log destination
+
+```terraform
+module "vpc" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "prod"
+  service     = "bcss"
+  name        = "vpc"
+
+  vpc_cidr = "10.0.0.0/16"
+
+  flow_log_destination_type = "s3"
+  flow_log_destination_arn  = module.logs_bucket.bucket_arn
 }
 ```
 
@@ -88,8 +117,10 @@ module "database_vpc" {
   # Adjust subnet prefix for /24 VPC (must be larger than /24, e.g., /26, /27, /28)
   intra_subnet_prefix = 26
 
-  enable_flow_log            = true
-  flow_log_retention_in_days = 30
+  enable_flow_log                    = true
+  flow_log_destination_type          = "cloud-watch-logs"
+  flow_log_destination_arn           = aws_cloudwatch_log_group.database_vpc_flow_logs.arn
+  flow_log_cloudwatch_iam_role_arn   = aws_iam_role.database_vpc_flow_logs.arn
 }
 ```
 
@@ -155,10 +186,20 @@ module "vpc_public" {
 | `availability_zones` | Explicit AZs for subnet placement; defaults to the first three available AZs | `null` |
 | `single_nat_gateway` | Use one shared NAT instead of per-AZ | `false` |
 | `enable_flow_log` | Enable VPC flow logs | `true` |
-| `flow_log_retention_in_days` | CloudWatch log retention | `365` |
+| `flow_log_destination_type` | Flow log destination type (`cloud-watch-logs` or `s3`) | `cloud-watch-logs` |
+| `flow_log_destination_arn` | Consumer-managed destination ARN | `null` |
+| `flow_log_cloudwatch_iam_role_arn` | Consumer-managed CloudWatch delivery role ARN (CloudWatch destination only) | `null` |
 | `flow_log_traffic_type` | ACCEPT, REJECT, or ALL | `ALL` |
-| `flow_log_kms_key_id` | KMS key ARN for log encryption | `null` |
 | `map_public_ip_on_launch` | Auto-assign public IPs in public subnets | `false` |
+
+## Validation
+
+Cross-variable checks in `validations.tf` enforce flow-log destination requirements:
+
+- `flow_log_destination_type` must be `cloud-watch-logs` or `s3`
+- For `cloud-watch-logs`, `flow_log_destination_arn` is required
+- For `cloud-watch-logs`, `flow_log_cloudwatch_iam_role_arn` is required
+- For `s3`, `flow_log_destination_arn` is required and `flow_log_cloudwatch_iam_role_arn` must be unset
 
 ## Key outputs
 
@@ -220,7 +261,6 @@ module "vpc_public" {
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | Availability zones to use for the VPC. Leave null to use the first three available AZs in the current region. | `list(string)` | `null` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
-| <a name="input_cloudwatch_log_group_tags"></a> [cloudwatch\_log\_group\_tags](#input\_cloudwatch\_log\_group\_tags) | Additional tags for the CloudWatch log group. | `map(string)` | `{}` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_create_firewall_subnets"></a> [create\_firewall\_subnets](#input\_create\_firewall\_subnets) | Whether to create firewall subnets (required for Network Firewall routing mode). | `bool` | `true` | no |
 | <a name="input_create_intra_subnets"></a> [create\_intra\_subnets](#input\_create\_intra\_subnets) | Whether to create intra subnets (no internet access). | `bool` | `true` | no |
@@ -237,7 +277,7 @@ module "vpc_public" {
 | <a name="input_enable_dhcp_options"></a> [enable\_dhcp\_options](#input\_enable\_dhcp\_options) | Create a custom DHCP option set and associate it with the VPC. | `bool` | `false` | no |
 | <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Enable DNS hostnames in the VPC. | `bool` | `true` | no |
 | <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Enable DNS support in the VPC. | `bool` | `true` | no |
-| <a name="input_enable_flow_log"></a> [enable\_flow\_log](#input\_enable\_flow\_log) | Enable VPC flow logs to CloudWatch Logs. | `bool` | `true` | no |
+| <a name="input_enable_flow_log"></a> [enable\_flow\_log](#input\_enable\_flow\_log) | Enable VPC flow logs. Destination is controlled by flow\_log\_destination\_type. | `bool` | `true` | no |
 | <a name="input_enable_nat_gateway"></a> [enable\_nat\_gateway](#input\_enable\_nat\_gateway) | Provision NAT Gateway(s) for private subnet internet egress. Not applicable if private subnets are disabled. Set to false for database-only VPCs with no internet-routed workloads. | `bool` | `true` | no |
 | <a name="input_enable_network_firewall"></a> [enable\_network\_firewall](#input\_enable\_network\_firewall) | When true, the VPC module creates firewall subnets, takes over<br/>IGW management from the community module, and reconfigures<br/>routing for AWS Network Firewall inspection:<br/>  - Firewall subnets created as standalone resources<br/>  - IGW created as a standalone resource (community module's create\_igw = false)<br/>  - Firewall subnets get a default route (0.0.0.0/0) to the IGW<br/>  - Public subnet default route is NOT created (callers must<br/>    inject 0.0.0.0/0 → firewall VPCE at the stack level)<br/>When false (default), no firewall subnets are created, the<br/>community module creates the IGW and public → IGW route as<br/>normal — no Network Firewall in the path. | `bool` | `false` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
@@ -245,12 +285,12 @@ module "vpc_public" {
 | <a name="input_firewall_subnet_prefix"></a> [firewall\_subnet\_prefix](#input\_firewall\_subnet\_prefix) | Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc\_cidr when auto-calculating. Used only when firewall\_subnets list is empty; when explicit firewall\_subnets are provided, this value is ignored. Highly recommended: /28 to minimize wasted IPs. | `number` | `28` | no |
 | <a name="input_firewall_subnet_tags"></a> [firewall\_subnet\_tags](#input\_firewall\_subnet\_tags) | Additional tags for the firewall subnets. | `map(string)` | `{}` | no |
 | <a name="input_firewall_subnets"></a> [firewall\_subnets](#input\_firewall\_subnets) | Explicit CIDR blocks for firewall subnets (one per AZ). Leave empty to auto-calculate. | `list(string)` | `[]` | no |
-| <a name="input_flow_log_kms_key_id"></a> [flow\_log\_kms\_key\_id](#input\_flow\_log\_kms\_key\_id) | ARN of a KMS key to encrypt the CloudWatch log group. Leave null for no encryption. | `string` | `null` | no |
+| <a name="input_flow_log_cloudwatch_iam_role_arn"></a> [flow\_log\_cloudwatch\_iam\_role\_arn](#input\_flow\_log\_cloudwatch\_iam\_role\_arn) | Existing IAM role ARN used by VPC Flow Logs when destination type is cloud-watch-logs. | `string` | `null` | no |
+| <a name="input_flow_log_destination_arn"></a> [flow\_log\_destination\_arn](#input\_flow\_log\_destination\_arn) | ARN of the flow log destination. Required when flow logs are enabled. For cloud-watch-logs, set to a CloudWatch log group ARN. For s3, set to an S3 bucket ARN. | `string` | `null` | no |
+| <a name="input_flow_log_destination_type"></a> [flow\_log\_destination\_type](#input\_flow\_log\_destination\_type) | Destination type for VPC flow logs. Supported values in this module: cloud-watch-logs, s3. | `string` | `"cloud-watch-logs"` | no |
 | <a name="input_flow_log_max_aggregation_interval"></a> [flow\_log\_max\_aggregation\_interval](#input\_flow\_log\_max\_aggregation\_interval) | The maximum interval of time (seconds) during which a flow of packets is captured. Valid values: 60 (1 min) or 600 (10 min). | `number` | `600` | no |
-| <a name="input_flow_log_retention_in_days"></a> [flow\_log\_retention\_in\_days](#input\_flow\_log\_retention\_in\_days) | Number of days to retain VPC flow logs in CloudWatch. | `number` | `365` | no |
 | <a name="input_flow_log_tags"></a> [flow\_log\_tags](#input\_flow\_log\_tags) | Additional tags for the VPC flow log. | `map(string)` | `{}` | no |
 | <a name="input_flow_log_traffic_type"></a> [flow\_log\_traffic\_type](#input\_flow\_log\_traffic\_type) | The type of traffic to capture. Valid values: ACCEPT, REJECT, ALL. | `string` | `"ALL"` | no |
-| <a name="input_iam_role_tags"></a> [iam\_role\_tags](#input\_iam\_role\_tags) | Additional tags for the IAM role used by the VPC flow log. | `map(string)` | `{}` | no |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br/>Set to `0` for unlimited length.<br/>Set to `null` for keep the existing setting, which defaults to `0`.<br/>Does not affect `id_full`. | `number` | `null` | no |
 | <a name="input_intra_subnet_prefix"></a> [intra\_subnet\_prefix](#input\_intra\_subnet\_prefix) | Prefix length for intra subnets with no internet route (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc\_cidr when auto-calculating. Used only when intra\_subnets list is empty; when explicit intra\_subnets are provided, this value is ignored. | `number` | `23` | no |
 | <a name="input_intra_subnet_tags"></a> [intra\_subnet\_tags](#input\_intra\_subnet\_tags) | Additional tags for the intra (no-internet) subnets. | `map(string)` | `{}` | no |
@@ -298,8 +338,8 @@ module "vpc_public" {
 | <a name="output_firewall_subnet_ids"></a> [firewall\_subnet\_ids](#output\_firewall\_subnet\_ids) | List of IDs of the firewall subnets. |
 | <a name="output_firewall_subnets_cidr_blocks"></a> [firewall\_subnets\_cidr\_blocks](#output\_firewall\_subnets\_cidr\_blocks) | List of CIDR blocks of the firewall subnets. |
 | <a name="output_flow_log_arn"></a> [flow\_log\_arn](#output\_flow\_log\_arn) | The ARN of the VPC Flow Log. |
-| <a name="output_flow_log_cloudwatch_log_group_arn"></a> [flow\_log\_cloudwatch\_log\_group\_arn](#output\_flow\_log\_cloudwatch\_log\_group\_arn) | The ARN of the CloudWatch Log Group for VPC flow logs. |
-| <a name="output_flow_log_iam_role_arn"></a> [flow\_log\_iam\_role\_arn](#output\_flow\_log\_iam\_role\_arn) | The ARN of the IAM role used by VPC flow logs. |
+| <a name="output_flow_log_cloudwatch_log_group_arn"></a> [flow\_log\_cloudwatch\_log\_group\_arn](#output\_flow\_log\_cloudwatch\_log\_group\_arn) | The CloudWatch log group ARN returned by the flow-log submodule. May be null for s3 destinations or when external resources are used. |
+| <a name="output_flow_log_iam_role_arn"></a> [flow\_log\_iam\_role\_arn](#output\_flow\_log\_iam\_role\_arn) | The IAM role ARN returned by the flow-log submodule. May be null for s3 destinations or when external resources are used. |
 | <a name="output_flow_log_id"></a> [flow\_log\_id](#output\_flow\_log\_id) | The ID of the VPC Flow Log. |
 | <a name="output_igw_arn"></a> [igw\_arn](#output\_igw\_arn) | The ARN of the Internet Gateway. |
 | <a name="output_igw_id"></a> [igw\_id](#output\_igw\_id) | The ID of the Internet Gateway. |

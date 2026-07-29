@@ -191,10 +191,10 @@ resource "aws_route_table_association" "edge" {
 # terraform-aws-modules/vpc/aws (the root module's built-in
 # flow log support is deprecated in v6.x, removed in v7.0.0).
 #
-# The submodule creates:
-#   - CloudWatch Log Group
-#   - IAM Role with scoped trust policy
-#   - VPC Flow Log resource
+# Flow log destination and IAM role are managed by the consumer.
+# Supported destination types in this wrapper:
+#   - cloud-watch-logs
+#   - s3
 ################################################################
 
 module "flow_log" {
@@ -206,24 +206,17 @@ module "flow_log" {
   name   = "${module.this.id}-flow-log"
   vpc_id = module.vpc.vpc_id
 
-  # CloudWatch destination
-  log_destination_type                   = "cloud-watch-logs"
-  cloudwatch_log_group_name              = "/vpc/${module.this.id}/flow-logs"
-  cloudwatch_log_group_use_name_prefix   = false
-  cloudwatch_log_group_retention_in_days = var.flow_log_retention_in_days
-  cloudwatch_log_group_kms_key_id        = var.flow_log_kms_key_id
+  # Destination configuration
+  log_destination_type = var.flow_log_destination_type
+  log_destination      = var.flow_log_destination_arn
 
-  # IAM role (created by the submodule with scoped trust policy)
-  create_iam_role          = true
-  iam_role_name            = "${module.this.id}-flow-logs"
-  iam_role_use_name_prefix = false
+  # CloudWatch destinations require a consumer-managed IAM role.
+  iam_role_arn = var.flow_log_cloudwatch_iam_role_arn
 
   traffic_type             = var.flow_log_traffic_type
   max_aggregation_interval = var.flow_log_max_aggregation_interval
 
-  cloudwatch_log_group_tags = var.cloudwatch_log_group_tags
-  flow_log_tags             = var.flow_log_tags
-  iam_role_tags             = var.iam_role_tags
+  flow_log_tags = var.flow_log_tags
 
   tags = module.this.tags
 }
