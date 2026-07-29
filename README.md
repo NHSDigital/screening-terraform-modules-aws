@@ -346,8 +346,9 @@ Rules:
 | `ssm-parameter` | — | — |
 | `tags` | — | Foundation: naming and tagging context module |
 | `vpc` | terraform-aws-modules/vpc/aws | VPC with subnets, routing, and gateways |
-| `vpce` | — | VPC endpoint (single service) |
-| `vpces` | — | VPC endpoints (multiple services) |
+| `vpc-endpoint` | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | VPC endpoints (Interface and Gateway) with policies |
+| `vpce` | — | VPC endpoint (single service) (legacy) |
+| `vpces` | — | VPC endpoints (multiple services) (legacy) |
 | `waf` | — | WAF web ACL with rules |
 
 <!-- END_AVAILABLE_MODULES -->

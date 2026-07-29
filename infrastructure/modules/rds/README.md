@@ -158,7 +158,7 @@ This example shows the recommended pattern for production use: integrating with 
 ```hcl
 # Create a security group using the NHS security-group wrapper module
 module "rds_security_group" {
-  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws//infrastructure/modules/security-group?ref=vX.Y.Z""
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws//infrastructure/modules/security-group?ref=vX.Y.Z"
 
   service     = "bcss"
   project     = "screening"
@@ -289,7 +289,9 @@ When migrating from `../../modules/rds` in the bcss repo to this shared module, 
 
 ## Providers
 
-No providers.
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -300,7 +302,9 @@ No providers.
 
 ## Resources
 
-No resources.
+| Name | Type |
+| ---- | ---- |
+| [terraform_data.validations](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
@@ -315,7 +319,10 @@ No resources.
 | <a name="input_backup_retention_period"></a> [backup\_retention\_period](#input\_backup\_retention\_period) | Number of days to retain automated backups. Must be between 0 and 35 | `number` | `7` | no |
 | <a name="input_backup_window"></a> [backup\_window](#input\_backup\_window) | Daily UTC time range for automated backups (e.g. '23:00-23:30'). Must not overlap with maintenance\_window | `string` | `"23:00-23:30"` | no |
 | <a name="input_character_set_name"></a> [character\_set\_name](#input\_character\_set\_name) | Oracle character set name. Cannot be changed after creation. Must be null when restoring from a snapshot | `string` | `null` | no |
+| <a name="input_cloudwatch_log_group_kms_key_id"></a> [cloudwatch\_log\_group\_kms\_key\_id](#input\_cloudwatch\_log\_group\_kms\_key\_id) | ARN of the customer-managed KMS key to encrypt CloudWatch log groups. Required when create\_cloudwatch\_log\_group is true and enabled\_cloudwatch\_logs\_exports is non-empty. AWS-managed keys are not acceptable per platform policy. Not used when create\_cloudwatch\_log\_group is false. | `string` | `null` | no |
+| <a name="input_cloudwatch_log_group_retention_in_days"></a> [cloudwatch\_log\_group\_retention\_in\_days](#input\_cloudwatch\_log\_group\_retention\_in\_days) | Number of days to retain CloudWatch log groups created for RDS log exports. | `number` | `30` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
+| <a name="input_create_cloudwatch_log_group"></a> [create\_cloudwatch\_log\_group](#input\_create\_cloudwatch\_log\_group) | When true (default), the module creates one CloudWatch log group per log type exported.<br/>Log groups are named: /aws/rds/instance/<identifier>/<log\_type><br/><br/>Set to false when the log groups are pre-created at consumer level — for example,<br/>when you need a specific resource policy, cross-account sharing, or to have the<br/>log group managed by a central logging stack. The log groups must exist before the<br/>RDS instance is created and must follow the naming convention above.<br/><br/>When false, cloudwatch\_log\_group\_kms\_key\_id is not required by this module<br/>(encryption is the caller's responsibility on the pre-existing log groups). | `bool` | `true` | no |
 | <a name="input_data_classification"></a> [data\_classification](#input\_data\_classification) | Used to identify the data classification of the resource, e.g 1-5 | `string` | `"n/a"` | no |
 | <a name="input_data_type"></a> [data\_type](#input\_data\_type) | The tag data\_type | `string` | `"None"` | no |
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | The name of the database to create. Omit to skip initial database creation | `string` | `null` | no |
@@ -323,6 +330,7 @@ No resources.
 | <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to be used between ID elements.<br/>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
 | <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br/>Map of maps. Keys are names of descriptors. Values are maps of the form<br/>`{<br/>    format = string<br/>    labels = list(string)<br/>}`<br/>(Type is `any` so the map values can later be enhanced to provide additional options.)<br/>`format` is a Terraform format string to be passed to the `format()` function.<br/>`labels` is a list of labels, in order, to pass to `format()` function.<br/>Label values will be normalized before being passed to `format()` so they will be<br/>identical to how they appear in `id`.<br/>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
+| <a name="input_enabled_cloudwatch_logs_exports"></a> [enabled\_cloudwatch\_logs\_exports](#input\_enabled\_cloudwatch\_logs\_exports) | List of log types to export to CloudWatch Logs. Valid values by engine: postgres = ['postgresql', 'upgrade'], mysql = ['audit', 'error', 'general', 'slowquery'], oracle = ['alert', 'audit', 'listener', 'oemagent', 'trace'], sqlserver = ['agent', 'error']. Leave empty to disable. | `list(string)` | `[]` | no |
 | <a name="input_engine"></a> [engine](#input\_engine) | The database engine to use (e.g. 'oracle-ee', 'postgres', 'mysql') | `string` | n/a | yes |
 | <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | The engine version to use | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used to indicate role, e.g. 'prd', 'dev', 'test', 'preprod', 'prod', 'uat' | `string` | `null` | no |
@@ -340,6 +348,7 @@ No resources.
 | <a name="input_maintenance_window"></a> [maintenance\_window](#input\_maintenance\_window) | Weekly maintenance window (e.g. 'Sun:00:00-Sun:03:00') | `string` | `"Sun:00:00-Sun:03:00"` | no |
 | <a name="input_major_engine_version"></a> [major\_engine\_version](#input\_major\_engine\_version) | Major engine version for the option group (e.g. '19' for Oracle 19c) | `string` | n/a | yes |
 | <a name="input_manage_master_user_password"></a> [manage\_master\_user\_password](#input\_manage\_master\_user\_password) | When true, RDS manages the master password in Secrets Manager. When false, password\_wo must be provided | `bool` | `false` | no |
+| <a name="input_master_user_secret_kms_key_id"></a> [master\_user\_secret\_kms\_key\_id](#input\_master\_user\_secret\_kms\_key\_id) | The key ARN, key ID, alias ARN or alias name for the KMS key to encrypt the master user password secret in Secrets Manager. Required when manage\_master\_user\_password is true. AWS-managed keys are not acceptable per platform policy. | `string` | `null` | no |
 | <a name="input_max_allocated_storage"></a> [max\_allocated\_storage](#input\_max\_allocated\_storage) | Upper limit for storage autoscaling in gibibytes. Set to 0 to disable autoscaling | `number` | `0` | no |
 | <a name="input_monitoring_interval"></a> [monitoring\_interval](#input\_monitoring\_interval) | Interval in seconds between Enhanced Monitoring data points. Valid values: 0, 1, 5, 10, 15, 30, 60. Set to 0 to disable | `number` | `5` | no |
 | <a name="input_multi_az"></a> [multi\_az](#input\_multi\_az) | Specifies if the RDS instance is Multi-AZ | `bool` | `false` | no |
@@ -378,6 +387,7 @@ No resources.
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_cloudwatch_log_group_arns"></a> [cloudwatch\_log\_group\_arns](#output\_cloudwatch\_log\_group\_arns) | Map of CloudWatch log group names to ARNs, keyed by log type. Empty when enabled\_cloudwatch\_logs\_exports is not set. |
 | <a name="output_db_option_group_id"></a> [db\_option\_group\_id](#output\_db\_option\_group\_id) | ID of the DB option group |
 | <a name="output_db_parameter_group_id"></a> [db\_parameter\_group\_id](#output\_db\_parameter\_group\_id) | ID of the DB parameter group |
 | <a name="output_db_subnet_group_id"></a> [db\_subnet\_group\_id](#output\_db\_subnet\_group\_id) | Name/ID of the DB subnet group |
