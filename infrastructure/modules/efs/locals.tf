@@ -19,7 +19,7 @@ data "aws_iam_policy_document" "deny_unsecure_transport" {
   statement {
     sid       = "DenyUnsecureTransport"
     effect    = "Deny"
-    actions   = ["elasticfilesystem:*"]
+    actions   = ["*"]
     resources = [local.file_system_arn]
 
     principals {
