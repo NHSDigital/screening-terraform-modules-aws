@@ -101,19 +101,24 @@ data "aws_iam_policy_document" "deny_destructive_operations" {
 }
 
 locals {
-  # Build list of default security statements to add to the policy
-  default_policy_statement = concat(
-    try(jsondecode(data.aws_iam_policy_document.deny_unsecure_transport[0].json).Statement, []),
-    try(jsondecode(data.aws_iam_policy_document.require_tls_version[0].json).Statement, []),
-    try(jsondecode(data.aws_iam_policy_document.deny_destructive_operations[0].json).Statement, [])
+  # Build list of default policy documents to merge.
+  default_policy_documents = concat(
+    length(data.aws_iam_policy_document.deny_unsecure_transport) > 0 ? [data.aws_iam_policy_document.deny_unsecure_transport[0].json] : [],
+    length(data.aws_iam_policy_document.require_tls_version) > 0 ? [data.aws_iam_policy_document.require_tls_version[0].json] : [],
+    length(data.aws_iam_policy_document.deny_destructive_operations) > 0 ? [data.aws_iam_policy_document.deny_destructive_operations[0].json] : []
   )
+}
 
-  # File system policy: merge caller policy with default security statements
-  file_system_policy_doc = length(local.default_policy_statement) > 0 || var.file_system_policy != null ? jsonencode({
-    Version = "2012-10-17"
-    Statement = concat(
-      var.file_system_policy != null ? jsondecode(var.file_system_policy).Statement : [],
-      local.default_policy_statement
-    )
-  }) : null
+data "aws_iam_policy_document" "combined_file_system_policy" {
+  count = module.this.enabled && (var.file_system_policy != null || length(local.default_policy_documents) > 0) ? 1 : 0
+
+  source_policy_documents = concat(
+    var.file_system_policy != null ? [var.file_system_policy] : [],
+    local.default_policy_documents
+  )
+}
+
+locals {
+  # Final merged file system policy JSON.
+  file_system_policy_doc = try(data.aws_iam_policy_document.combined_file_system_policy[0].json, null)
 }
