@@ -423,7 +423,7 @@ This module automatically adds security-focused policy statements to the EFS fil
 | `DenyOldTLSVersion` | Disabled | Denies operations using TLS versions older than specified via `var.require_tls_version` |
 | `DenyDestructiveOperations` | Enabled | Denies `DeleteFileSystem`, `DeleteAccessPoint`, etc. by default (callers must explicitly allow via custom policy) |
 
-All default policy statements are assembled from conditional `aws_iam_policy_document` data sources and merged into `local.default_policy_statement` before attachment.
+All default policy documents are assembled from conditional `aws_iam_policy_document` data sources and merged via `source_policy_documents`.
 This produces a single combined file system policy document.
 
 Resource scoping: default statements target the created file system ARN, not `*`.
@@ -523,6 +523,10 @@ The following cross-variable constraints are enforced in `validations.tf`:
 | [aws_efs_access_point.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_access_point) | resource |
 | [aws_efs_file_system_policy.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_file_system_policy) | resource |
 | [terraform_data.validations](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
+| [aws_iam_policy_document.combined_file_system_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.deny_destructive_operations](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.deny_unsecure_transport](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.require_tls_version](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
 
@@ -530,7 +534,6 @@ The following cross-variable constraints are enforced in `validations.tf`:
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_access_points"></a> [access\_points](#input\_access\_points) | Map of EFS Access Point configurations for application-level mount points.<br/>Access Points enforce POSIX user identities and enforce a file system root.<br/>Leave as {} to create no access points.<br/><br/>Example:<br/>  access\_points = {<br/>    "app-root" = {<br/>      enforced\_user\_id = "1000"<br/>      root\_directory\_path = "/app"<br/>      permissions\_mode = "755"<br/>    }<br/>    "db-root" = {<br/>      enforced\_user\_id = "1001"<br/>      root\_directory\_path = "/data"<br/>      permissions\_mode = "700"<br/>    }<br/>  } | `any` | `{}` | no |
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
-| <a name="input_allowed_source_ips"></a> [allowed\_source\_ips](#input\_allowed\_source\_ips) | List of CIDR blocks allowed to access the EFS. When set, a Deny statement restricts access to these IPs. Leave as [] to skip IP-based restrictions. | `list(string)` | `[]` | no |
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_availability_zone_name"></a> [availability\_zone\_name](#input\_availability\_zone\_name) | AWS Availability Zone for One Zone storage class. When set, the file system uses single-AZ storage for lower cost. Leave null for multi-AZ. | `string` | `null` | no |
