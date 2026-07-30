@@ -23,20 +23,34 @@ locals {
   private_newbits  = var.private_subnet_prefix - local.vpc_prefix_length
   intra_newbits    = var.intra_subnet_prefix - local.vpc_prefix_length
 
-  # Build a flat list of newbits: [firewall x N, public x N, private x N, intra x N]
-  # cidrsubnets() guarantees non-overlapping, correctly-aligned CIDRs.
+  # Build a flat list of newbits, conditionally including only enabled subnet types.
+  # cidrsubnets() only carves address space for subnet types that are actually created,
+  # allowing minimal VPCs (e.g., intra-only from a /24 CIDR).
   auto_newbits = concat(
-    [for _ in range(local.az_count) : local.firewall_newbits],
-    [for _ in range(local.az_count) : local.public_newbits],
-    [for _ in range(local.az_count) : local.private_newbits],
-    [for _ in range(local.az_count) : local.intra_newbits],
+    var.create_firewall_subnets ? [for _ in range(local.az_count) : local.firewall_newbits] : [],
+    var.create_public_subnets ? [for _ in range(local.az_count) : local.public_newbits] : [],
+    var.create_private_subnets ? [for _ in range(local.az_count) : local.private_newbits] : [],
+    var.create_intra_subnets ? [for _ in range(local.az_count) : local.intra_newbits] : [],
   )
-  auto_subnets = cidrsubnets(var.vpc_cidr, local.auto_newbits...)
+  auto_subnets = length(local.auto_newbits) > 0 ? cidrsubnets(var.vpc_cidr, local.auto_newbits...) : []
 
-  auto_firewall_subnets = slice(local.auto_subnets, 0, local.az_count)
-  auto_public_subnets   = slice(local.auto_subnets, local.az_count, 2 * local.az_count)
-  auto_private_subnets  = slice(local.auto_subnets, 2 * local.az_count, 3 * local.az_count)
-  auto_intra_subnets    = slice(local.auto_subnets, 3 * local.az_count, 4 * local.az_count)
+  # Calculate slice boundaries dynamically based on which subnet types are enabled
+  firewall_start = 0
+  firewall_end   = var.create_firewall_subnets ? local.az_count : 0
+
+  public_start = local.firewall_end
+  public_end   = local.public_start + (var.create_public_subnets ? local.az_count : 0)
+
+  private_start = local.public_end
+  private_end   = local.private_start + (var.create_private_subnets ? local.az_count : 0)
+
+  intra_start = local.private_end
+  intra_end   = local.intra_start + (var.create_intra_subnets ? local.az_count : 0)
+
+  auto_firewall_subnets = var.create_firewall_subnets ? slice(local.auto_subnets, local.firewall_start, local.firewall_end) : []
+  auto_public_subnets   = var.create_public_subnets ? slice(local.auto_subnets, local.public_start, local.public_end) : []
+  auto_private_subnets  = var.create_private_subnets ? slice(local.auto_subnets, local.private_start, local.private_end) : []
+  auto_intra_subnets    = var.create_intra_subnets ? slice(local.auto_subnets, local.intra_start, local.intra_end) : []
 
   # Allow explicit overrides per tier
   firewall_subnets = length(var.firewall_subnets) > 0 ? var.firewall_subnets : local.auto_firewall_subnets

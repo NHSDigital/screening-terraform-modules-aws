@@ -173,10 +173,10 @@ No providers.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_policies"></a> [policies](#module\_policies) | terraform-aws-modules/iam/aws//modules/iam-policy | 6.6.0 |
+| <a name="module_policies"></a> [policies](#module\_policies) | terraform-aws-modules/iam/aws//modules/iam-policy | 6.6.1 |
 | <a name="module_policy_label"></a> [policy\_label](#module\_policy\_label) | ../tags | n/a |
 | <a name="module_role_label"></a> [role\_label](#module\_role\_label) | ../tags | n/a |
-| <a name="module_roles"></a> [roles](#module\_roles) | terraform-aws-modules/iam/aws//modules/iam-role | 6.6.0 |
+| <a name="module_roles"></a> [roles](#module\_roles) | terraform-aws-modules/iam/aws//modules/iam-role | 6.6.1 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources

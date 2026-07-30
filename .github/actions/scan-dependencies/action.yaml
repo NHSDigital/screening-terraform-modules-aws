@@ -41,6 +41,8 @@ runs:
       shell: bash
       run: |
         export BUILD_DATETIME=${{ inputs.build_datetime }}
+        export GRYPE_DB_CACHE_DIR="${RUNNER_TEMP}/grype-db-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}"
+        mkdir -p "${GRYPE_DB_CACHE_DIR}"
         ./scripts/reports/scan-vulnerabilities.sh
     - name: "Compress vulnerabilities report"
       shell: bash

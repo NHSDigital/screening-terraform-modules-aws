@@ -10,6 +10,8 @@
 #   intra     – no internet route                  (default /23)
 #
 # Naming and tagging are derived from context.tf via module.this.
+#
+# Cross-variable input constraints are enforced in validations.tf.
 ################################################################
 
 module "vpc" {
@@ -38,7 +40,7 @@ module "vpc" {
   create_multiple_public_route_tables = var.enable_network_firewall
 
   # NAT gateway configuration
-  enable_nat_gateway     = true
+  enable_nat_gateway     = var.enable_nat_gateway
   single_nat_gateway     = var.single_nat_gateway
   one_nat_gateway_per_az = !var.single_nat_gateway
 
@@ -69,30 +71,18 @@ module "vpc" {
   private_subnet_tags = var.private_subnet_tags
   intra_subnet_tags   = var.intra_subnet_tags
 
+  # VPC Block Public Access exclusions
+  #
+  # Account-wide VPC Block Public Access (aws_vpc_block_public_access_options) must be
+  # managed outside this module, at the account level:
+  # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_block_public_access_options
+  #
+  # Per-VPC subnet exclusions can be specified here to exempt specific subnets from the
+  # account-wide block (e.g., public subnets that legitimately need internet access).
+  vpc_block_public_access_exclusions = length(var.vpc_block_public_access_exclusions) > 0 ? var.vpc_block_public_access_exclusions : {}
+
   # Exclude "Name" — the community module sets its own Name tags on all resources
   tags = { for k, v in module.this.tags : k => v if k != "Name" }
-}
-
-check "subnet_prefix_vs_vpc_prefix" {
-  assert {
-    condition     = var.firewall_subnet_prefix > local.vpc_prefix_length
-    error_message = "firewall_subnet_prefix (/${var.firewall_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
-  }
-
-  assert {
-    condition     = var.public_subnet_prefix > local.vpc_prefix_length
-    error_message = "public_subnet_prefix (/${var.public_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
-  }
-
-  assert {
-    condition     = var.private_subnet_prefix > local.vpc_prefix_length
-    error_message = "private_subnet_prefix (/${var.private_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
-  }
-
-  assert {
-    condition     = var.intra_subnet_prefix > local.vpc_prefix_length
-    error_message = "intra_subnet_prefix (/${var.intra_subnet_prefix}) must be more specific than the VPC CIDR (prefix length must be greater than (/${local.vpc_prefix_length})."
-  }
 }
 
 ################################################################
@@ -234,43 +224,6 @@ module "flow_log" {
   cloudwatch_log_group_tags = var.cloudwatch_log_group_tags
   flow_log_tags             = var.flow_log_tags
   iam_role_tags             = var.iam_role_tags
-
-  tags = module.this.tags
-}
-
-################################################################
-# VPC Endpoints
-#
-# Uses the standalone vpc-endpoints submodule from
-# terraform-aws-modules/vpc/aws.
-#
-# Interface endpoints default to intra subnets (no internet
-# route needed – they use AWS PrivateLink). Override per-endpoint
-# with subnet_ids inside the endpoints map.
-#
-# Gateway endpoints (S3, DynamoDB) are attached to route tables
-# specified per-endpoint via route_table_ids.
-#
-# Security groups are NOT managed here – callers should create
-# them at the stack level using the security-group module and
-# pass security_group_ids per-endpoint.
-################################################################
-
-module "vpc_endpoints" {
-  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
-  version = "6.6.1"
-
-  create = module.this.enabled && var.create_vpc_endpoints
-
-  vpc_id = module.vpc.vpc_id
-
-  # Default subnet placement: intra (no internet route)
-  subnet_ids = module.vpc.intra_subnets
-
-  # Security groups are managed at the stack level
-  create_security_group = false
-
-  endpoints = var.vpc_endpoints
 
   tags = module.this.tags
 }

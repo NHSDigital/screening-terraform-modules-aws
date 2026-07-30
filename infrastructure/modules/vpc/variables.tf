@@ -54,47 +54,78 @@ variable "availability_zones" {
   default     = null
 }
 
+################################################################
+# Subnet type creation flags
+#
+# Control which subnet tiers are created.  When a subnet type
+# is disabled, its prefix and CIDR calculations are skipped.
+################################################################
+
+variable "create_firewall_subnets" {
+  description = "Whether to create firewall subnets (required for Network Firewall routing mode)."
+  type        = bool
+  default     = true
+}
+
+variable "create_public_subnets" {
+  description = "Whether to create public subnets (internet-facing resources, NAT gateways)."
+  type        = bool
+  default     = true
+}
+
+variable "create_private_subnets" {
+  description = "Whether to create private subnets (workloads with outbound internet access via NAT gateway)."
+  type        = bool
+  default     = true
+}
+
+variable "create_intra_subnets" {
+  description = "Whether to create intra subnets (no internet access)."
+  type        = bool
+  default     = true
+}
+
 variable "firewall_subnet_prefix" {
-  description = "Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix. It is highly recommended to use /28 for firewall subnets to minimize wasted IPs."
+  description = "Prefix length for firewall subnets (e.g. 28 = /28, 16 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc_cidr when auto-calculating. Used only when firewall_subnets list is empty; when explicit firewall_subnets are provided, this value is ignored. Highly recommended: /28 to minimize wasted IPs."
   type        = number
   default     = 28
 
   validation {
-    condition     = length(var.firewall_subnets) == 0 ? (var.firewall_subnet_prefix >= 16 && var.firewall_subnet_prefix <= 28) : true
-    error_message = "Subnet prefix must be between /16 and /28 per AWS limits."
+    condition     = var.firewall_subnet_prefix >= 16 && var.firewall_subnet_prefix <= 28
+    error_message = "firewall_subnet_prefix must be between /16 and /28 per AWS limits."
   }
 }
 
 variable "public_subnet_prefix" {
-  description = "Prefix length for public subnets (e.g. 24 = /24, 256 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix."
+  description = "Prefix length for public subnets (e.g. 24 = /24, 256 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc_cidr when auto-calculating. Used only when public_subnets list is empty; when explicit public_subnets are provided, this value is ignored."
   type        = number
   default     = 24
 
   validation {
-    condition     = length(var.public_subnets) == 0 ? (var.public_subnet_prefix >= 16 && var.public_subnet_prefix <= 28) : true
-    error_message = "Subnet prefix must be between /16 and /28 per AWS limits."
+    condition     = var.public_subnet_prefix >= 16 && var.public_subnet_prefix <= 28
+    error_message = "public_subnet_prefix must be between /16 and /28 per AWS limits."
   }
 }
 
 variable "private_subnet_prefix" {
-  description = "Prefix length for private subnets with NAT (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix."
+  description = "Prefix length for private subnets with NAT (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc_cidr when auto-calculating. Used only when private_subnets list is empty; when explicit private_subnets are provided, this value is ignored."
   type        = number
   default     = 23
 
   validation {
-    condition     = length(var.private_subnets) == 0 ? (var.private_subnet_prefix >= 16 && var.private_subnet_prefix <= 28) : true
-    error_message = "Subnet prefix must be between /16 and /28 per AWS limits."
+    condition     = var.private_subnet_prefix >= 16 && var.private_subnet_prefix <= 28
+    error_message = "private_subnet_prefix must be between /16 and /28 per AWS limits."
   }
 }
 
 variable "intra_subnet_prefix" {
-  description = "Prefix length for intra subnets with no internet route (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28; must be larger (numerically) than vpc_cidr prefix."
+  description = "Prefix length for intra subnets with no internet route (e.g. 23 = /23, 512 IPs each). AWS allows /16 to /28. Must be more specific (larger numerically) than vpc_cidr when auto-calculating. Used only when intra_subnets list is empty; when explicit intra_subnets are provided, this value is ignored."
   type        = number
   default     = 23
 
   validation {
-    condition     = length(var.intra_subnets) == 0 ? (var.intra_subnet_prefix >= 16 && var.intra_subnet_prefix <= 28) : true
-    error_message = "Subnet prefix must be between /16 and /28 per AWS limits."
+    condition     = var.intra_subnet_prefix >= 16 && var.intra_subnet_prefix <= 28
+    error_message = "intra_subnet_prefix must be between /16 and /28 per AWS limits."
   }
 }
 
@@ -133,8 +164,14 @@ variable "intra_subnets" {
 # NAT Gateway
 ################################################################
 
+variable "enable_nat_gateway" {
+  description = "Provision NAT Gateway(s) for private subnet internet egress. Not applicable if private subnets are disabled. Set to false for database-only VPCs with no internet-routed workloads."
+  type        = bool
+  default     = true
+}
+
 variable "single_nat_gateway" {
-  description = "Provision a single shared NAT Gateway instead of one per AZ. Saves cost but reduces availability."
+  description = "Provision a single shared NAT Gateway instead of one per AZ. Saves cost but reduces availability. Requires enable_nat_gateway = true and create_private_subnets = true."
   type        = bool
   default     = false
 }
@@ -213,6 +250,25 @@ variable "manage_default_network_acl" {
   description = "Adopt and manage the default network ACL."
   type        = bool
   default     = true
+}
+
+################################################################
+# VPC Block Public Access
+#
+# Account-wide Block Public Access (enabling/disabling the policy
+# itself) must be managed at the account level using the
+# aws_vpc_block_public_access_options resource — NOT in this module:
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_block_public_access_options
+#
+# This module only exposes per-VPC subnet-level exclusions, allowing
+# specific subnets (e.g., public subnets with legitimate internet
+# access) to be exempt from an account-wide block.
+################################################################
+
+variable "vpc_block_public_access_exclusions" {
+  description = "Map of exclusions to the account-wide VPC Block Public Access policy. Use to exempt specific subnets (e.g., public subnets) when account-wide blocking is enabled. See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_block_public_access_options"
+  type        = map(any)
+  default     = {}
 }
 
 ################################################################
@@ -307,37 +363,3 @@ variable "iam_role_tags" {
 
 ################################################################
 # VPC Endpoints
-################################################################
-
-variable "create_vpc_endpoints" {
-  description = "Whether to create VPC endpoints."
-  type        = bool
-  default     = true
-}
-
-variable "vpc_endpoints" {
-  description = <<-EOT
-    Map of VPC endpoints to create. Each key is a logical name,
-    each value is passed through to the upstream vpc-endpoints
-    submodule.
-
-    Interface endpoints are placed in intra subnets by default.
-    Security groups must be created at the stack level and passed
-    per-endpoint via `security_group_ids`.
-
-    Gateway endpoints require `service_type = "Gateway"` and
-    `route_table_ids`.
-
-    Supported per-endpoint attributes:
-      service             - AWS service name (e.g. "s3", "ecr.api")
-      service_type        - "Interface" (default) or "Gateway"
-      policy              - JSON endpoint policy document
-      subnet_ids          - Override default intra subnets
-      security_group_ids  - Security group IDs for this endpoint
-      private_dns_enabled - Enable private DNS (Interface only)
-      route_table_ids     - Route table IDs (Gateway only)
-      tags                - Per-endpoint tags
-  EOT
-  type        = any
-  default     = {}
-}

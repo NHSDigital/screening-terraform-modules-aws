@@ -5,7 +5,7 @@
 module "lambda_function" {
   source = "terraform-aws-modules/lambda/aws"
   # downgrade version as workaround for bug https://github.com/terraform-aws-modules/terraform-aws-lambda/issues/733
-  version = "8.7.0"
+  version = "8.8.0"
 
   function_name          = local.function_name
   description            = var.function_description
