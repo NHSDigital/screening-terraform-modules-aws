@@ -344,6 +344,7 @@ Rules:
 | `sns` | terraform-aws-modules/sns/aws | SNS topic with encryption and policies |
 | `sqs` | — | SQS queue with encryption |
 | `ssm-parameter` | — | — |
+| `ssm-patch-manager` | cloudposse/ssm-patch-manager/aws | SSM Patch Manager for automated OS patching |
 | `tags` | — | Foundation: naming and tagging context module |
 | `vpc` | terraform-aws-modules/vpc/aws | VPC with subnets, routing, and gateways |
 | `vpc-endpoint` | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | VPC endpoints (Interface and Gateway) with policies |
