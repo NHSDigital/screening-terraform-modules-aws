@@ -122,11 +122,11 @@ module "ssm_patch_manager" {
 
 ## What this module does NOT do
 
-* Install or configure the SSM agent on EC2 instances — the agent must already be running (it is pre-installed on Amazon Linux 2 AMIs).
-* Create or manage IAM instance profiles — EC2 instances must have the `AmazonSSMManagedInstanceCore` policy (or equivalent) attached to their instance role before SSM can manage them.
-* Apply `PatchGroup` tags to EC2 instances — callers must tag their instances with the same values used in `install_patch_groups` and `scan_patch_groups`.
-* Create KMS keys for patch log encryption — provide an encrypted S3 bucket via `bucket_id` if at-rest encryption of patch logs is required.
-* Manage patch compliance reporting dashboards or notifications — wire up AWS Config or EventBridge rules separately for alerting on non-compliant instances.
+- Install or configure the SSM agent on EC2 instances — the agent must already be running (it is pre-installed on Amazon Linux 2 AMIs).
+- Create or manage IAM instance profiles — EC2 instances must have the `AmazonSSMManagedInstanceCore` policy (or equivalent) attached to their instance role before SSM can manage them.
+- Apply `PatchGroup` tags to EC2 instances — callers must tag their instances with the same values used in `install_patch_groups` and `scan_patch_groups`.
+- Create KMS keys for patch log encryption — provide an encrypted S3 bucket via `bucket_id` if at-rest encryption of patch logs is required.
+- Manage patch compliance reporting dashboards or notifications — wire up AWS config or EventBridge rules separately for alerting on non-compliant instances.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
