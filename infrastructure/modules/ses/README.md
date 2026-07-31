@@ -121,7 +121,7 @@ The following constraints are enforced at `plan` time via preconditions in `vali
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.13 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.28 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.42 |
 | <a name="requirement_awsutils"></a> [awsutils](#requirement\_awsutils) | >= 0.11.0 |
 
 ## Providers
@@ -196,3 +196,5 @@ The following constraints are enforced at `plan` time via preconditions in `vali
 | <a name="output_ses_domain_identity_verification_token"></a> [ses\_domain\_identity\_verification\_token](#output\_ses\_domain\_identity\_verification\_token) | The TXT record value to add to your DNS zone to verify SES domain ownership. Only required when zone\_id is not provided and verify\_domain is managed externally. |
 | <a name="output_spf_record"></a> [spf\_record](#output\_spf\_record) | The SPF TXT record value. Add this to your DNS zone when create\_spf\_record is false and you manage DNS records externally. |
 <!-- END_TF_DOCS -->
+<!-- markdownlint-restore -->
+<!-- vale on -->

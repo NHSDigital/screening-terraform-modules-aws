@@ -8,7 +8,7 @@
 #   * SMTP passwords:     never written to Terraform state
 #   * IAM user/group:     always disabled; ECS tasks use IAM roles instead
 #   * Tagging:            all NHS-required tags applied automatically
-#   * Enabled flag:       create = module.this.enabled
+#   * Enabled flag:       enabled = module.this.enabled
 #
 # Inputs intentionally NOT exposed (hardcoded below):
 #   - iam_create_access_key        → always false; credentials must not be stored in state
