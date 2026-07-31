@@ -11,7 +11,7 @@ interface to what the BCSS shared stack requires.
 | --- | --- |
 | Shared naming and tagging | Uses `context.tf` via `module.this` and forwards context to the upstream module |
 | Creation gate | Resources gated via `module.this.enabled` through the upstream CloudPosse context |
-| Patch compliance level | Defaults to `HIGH`; consumer may tighten but not loosen without explicit override |
+| Patch compliance level | Defaults to `HIGH`; consumer may override via `approved_patches_compliance_level` |
 | S3 log output | Enabled by default for audit and compliance |
 
 ## Usage
@@ -68,12 +68,65 @@ module "ssm_patch_manager" {
 }
 ```
 
+### Custom approval rules with no-reboot install
+
+```hcl
+module "ssm_patch_manager" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/ssm-patch-manager?ref=<tag>"
+
+  service     = "bcss"
+  project     = "shared"
+  environment = "prod"
+  name        = "patch-manager"
+
+  install_maintenance_window_schedule = "cron(0 0 21 ? * WED *)"
+  install_maintenance_windows_targets = [
+    { key = "tag:PatchGroup", values = ["TOPATCH"] }
+  ]
+  install_patch_groups = ["TOPATCH"]
+
+  scan_maintenance_window_schedule = "cron(0 0 18 ? * WED *)"
+  scan_maintenance_windows_targets = [
+    { key = "tag:PatchGroup", values = ["TOSCAN"] }
+  ]
+  scan_patch_groups = ["TOSCAN"]
+
+  # Do not reboot instances automatically — useful for stateful workloads
+  # where reboots must be co-ordinated by the application team.
+  reboot_option = "NoReboot"
+
+  # Tighten the compliance level and restrict to Critical severity only.
+  approved_patches_compliance_level = "CRITICAL"
+
+  patch_baseline_approval_rules = [
+    {
+      approve_after_days  = 3
+      compliance_level    = "CRITICAL"
+      enable_non_security = false
+      patch_baseline_filters = [
+        { name = "PRODUCT", values = ["AmazonLinux2", "AmazonLinux2.0"] },
+        { name = "CLASSIFICATION", values = ["Security"] },
+        { name = "SEVERITY", values = ["Critical"] },
+      ]
+    }
+  ]
+}
+```
+
 ## Conventions
 
 - Maintenance window targets use EC2 tag key/value pairs (e.g. `tag:PatchGroup`). EC2 instances must have the corresponding tag applied for SSM to discover them.
 - `install_patch_groups` and `scan_patch_groups` must match the `PatchGroup` tag values on the target instances.
 - When `bucket_id` is empty (the default), the upstream module creates a dedicated S3 bucket for patch logs. Pass an existing bucket ID to reuse a shared log bucket.
 - Scan and install window schedules must not overlap — ensure the scan window completes before the install window starts.
+
+## What this module does NOT do
+
+* Install or configure the SSM agent on EC2 instances — the agent must already be running (it is pre-installed on Amazon Linux 2 AMIs).
+* Create or manage IAM instance profiles — EC2 instances must have the `AmazonSSMManagedInstanceCore` policy (or equivalent) attached to their instance role before SSM can manage them.
+* Apply `PatchGroup` tags to EC2 instances — callers must tag their instances with the same values used in `install_patch_groups` and `scan_patch_groups`.
+* Create KMS keys for patch log encryption — provide an encrypted S3 bucket via `bucket_id` if at-rest encryption of patch logs is required.
+* Manage patch compliance reporting dashboards or notifications — wire up AWS Config or EventBridge rules separately for alerting on non-compliant instances.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->

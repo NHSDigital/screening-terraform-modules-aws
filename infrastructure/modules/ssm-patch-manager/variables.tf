@@ -57,6 +57,14 @@ variable "patch_baseline_approval_rules" {
       ]
     }
   ]
+
+  validation {
+    condition = alltrue([
+      for rule in var.patch_baseline_approval_rules :
+      !(try(rule.approve_after_days, null) != null && try(rule.approve_until_date, null) != null)
+    ])
+    error_message = "Each patch_baseline_approval_rules entry must set only one of approve_after_days or approve_until_date, not both."
+  }
 }
 
 ################################################################
