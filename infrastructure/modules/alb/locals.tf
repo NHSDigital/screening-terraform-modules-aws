@@ -1,5 +1,12 @@
 locals {
   is_alb = var.load_balancer_type == "application"
+  has_subnets        = var.subnets != null && length(var.subnets) > 0
+  has_subnet_mapping = var.subnet_mapping != null && length(var.subnet_mapping) > 0
+
+  # Keep wrapper behaviour flexible: if both are provided, prefer subnet_mapping
+  # and suppress subnets to satisfy AWS one-of semantics.
+  effective_subnet_mapping = local.has_subnet_mapping ? var.subnet_mapping : null
+  effective_subnets        = local.has_subnet_mapping ? null : (local.has_subnets ? var.subnets : null)
 
   # ALB-only derived defaults. NLB keeps null for these upstream inputs.
   effective_drop_invalid_header_fields = local.is_alb ? true : null
