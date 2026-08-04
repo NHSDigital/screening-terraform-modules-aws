@@ -38,7 +38,7 @@ resource "terraform_data" "validations" {
     }
 
     precondition {
-      condition     = !var.s3_bucket_encryption_enabled || (var.s3_kms_key_id != null && var.s3_kms_key_id != "")
+      condition     = var.s3_bucket_encryption_enabled != true || (var.s3_kms_key_id != null && var.s3_kms_key_id != "")
       error_message = "When s3_bucket_encryption_enabled = true, s3_kms_key_id is REQUIRED. Provide a KMS key ARN or ID for S3 encryption of ECS Exec session logs."
     }
   }
