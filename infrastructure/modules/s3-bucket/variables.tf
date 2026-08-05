@@ -54,6 +54,60 @@ variable "logging" {
   default     = {}
 }
 
+variable "attach_access_log_delivery_policy" {
+  description = "Whether to attach the S3 access log delivery policy for this bucket."
+  type        = bool
+  default     = false
+}
+
+variable "attach_elb_log_delivery_policy" {
+  description = "Whether to attach the ELB log delivery policy for this bucket."
+  type        = bool
+  default     = false
+}
+
+variable "attach_lb_log_delivery_policy" {
+  description = "Whether to attach the ALB/NLB log delivery policy for this bucket."
+  type        = bool
+  default     = false
+}
+
+variable "attach_cloudtrail_log_delivery_policy" {
+  description = "Whether to attach the CloudTrail log delivery policy for this bucket."
+  type        = bool
+  default     = false
+}
+
+variable "attach_waf_log_delivery_policy" {
+  description = "Whether to attach the WAF log delivery policy for this bucket."
+  type        = bool
+  default     = false
+}
+
+variable "access_log_delivery_policy_source_buckets" {
+  description = "Optional list of S3 bucket ARNs that are allowed to deliver S3 access logs to this bucket."
+  type        = list(string)
+  default     = []
+}
+
+variable "access_log_delivery_policy_source_accounts" {
+  description = "Optional list of AWS account IDs that are allowed to deliver S3 access logs to this bucket."
+  type        = list(string)
+  default     = []
+}
+
+variable "access_log_delivery_policy_source_organizations" {
+  description = "Optional list of AWS Organisation IDs that are allowed to deliver S3 access logs to this bucket."
+  type        = list(string)
+  default     = []
+}
+
+variable "lb_log_delivery_policy_source_organizations" {
+  description = "Optional list of AWS Organisation IDs that are allowed to deliver ALB/NLB logs to this bucket."
+  type        = list(string)
+  default     = []
+}
+
 variable "policy" {
   description = "Optional custom bucket policy JSON document. The upstream module merges this with the deny-non-TLS and deny-unencrypted statements generated above."
   type        = string
