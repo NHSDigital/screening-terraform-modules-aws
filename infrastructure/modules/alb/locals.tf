@@ -1,5 +1,5 @@
 locals {
-  is_alb = var.load_balancer_type == "application"
+  is_alb             = var.load_balancer_type == "application"
   has_subnets        = var.subnets != null && length(var.subnets) > 0
   has_subnet_mapping = var.subnet_mapping != null && length(var.subnet_mapping) > 0
 
