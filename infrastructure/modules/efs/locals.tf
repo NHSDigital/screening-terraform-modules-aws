@@ -9,8 +9,10 @@ locals {
   # Naming logic - derive from context, allow caller override
   efs_name = var.custom_name != null ? var.custom_name : module.this.id
 
-  # Scope default statements to this file system only.
-  file_system_arn = module.efs.arn
+  # Use "*" because the resource-based policy is already scoped to the
+  # specific file system via file_system_id. Using module.efs.arn would
+  # be unknown at plan time on first-time deploys, breaking count.
+  file_system_arn = "*"
 }
 
 data "aws_iam_policy_document" "deny_unsecure_transport" {
