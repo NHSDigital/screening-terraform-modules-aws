@@ -304,15 +304,32 @@ variable "firewall_subnet_tags" {
 ################################################################
 
 variable "enable_flow_log" {
-  description = "Enable VPC flow logs to CloudWatch Logs."
+  description = "Enable VPC flow logs. Destination is controlled by flow_log_destination_type."
   type        = bool
   default     = true
 }
 
-variable "flow_log_retention_in_days" {
-  description = "Number of days to retain VPC flow logs in CloudWatch."
-  type        = number
-  default     = 365
+variable "flow_log_destination_type" {
+  description = "Destination type for VPC flow logs. Supported values in this module: cloud-watch-logs, s3."
+  type        = string
+  default     = "cloud-watch-logs"
+
+  validation {
+    condition     = contains(["cloud-watch-logs", "s3"], var.flow_log_destination_type)
+    error_message = "flow_log_destination_type must be one of cloud-watch-logs or s3."
+  }
+}
+
+variable "flow_log_destination_arn" {
+  description = "ARN of the flow log destination. Required when flow logs are enabled. For cloud-watch-logs, set to a CloudWatch log group ARN. For s3, set to an S3 bucket ARN."
+  type        = string
+  default     = null
+}
+
+variable "flow_log_cloudwatch_iam_role_arn" {
+  description = "Existing IAM role ARN used by VPC Flow Logs when destination type is cloud-watch-logs."
+  type        = string
+  default     = null
 }
 
 variable "flow_log_traffic_type" {
@@ -326,12 +343,6 @@ variable "flow_log_traffic_type" {
   }
 }
 
-variable "flow_log_kms_key_id" {
-  description = "ARN of a KMS key to encrypt the CloudWatch log group. Leave null for no encryption."
-  type        = string
-  default     = null
-}
-
 variable "flow_log_max_aggregation_interval" {
   description = "The maximum interval of time (seconds) during which a flow of packets is captured. Valid values: 60 (1 min) or 600 (10 min)."
   type        = number
@@ -343,20 +354,8 @@ variable "flow_log_max_aggregation_interval" {
   }
 }
 
-variable "cloudwatch_log_group_tags" {
-  description = "Additional tags for the CloudWatch log group."
-  type        = map(string)
-  default     = {}
-}
-
 variable "flow_log_tags" {
   description = "Additional tags for the VPC flow log."
-  type        = map(string)
-  default     = {}
-}
-
-variable "iam_role_tags" {
-  description = "Additional tags for the IAM role used by the VPC flow log."
   type        = map(string)
   default     = {}
 }

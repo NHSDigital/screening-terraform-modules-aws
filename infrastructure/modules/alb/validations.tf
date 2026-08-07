@@ -11,6 +11,11 @@ resource "terraform_data" "validation" {
 
   lifecycle {
     precondition {
+      condition     = local.has_subnets || local.has_subnet_mapping
+      error_message = "Set at least one of var.subnets or var.subnet_mapping. If both are set, this wrapper prefers var.subnet_mapping."
+    }
+
+    precondition {
       condition     = var.internal || var.access_logs != null
       error_message = "Internet-facing ALB/NLB should have access_logs enabled for security compliance, auditing, and troubleshooting. Set access_logs block or set internal = true."
     }

@@ -29,7 +29,14 @@ variable "internal" {
 
 variable "subnets" {
   type        = list(string)
-  description = "List of subnet IDs to attach to the load balancer. For internet-facing ALBs, use public subnets."
+  default     = null
+  description = "List of subnet IDs to attach to the load balancer. If subnet_mapping is also set, this input is ignored and subnet_mapping is used. For internet-facing ALBs, use public subnets."
+}
+
+variable "subnet_mapping" {
+  type        = any
+  default     = null
+  description = "Subnet mapping configuration for the load balancer. Useful for NLB static EIPs (allocation_id per subnet). When set, this takes precedence over subnets. Passed through to the upstream module."
 }
 
 variable "vpc_id" {

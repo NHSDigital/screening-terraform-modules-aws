@@ -7,16 +7,17 @@ the shared `context.tf` for naming and tagging.
 
 ## What this module enforces
 
-| Control                  | How it is enforced                                                                |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| Ownership                | `object_ownership = "BucketOwnerEnforced"` (ACLs disabled)                        |
-| Transport (TLS)          | `attach_deny_insecure_transport_policy` + `attach_require_latest_tls_policy`      |
-| Encryption at rest       | SSE-S3 by default; SSE-KMS when `kms_master_key_arn` is set                       |
-| Encryption on PUT        | Denies unencrypted, incorrect-header, SSEC and wrong-KMS-key PutObject calls      |
-| Public access            | All four S3 public-access-block toggles set to true                               |
-| Versioning               | Enabled by default; opt out with `versioning_enabled = false`                     |
-| Globally unique name     | Default name is `<module.this.id>-<aws_region>`                                   |
-| Logging                  | Optional, delivered to a caller-supplied target bucket via `var.logging`          |
+|Control|How it is enforced|
+|---|---|
+|Ownership|`object_ownership = "BucketOwnerEnforced"` (ACLs disabled)|
+|Transport (TLS)|`attach_deny_insecure_transport_policy` + `attach_require_latest_tls_policy`|
+|Encryption at rest|SSE-S3 by default; SSE-KMS when `kms_master_key_arn` is set|
+|Encryption on PUT|Denies unencrypted, incorrect-header, SSEC and wrong-KMS-key PutObject calls|
+|Public access|All four S3 public-access-block toggles set to true|
+|Versioning|Enabled by default; opt out with `versioning_enabled = false`|
+|Globally unique name|Default name is `<module.this.id>-<aws_region>`|
+|Logging|Optional, delivered to a caller-supplied target bucket via `var.logging`|
+|Service log sink policy|Optional attachments for S3/ELB/ALB-NLB/CloudTrail/WAF log delivery|
 
 ## Usage
 
@@ -65,6 +66,12 @@ module "log_bucket" {
   name        = "s3-access-logs"
 
   versioning_enabled = false
+
+  attach_access_log_delivery_policy = true
+  access_log_delivery_policy_source_accounts = ["123456789012"]
+
+  attach_lb_log_delivery_policy             = true
+  lb_log_delivery_policy_source_organizations = ["o-example1234"]
 }
 ```
 
@@ -75,6 +82,8 @@ module "log_bucket" {
   intervention.
 * `force_destroy` defaults to `false`. Only set it to `true` for short-lived
   buckets that will never hold business data.
+* Log-delivery policy attachments are opt-in (`false` by default) so standard
+  buckets do not receive unnecessary policy statements.
 * Custom bucket policies provided via `var.policy` are merged by the upstream
   module with the platform's deny-non-TLS and deny-unencrypted statements; you
   do not need to restate those rules.
@@ -118,9 +127,17 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_access_log_delivery_policy_source_accounts"></a> [access\_log\_delivery\_policy\_source\_accounts](#input\_access\_log\_delivery\_policy\_source\_accounts) | Optional list of AWS account IDs that are allowed to deliver S3 access logs to this bucket. | `list(string)` | `[]` | no |
+| <a name="input_access_log_delivery_policy_source_buckets"></a> [access\_log\_delivery\_policy\_source\_buckets](#input\_access\_log\_delivery\_policy\_source\_buckets) | Optional list of S3 bucket ARNs that are allowed to deliver S3 access logs to this bucket. | `list(string)` | `[]` | no |
+| <a name="input_access_log_delivery_policy_source_organizations"></a> [access\_log\_delivery\_policy\_source\_organizations](#input\_access\_log\_delivery\_policy\_source\_organizations) | Optional list of AWS Organisation IDs that are allowed to deliver S3 access logs to this bucket. | `list(string)` | `[]` | no |
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
+| <a name="input_attach_access_log_delivery_policy"></a> [attach\_access\_log\_delivery\_policy](#input\_attach\_access\_log\_delivery\_policy) | Whether to attach the S3 access log delivery policy for this bucket. | `bool` | `false` | no |
+| <a name="input_attach_cloudtrail_log_delivery_policy"></a> [attach\_cloudtrail\_log\_delivery\_policy](#input\_attach\_cloudtrail\_log\_delivery\_policy) | Whether to attach the CloudTrail log delivery policy for this bucket. | `bool` | `false` | no |
 | <a name="input_attach_deny_incorrect_kms_key_sse"></a> [attach\_deny\_incorrect\_kms\_key\_sse](#input\_attach\_deny\_incorrect\_kms\_key\_sse) | Whether to attach a bucket policy statement denying PutObject calls that reference a KMS key other than `var.kms_master_key_arn` | `bool` | `null` | no |
+| <a name="input_attach_elb_log_delivery_policy"></a> [attach\_elb\_log\_delivery\_policy](#input\_attach\_elb\_log\_delivery\_policy) | Whether to attach the ELB log delivery policy for this bucket. | `bool` | `false` | no |
+| <a name="input_attach_lb_log_delivery_policy"></a> [attach\_lb\_log\_delivery\_policy](#input\_attach\_lb\_log\_delivery\_policy) | Whether to attach the ALB/NLB log delivery policy for this bucket. | `bool` | `false` | no |
+| <a name="input_attach_waf_log_delivery_policy"></a> [attach\_waf\_log\_delivery\_policy](#input\_attach\_waf\_log\_delivery\_policy) | Whether to attach the WAF log delivery policy for this bucket. | `bool` | `false` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
 | <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | Optional explicit bucket name. When null, the bucket is named `<module.this.id>-<region>` to keep S3's global namespace collision-free. | `string` | `null` | no |
@@ -139,6 +156,7 @@ No resources.
 | <a name="input_label_order"></a> [label\_order](#input\_label\_order) | The order in which the labels (ID elements) appear in the `id`.<br/>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br/>You can omit any of the 6 labels ("tenant" is the 6th), but at least one must be present. | `list(string)` | `null` | no |
 | <a name="input_label_value_case"></a> [label\_value\_case](#input\_label\_value\_case) | Controls the letter case of ID elements (labels) as included in `id`,<br/>set as tag values, and output by this module individually.<br/>Does not affect values of tags passed in via the `tags` input.<br/>Possible values: `lower`, `title`, `upper` and `none` (no transformation).<br/>Set this to `title` and set `delimiter` to `""` to yield Pascal Case IDs.<br/>Default value: `lower`. | `string` | `null` | no |
 | <a name="input_labels_as_tags"></a> [labels\_as\_tags](#input\_labels\_as\_tags) | Set of labels (ID elements) to include as tags in the `tags` output.<br/>Default is to include all labels.<br/>Tags with empty values will not be included in the `tags` output.<br/>Set to `[]` to suppress all generated tags.<br/>**Notes:**<br/>  The value of the `name` tag, if included, will be the `id`, not the `name`.<br/>  Unlike other `null-label` inputs, the initial setting of `labels_as_tags` cannot be<br/>  changed in later chained modules. Attempts to change it will be silently ignored. | `set(string)` | <pre>[<br/>  "default"<br/>]</pre> | no |
+| <a name="input_lb_log_delivery_policy_source_organizations"></a> [lb\_log\_delivery\_policy\_source\_organizations](#input\_lb\_log\_delivery\_policy\_source\_organizations) | Optional list of AWS Organisation IDs that are allowed to deliver ALB/NLB logs to this bucket. | `list(string)` | `[]` | no |
 | <a name="input_lifecycle_rule"></a> [lifecycle\_rule](#input\_lifecycle\_rule) | List of lifecycle rules forwarded to the upstream module. | `any` | `[]` | no |
 | <a name="input_logging"></a> [logging](#input\_logging) | Map describing access-log delivery to a target bucket. Leave as<br/>`{}` to disable logging. Example:<br/>  logging = {<br/>    target\_bucket = "my-log-bucket"<br/>    target\_prefix = "s3/access-logs/"<br/>  } | `any` | `{}` | no |
 | <a name="input_name"></a> [name](#input\_name) | ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.<br/>This is the only ID element not also included as a `tag`.<br/>The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input. | `string` | `null` | no |

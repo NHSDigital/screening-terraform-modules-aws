@@ -217,19 +217,6 @@ variable "require_tls_version" {
   }
 }
 
-variable "allowed_source_ips" {
-  description = "List of CIDR blocks allowed to access the EFS. When set, a Deny statement restricts access to these IPs. Leave as [] to skip IP-based restrictions."
-  type        = list(string)
-  default     = []
-
-  validation {
-    condition = alltrue([
-      for cidr in var.allowed_source_ips : can(regex("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}(/[0-9]{1,2})?$", cidr))
-    ])
-    error_message = "allowed_source_ips must contain valid CIDR blocks (e.g., '10.0.0.0/8')."
-  }
-}
-
 variable "deny_destructive_operations" {
   description = "Whether to add a Deny statement for destructive operations (DeleteFileSystem, DeleteAccessPoint) by default. Callers must explicitly allow these via var.file_system_policy. Recommended: true."
   type        = bool
