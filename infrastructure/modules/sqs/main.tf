@@ -1,53 +1,50 @@
-###########################
-# SQS                     #
-###########################
+################################################################
+# SQS queue
+#
+# Minimal NHS wrapper for a standard SQS queue used for event
+# delivery workloads such as GitHub ARC workflow_job events.
+#
+#   * Standard queue only
+#   * SQS-managed server-side encryption enabled
+#   * Optional dead-letter queue with redrive policy
+#   * Optional publisher policy statements limited to SendMessage
+#   * Queue policy denies insecure transport
+#
+# Naming and tagging are derived from context.tf via module.this.
+################################################################
 
-resource "aws_sqs_queue" "sqs_queue" {
-  name                       = "${var.name_prefix}-${var.stack_name}"
-  delay_seconds              = 0
-  max_message_size           = 2048
-  receive_wait_time_seconds  = 0
-  visibility_timeout_seconds = 120
-  fifo_queue                 = false
-  redrive_policy             = "{\"deadLetterTargetArn\":\"${aws_sqs_queue.queue.arn}\",\"maxReceiveCount\":4}"
-  depends_on                 = [aws_sqs_queue.queue]
+resource "aws_sqs_queue" "dead_letter" {
+  count = module.this.enabled && var.dead_letter_queue.create ? 1 : 0
+
+  name                       = local.dead_letter_queue_name
+  visibility_timeout_seconds = local.dead_letter_visibility_timeout_seconds
+  message_retention_seconds  = var.dead_letter_queue.message_retention_seconds
+  receive_wait_time_seconds  = var.dead_letter_queue.receive_wait_time_seconds
+  sqs_managed_sse_enabled    = true
+
+  tags = module.this.tags
 }
 
-# Deadletter queue for messages that can't be delivered
-resource "aws_sqs_queue" "queue" {
-  name                        = "${var.name_prefix}-${var.stack_name}-deadletter-queue"
-  delay_seconds               = 90
-  max_message_size            = 2048
-  message_retention_seconds   = 86400
-  receive_wait_time_seconds   = 10
-  visibility_timeout_seconds  = 120
-  fifo_queue                  = false
-  content_based_deduplication = false
+resource "aws_sqs_queue" "this" {
+  count = module.this.enabled ? 1 : 0
+
+  name                       = local.queue_name
+  visibility_timeout_seconds = var.visibility_timeout_seconds
+  message_retention_seconds  = var.message_retention_seconds
+  receive_wait_time_seconds  = var.receive_wait_time_seconds
+  sqs_managed_sse_enabled    = true
+
+  redrive_policy = var.dead_letter_queue.create ? jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.dead_letter[0].arn
+    maxReceiveCount     = var.dead_letter_queue.max_receive_count
+  }) : null
+
+  tags = module.this.tags
 }
 
-resource "aws_sqs_queue_policy" "allow_sns_publish" {
-  queue_url = aws_sqs_queue.sqs_queue.id
+resource "aws_sqs_queue_policy" "this" {
+  count = module.this.enabled ? 1 : 0
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "Allow-SNS-SendMessage"
-        Effect = "Allow"
-
-        Principal = {
-          Service = "sns.amazonaws.com"
-        }
-
-        Action   = "sqs:SendMessage"
-        Resource = aws_sqs_queue.sqs_queue.arn
-
-        Condition = {
-          ArnLike = {
-            "aws:SourceArn" = var.topic_arn
-          }
-        }
-      }
-    ]
-  })
+  queue_url = aws_sqs_queue.this[0].id
+  policy    = data.aws_iam_policy_document.queue[0].json
 }
