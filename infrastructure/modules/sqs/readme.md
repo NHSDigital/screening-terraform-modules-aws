@@ -23,13 +23,13 @@ small, enables server-side encryption by default, and consumes the shared
 
 ```hcl
 module "workflow_job_queue" {
-	source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sqs?ref=<tag>"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sqs?ref=<tag>"
 
-	enabled        = local.deploy_github_arc
-	name           = "workflow-job-events"
-	workspace      = terraform.workspace
-	tags           = module.tags.tags
-	labels_as_tags = []
+  enabled        = local.deploy_github_arc
+  name           = "workflow-job-events"
+  workspace      = terraform.workspace
+  tags           = module.tags.tags
+  labels_as_tags = []
 }
 ```
 
@@ -37,23 +37,23 @@ module "workflow_job_queue" {
 
 ```hcl
 module "workflow_job_queue" {
-	source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sqs?ref=<tag>"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sqs?ref=<tag>"
 
-	enabled        = true
-	name           = "workflow-job-events"
-	workspace      = terraform.workspace
-	tags           = module.tags.tags
-	labels_as_tags = []
+  enabled        = true
+  name           = "workflow-job-events"
+  workspace      = terraform.workspace
+  tags           = module.tags.tags
+  labels_as_tags = []
 
-	publisher_statements = {
-		eventbridge = {
-			principals = {
-				type        = "Service"
-				identifiers = ["events.amazonaws.com"]
-			}
-			source_arns = [aws_cloudwatch_event_rule.github_arc.arn]
-		}
-	}
+  publisher_statements = {
+    eventbridge = {
+      principals = {
+        type        = "Service"
+        identifiers = ["events.amazonaws.com"]
+      }
+      source_arns = [aws_cloudwatch_event_rule.github_arc.arn]
+    }
+  }
 }
 ```
 
@@ -61,35 +61,35 @@ module "workflow_job_queue" {
 
 ```hcl
 module "workflow_job_queue" {
-	source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sqs?ref=<tag>"
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/sqs?ref=<tag>"
 
-	enabled                    = true
-	name                       = "workflow-job-events"
-	workspace                  = terraform.workspace
-	tags                       = module.tags.tags
-	labels_as_tags             = []
-	visibility_timeout_seconds = 180
-	message_retention_seconds  = 604800
-	receive_wait_time_seconds  = 20
+  enabled                    = true
+  name                       = "workflow-job-events"
+  workspace                  = terraform.workspace
+  tags                       = module.tags.tags
+  labels_as_tags             = []
+  visibility_timeout_seconds = 180
+  message_retention_seconds  = 604800
+  receive_wait_time_seconds  = 20
 
-	dead_letter_queue = {
-		create            = true
-		max_receive_count = 3
-	}
+  dead_letter_queue = {
+    create            = true
+    max_receive_count = 3
+  }
 }
 ```
 
 ## Conventions
 
 * `custom_name` is optional. When omitted, the queue name is derived from
-	`module.this.id` so stacks can consume the module with the same ergonomics as
-	other wrappers in this repository.
+  `module.this.id` so stacks can consume the module with the same ergonomics as
+  other wrappers in this repository.
 * Long polling defaults to `20` seconds to reduce empty receives for event-driven
-	consumers.
+  consumers.
 * When `dead_letter_queue.create = true`, the DLQ name is derived automatically
-	as `<queue-name>-dlq` and the redrive policy is applied to the primary queue.
+  as `<queue-name>-dlq` and the redrive policy is applied to the primary queue.
 * Publisher policy statements are optional and constrained to `sqs:SendMessage`
-	so the module stays generic without becoming a full IAM policy builder.
+  so the module stays generic without becoming a full IAM policy builder.
 
 ## What this module does NOT do
 
