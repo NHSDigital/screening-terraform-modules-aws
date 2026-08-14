@@ -13,7 +13,7 @@ small, enables server-side encryption by default, and consumes the shared
 |Encryption at rest|Enables SQS-managed server-side encryption on the primary queue and optional DLQ|
 |Transport security|Applies a queue policy that denies insecure transport|
 |Publisher scope|Optional publisher statements are limited to `sqs:SendMessage` on this queue|
-|Dead-letter queue|Optional DLQ is wired with the redrive policy automatically|
+|Dead-letter queue|Optional DLQ is wired with the retry policy automatically|
 |Tagging|Tags supported resources via `module.this.tags`|
 |Creation gate|Resource creation is gated by `module.this.enabled`|
 
@@ -87,13 +87,13 @@ module "workflow_job_queue" {
 * Long polling defaults to `20` seconds to reduce empty receives for event-driven
   consumers.
 * When `dead_letter_queue.create = true`, the DLQ name is derived automatically
-  as `<queue-name>-dlq` and the redrive policy is applied to the primary queue.
+  as `<queue-name>-dlq` and the retry policy is applied to the primary queue.
 * Publisher policy statements are optional and constrained to `sqs:SendMessage`
   so the module stays generic without becoming a full IAM policy builder.
 
 ## What this module does NOT do
 
-* Create FIFO queues or content-based deduplication settings.
+* Create FIFO queues or content-based duplicate-message suppression settings.
 * Support arbitrary queue policy JSON or arbitrary IAM actions.
 * Support custom KMS keys, SNS subscriptions, or EventBridge rules.
 * Attach policies to the DLQ separately from the primary queue.
