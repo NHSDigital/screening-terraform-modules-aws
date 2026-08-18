@@ -133,12 +133,12 @@ overridden individually:
 
 All clients receive the following hardcoded settings regardless of caller input:
 
-- `allowed_oauth_flows = ["code"]`
-- `allowed_oauth_flows_user_pool_client = true`
-- `allowed_oauth_scopes = ["email", "openid", "profile", "aws.cognito.signin.user.admin"]`
-- `explicit_auth_flows = ["ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH", "ALLOW_USER_PASSWORD_AUTH"]`
-- `supported_identity_providers = ["COGNITO"]`
-- `access_token_validity = 60` (minutes)
+* `allowed_oauth_flows = ["code"]`
+* `allowed_oauth_flows_user_pool_client = true`
+* `allowed_oauth_scopes = ["email", "openid", "profile", "aws.cognito.signin.user.admin"]`
+* `explicit_auth_flows = ["ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH", "ALLOW_USER_PASSWORD_AUTH"]`
+* `supported_identity_providers = ["COGNITO"]`
+* `access_token_validity = 60` (minutes)
 
 ### Schema changes
 
@@ -202,6 +202,7 @@ If those become required later, they can be added back with an explicit shared-r
 | Name | Type |
 | ---- | ---- |
 | [aws_cognito_user.bootstrap_users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cognito_user) | resource |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
 ## Inputs
 
@@ -209,26 +210,30 @@ If those become required later, they can be added back with an explicit shared-r
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_acr"></a> [acr](#input\_acr) | ACR attribute applied to bootstrap Cognito users. | `string` | `"AAL1_USERPASS"` | no |
 | <a name="input_amr"></a> [amr](#input\_amr) | AMR attribute applied to bootstrap Cognito users. | `string` | `"USERPASS"` | no |
-| <a name="input_app_clients"></a> [app\_clients](#input\_app\_clients) | List of Cognito application clients to create. This wrapper intentionally supports the shared-resources OAuth client pattern rather than the full upstream clients surface. | <pre>list(object({<br/>    name                                          = optional(string)<br/>    callback_urls                                 = list(string)<br/>    logout_urls                                   = optional(list(string), [])<br/>    default_redirect_uri                          = optional(string)<br/>    generate_secret                               = optional(bool, true)<br/>    auth_session_validity                         = optional(number, 3)<br/>    enable_propagate_additional_user_context_data = optional(bool, false)<br/>    id_token_validity                             = optional(number)<br/>    refresh_token_validity                        = optional(number)<br/>    prevent_user_existence_errors                 = optional(string)<br/>    enable_token_revocation                       = optional(bool, true)<br/>  }))</pre> | `[]` | no |
+| <a name="input_app_client_name"></a> [app\_client\_name](#input\_app\_client\_name) | Override for the default Cognito app client name. Defaults to `<module.this.id>-users-client`. | `string` | `null` | no |
+| <a name="input_app_clients"></a> [app\_clients](#input\_app\_clients) | List of Cognito application clients to create. This wrapper intentionally supports the shared-resources OAuth client pattern rather than the full upstream clients surface. | <pre>list(object({<br/>    name                                          = optional(string)<br/>    callback_urls                                 = list(string)<br/>    logout_urls                                   = optional(list(string), [])<br/>    default_redirect_uri                          = optional(string)<br/>    generate_secret                               = optional(bool, true)<br/>    auth_session_validity                         = optional(number, 3)<br/>    enable_propagate_additional_user_context_data = optional(bool, false)<br/>    id_token_validity                             = optional(number, 1)  # hours (Cognito default unit)<br/>    refresh_token_validity                        = optional(number, 30) # days  (Cognito default unit)<br/>    prevent_user_existence_errors                 = optional(string)<br/>    enable_token_revocation                       = optional(bool, true)<br/>  }))</pre> | `[]` | no |
 | <a name="input_attribute_names"></a> [attribute\_names](#input\_attribute\_names) | Compatibility list of simple string schema attributes. Used to derive string\_schemas when string\_schemas is empty. | `list(string)` | <pre>[<br/>  "acr",<br/>  "amr",<br/>  "email",<br/>  "idassurancelevel",<br/>  "nhsid_nrbac_roles",<br/>  "bcss_username",<br/>  "sid",<br/>  "uid"<br/>]</pre> | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region used for derived Cognito hosted UI outputs. | `string` | `"eu-west-2"` | no |
 | <a name="input_bootstrap_users"></a> [bootstrap\_users](#input\_bootstrap\_users) | Optional list of bootstrap Cognito users to create. This covers the current BCSS stack pattern where initial training or shared users are provisioned during stack deployment. | <pre>list(object({<br/>    uuid               = string<br/>    bcss_username      = string<br/>    id_assurance_level = string<br/>    rbac_role          = string<br/>    user_password      = optional(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_create"></a> [create](#input\_create) | Determines whether Cognito resources will be created. | `bool` | `true` | no |
 | <a name="input_deletion_protection"></a> [deletion\_protection](#input\_deletion\_protection) | Deletion protection setting for the user pool. Valid values are ACTIVE and INACTIVE. | `string` | `"INACTIVE"` | no |
-| <a name="input_domain"></a> [domain](#input\_domain) | Optional Cognito user pool domain prefix. Defaults to name\_prefix or the resolved user pool name. | `string` | `null` | no |
+| <a name="input_domain"></a> [domain](#input\_domain) | Optional Cognito user pool domain prefix. Defaults to `module.this.id`. | `string` | `null` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources. | `bool` | `null` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment identifier used by the shared tags module. | `string` | `null` | no |
 | <a name="input_message_action"></a> [message\_action](#input\_message\_action) | Message action for bootstrap Cognito user creation. Defaults to SUPPRESS to match the current BCSS stacks. | `string` | `"SUPPRESS"` | no |
 | <a name="input_mfa_configuration"></a> [mfa\_configuration](#input\_mfa\_configuration) | MFA setting for the user pool. Valid values are ON, OFF, or OPTIONAL. | `string` | `"OFF"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Name identifier used by the shared tags module. | `string` | `null` | no |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Compatibility alias for older callers. Used as the default user pool and domain prefix when user\_pool\_name or domain are unset. | `string` | `null` | no |
+| <a name="input_password_policy"></a> [password\_policy](#input\_password\_policy) | Password policy for the Cognito user pool. | <pre>object({<br/>    minimum_length                   = optional(number, 8)<br/>    require_lowercase                = optional(bool, true)<br/>    require_numbers                  = optional(bool, true)<br/>    require_symbols                  = optional(bool, true)<br/>    require_uppercase                = optional(bool, true)<br/>    temporary_password_validity_days = optional(number, 7)<br/>    password_history_size            = optional(number, 0)<br/>  })</pre> | `{}` | no |
 | <a name="input_project"></a> [project](#input\_project) | Project identifier used by the shared tags module. | `string` | `null` | no |
+| <a name="input_recovery_mechanisms"></a> [recovery\_mechanisms](#input\_recovery\_mechanisms) | Account recovery mechanisms for the user pool. Defaults to email only. Avoid including verified\_phone\_number unless an explicit sms\_configuration SNS caller role is provided — doing so forces iam:PassRole on the caller role which may be denied by restrictive IAM policies. | <pre>list(object({<br/>    name     = string<br/>    priority = number<br/>  }))</pre> | <pre>[<br/>  {<br/>    "name": "verified_email",<br/>    "priority": 1<br/>  }<br/>]</pre> | no |
 | <a name="input_service"></a> [service](#input\_service) | Service identifier used by the shared tags module. | `string` | `null` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags merged with any tags supplied through the context object. | `map(string)` | `{}` | no |
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_user_email"></a> [user\_email](#input\_user\_email) | Email attribute applied to bootstrap Cognito users. | `string` | `"nhsdigital.axe@nhs.net"` | no |
 | <a name="input_user_password"></a> [user\_password](#input\_user\_password) | Fallback password for bootstrap Cognito users when an individual bootstrap\_users entry does not provide user\_password. | `string` | `"changeme"` | no |
+| <a name="input_user_pool_name"></a> [user\_pool\_name](#input\_user\_pool\_name) | Override for the Cognito user pool name. Defaults to `<module.this.id>-users-pool`. | `string` | `null` | no |
+| <a name="input_user_pool_tier"></a> [user\_pool\_tier](#input\_user\_pool\_tier) | Cognito User Pool tier. LITE avoids iam:PassRole requirements from ESSENTIALS/PLUS threat-protection features. Valid values: LITE, ESSENTIALS, PLUS. | `string` | `"LITE"` | no |
 
 ## Outputs
 

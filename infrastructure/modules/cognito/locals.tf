@@ -52,8 +52,8 @@ locals {
       refresh_token_validity                        = client.refresh_token_validity
       # token_validity_units omitted — lgallard skips the block when absent;
       # Cognito default units apply: hours for access/id tokens, days for refresh
-      prevent_user_existence_errors                 = try(client.prevent_user_existence_errors, null)
-      enable_token_revocation                       = try(client.enable_token_revocation, true)
+      prevent_user_existence_errors = try(client.prevent_user_existence_errors, null)
+      enable_token_revocation       = try(client.enable_token_revocation, true)
     }
   ]
 }
