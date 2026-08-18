@@ -154,12 +154,12 @@ output "flow_log_arn" {
 }
 
 output "flow_log_cloudwatch_log_group_arn" {
-  description = "The ARN of the CloudWatch Log Group for VPC flow logs."
+  description = "The CloudWatch log group ARN returned by the flow-log submodule. May be null for s3 destinations or when external resources are used."
   value       = module.flow_log.cloudwatch_log_group_arn
 }
 
 output "flow_log_iam_role_arn" {
-  description = "The ARN of the IAM role used by VPC flow logs."
+  description = "The IAM role ARN returned by the flow-log submodule. May be null for s3 destinations or when external resources are used."
   value       = module.flow_log.iam_role_arn
 }
 

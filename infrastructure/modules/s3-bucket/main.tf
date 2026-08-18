@@ -75,6 +75,19 @@ module "s3_bucket" {
   # ----------------------------------------------------------------
   logging = var.logging
 
+  # Optional log-delivery policy attachments for buckets that
+  # receive service logs.
+  attach_access_log_delivery_policy     = var.attach_access_log_delivery_policy
+  attach_elb_log_delivery_policy        = var.attach_elb_log_delivery_policy
+  attach_lb_log_delivery_policy         = var.attach_lb_log_delivery_policy
+  attach_cloudtrail_log_delivery_policy = var.attach_cloudtrail_log_delivery_policy
+  attach_waf_log_delivery_policy        = var.attach_waf_log_delivery_policy
+
+  access_log_delivery_policy_source_buckets       = var.access_log_delivery_policy_source_buckets
+  access_log_delivery_policy_source_accounts      = var.access_log_delivery_policy_source_accounts
+  access_log_delivery_policy_source_organizations = var.access_log_delivery_policy_source_organizations
+  lb_log_delivery_policy_source_organizations     = var.lb_log_delivery_policy_source_organizations
+
   # ----------------------------------------------------------------
   # Optional pass-throughs.
   # ----------------------------------------------------------------

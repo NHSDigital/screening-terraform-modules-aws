@@ -1,24 +1,29 @@
-output "api_gateway_id" {
-  description = "The ID of the API Gateway"
-  value       = aws_api_gateway_rest_api.api.id
+output "api_id" {
+  description = "The ID of the HTTP API."
+  value       = try(aws_apigatewayv2_api.this[0].id, null)
 }
 
-output "api_gateway_url" {
-  description = "The URL of the API Gateway custom domain"
-  value       = "https://${aws_api_gateway_domain_name.gateway_domain_name.domain_name}/${var.api_path_part}"
+output "api_endpoint" {
+  description = "The base invoke URL of the HTTP API."
+  value       = try(aws_apigatewayv2_api.this[0].api_endpoint, null)
 }
 
-output "api_gateway_invoke_url" {
-  description = "The invoke URL of the API Gateway stage"
-  value       = aws_api_gateway_stage.stage.invoke_url
+output "execution_arn" {
+  description = "The execution ARN of the HTTP API, suitable for IAM policies or permissions."
+  value       = try(aws_apigatewayv2_api.this[0].execution_arn, null)
 }
 
-output "api_key_id" {
-  description = "The ID of the API key"
-  value       = aws_api_gateway_api_key.my_api_key.id
+output "stage_name" {
+  description = "The deployed stage name."
+  value       = try(aws_apigatewayv2_stage.this[0].name, null)
 }
 
-output "api_key_secret_arn" {
-  description = "The ARN of the API key secret in Secrets Manager"
-  value       = aws_secretsmanager_secret.api_token.arn
+output "route_id" {
+  description = "The ID of the webhook route."
+  value       = try(aws_apigatewayv2_route.this[0].id, null)
+}
+
+output "integration_id" {
+  description = "The ID of the Lambda proxy integration."
+  value       = try(aws_apigatewayv2_integration.this[0].id, null)
 }

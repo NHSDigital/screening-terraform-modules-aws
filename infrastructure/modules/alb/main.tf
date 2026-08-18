@@ -30,7 +30,8 @@ module "alb" {
   load_balancer_type = var.load_balancer_type
   internal           = var.internal
   vpc_id             = var.vpc_id
-  subnets            = var.subnets
+  subnets            = local.effective_subnets
+  subnet_mapping     = local.effective_subnet_mapping
 
   # ----------------------------------------------------------------
   # Security baseline — drop_invalid_header_fields is hardcoded.

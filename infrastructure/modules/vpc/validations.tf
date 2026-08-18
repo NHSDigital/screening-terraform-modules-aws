@@ -11,6 +11,7 @@
 #   * enable_network_firewall requires firewall subnets to be created
 #   * single_nat_gateway requires private subnets to be created
 #   * Explicit subnet CIDR lists must have correct length (equal to az_count)
+#   * Flow log destination-specific inputs are set correctly
 #
 ################################################################
 
@@ -98,6 +99,43 @@ resource "terraform_data" "validations" {
     precondition {
       condition     = length(var.intra_subnets) == 0 || length(var.intra_subnets) == local.az_count
       error_message = "intra_subnets must be empty or have exactly ${local.az_count} entries (one per AZ); found ${length(var.intra_subnets)}."
+    }
+
+    precondition {
+      condition     = !var.enable_flow_log || contains(["cloud-watch-logs", "s3"], var.flow_log_destination_type)
+      error_message = "When enable_flow_log is true, flow_log_destination_type must be cloud-watch-logs or s3."
+    }
+
+    precondition {
+      condition = !(
+        var.enable_flow_log &&
+        var.flow_log_destination_type == "cloud-watch-logs" &&
+        (var.flow_log_destination_arn == null || trim(var.flow_log_destination_arn) == "")
+      )
+      error_message = "flow_log_destination_arn must be set when flow_log_destination_type is cloud-watch-logs."
+    }
+
+    precondition {
+      condition = !(
+        var.enable_flow_log &&
+        var.flow_log_destination_type == "cloud-watch-logs" &&
+        (var.flow_log_cloudwatch_iam_role_arn == null || trim(var.flow_log_cloudwatch_iam_role_arn) == "")
+      )
+      error_message = "flow_log_cloudwatch_iam_role_arn must be set when flow_log_destination_type is cloud-watch-logs."
+    }
+
+    precondition {
+      condition = !(
+        var.enable_flow_log &&
+        var.flow_log_destination_type == "s3" &&
+        (var.flow_log_destination_arn == null || trim(var.flow_log_destination_arn) == "")
+      )
+      error_message = "flow_log_destination_arn must be set when flow_log_destination_type is s3."
+    }
+
+    precondition {
+      condition     = !(var.enable_flow_log && var.flow_log_destination_type == "s3" && var.flow_log_cloudwatch_iam_role_arn != null && trim(var.flow_log_cloudwatch_iam_role_arn) != "")
+      error_message = "flow_log_cloudwatch_iam_role_arn must be null when flow_log_destination_type is s3."
     }
   }
 }
