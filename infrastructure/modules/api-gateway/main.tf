@@ -52,27 +52,50 @@ resource "aws_api_gateway_resource" "api_resource" {
   path_part   = var.api_path_part
 }
 
-resource "aws_api_gateway_method" "post_method" {
-  rest_api_id      = aws_api_gateway_rest_api.api.id
-  resource_id      = aws_api_gateway_resource.api_resource.id
-  http_method      = var.http_method
-  authorization    = "NONE"
-  api_key_required = true
+resource "aws_apigatewayv2_integration" "this" {
+  count = module.this.enabled ? 1 : 0
+
+  api_id                 = aws_apigatewayv2_api.this[0].id
+  integration_type       = "AWS_PROXY"
+  integration_method     = "POST"
+  integration_uri        = var.lambda_invoke_arn
+  payload_format_version = "2.0"
+  timeout_milliseconds   = var.integration_timeout_milliseconds
 }
 
-# Integration with Lambda
-resource "aws_api_gateway_integration" "lambda_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.api_resource.id
-  http_method             = aws_api_gateway_method.post_method.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = var.aws_lambda_arn
+resource "aws_apigatewayv2_route" "this" {
+  count = module.this.enabled ? 1 : 0
+
+  api_id    = aws_apigatewayv2_api.this[0].id
+  route_key = var.route_key
+  target    = "integrations/${aws_apigatewayv2_integration.this[0].id}"
 }
 
-# Lambda Permission for API Gateway
-resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowAPIGatewayInvoke"
+resource "aws_apigatewayv2_stage" "this" {
+  count = module.this.enabled ? 1 : 0
+
+  api_id      = aws_apigatewayv2_api.this[0].id
+  name        = var.stage_name
+  auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.this[0].arn
+    format          = local.access_log_format
+  }
+
+  default_route_settings {
+    detailed_metrics_enabled = var.enable_detailed_metrics
+    throttling_burst_limit   = var.default_route_throttling_burst_limit
+    throttling_rate_limit    = var.default_route_throttling_rate_limit
+  }
+
+  tags = module.this.tags
+}
+
+resource "aws_lambda_permission" "this" {
+  count = module.this.enabled ? 1 : 0
+
+  statement_id  = "AllowExecutionFromApiGateway-${replace(local.api_name, "[^a-zA-Z0-9]", "")}"
   action        = "lambda:InvokeFunction"
   function_name = var.aws_lambda_name
   principal     = "apigateway.amazonaws.com"

@@ -79,3 +79,25 @@ variable "secret_replication_regions" {
   description = "List of additional regions where created secrets should be replicated"
   type        = list(string)
 }
+
+variable "default_route_throttling_burst_limit" {
+  description = "Burst limit applied to the stage default route settings. This must be non-zero so the generated stage does not throttle every request."
+  type        = number
+  default     = 100
+
+  validation {
+    condition     = var.default_route_throttling_burst_limit >= 1
+    error_message = "default_route_throttling_burst_limit must be at least 1."
+  }
+}
+
+variable "default_route_throttling_rate_limit" {
+  description = "Steady-state rate limit applied to the stage default route settings. This must be non-zero so the generated stage does not throttle every request."
+  type        = number
+  default     = 50
+
+  validation {
+    condition     = var.default_route_throttling_rate_limit > 0
+    error_message = "default_route_throttling_rate_limit must be greater than 0."
+  }
+}
