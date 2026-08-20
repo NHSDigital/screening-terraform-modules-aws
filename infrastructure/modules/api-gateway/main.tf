@@ -65,6 +65,8 @@ resource "aws_apigatewayv2_stage" "this" {
 
   default_route_settings {
     detailed_metrics_enabled = var.enable_detailed_metrics
+    throttling_burst_limit   = var.default_route_throttling_burst_limit
+    throttling_rate_limit    = var.default_route_throttling_rate_limit
   }
 
   tags = module.this.tags

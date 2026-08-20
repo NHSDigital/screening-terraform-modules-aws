@@ -12,6 +12,7 @@ such as the future shared GitHub runner or ARC stack, and consumes the shared
 |Protocol|Creates an API Gateway v2 HTTP API only; no REST API resources are used|
 |Integration|Creates a Lambda proxy integration with payload format version `2.0`|
 |Stage deployment|Creates a single stage with `auto_deploy = true`|
+|Default route protection|Applies explicit non-zero default route throttling so the stage does not accidentally return `429` for every request|
 |Logging|Enables API access logging to CloudWatch Logs|
 |Invoke permissions|Creates Lambda permission scoped to the API execution ARN|
 |Tagging|Tags supported resources via `module.this.tags`|
@@ -71,6 +72,8 @@ module "runner_webhook_api" {
   custom_name                  = "github-runner-webhook-${terraform.workspace}"
   description                  = "Webhook endpoint for GitHub ARC event publishing."
   access_log_retention_in_days = 90
+  default_route_throttling_burst_limit = 200
+  default_route_throttling_rate_limit  = 100
 
   lambda_invoke_arn           = module.publisher.lambda_function_invoke_arn
   lambda_function_name_or_arn = module.publisher.lambda_function_arn
@@ -86,6 +89,8 @@ module "runner_webhook_api" {
   avoid separate deployment resources.
 * `route_key` defaults to `POST /webhook`, which matches the primary ARC webhook
   endpoint use case.
+* Default route throttling is set explicitly with non-zero defaults so the
+  generated stage can accept webhook traffic without additional manual patching.
 * The module expects the Lambda invoke ARN for the integration and a Lambda
   function name or ARN for the invoke permission.
 
