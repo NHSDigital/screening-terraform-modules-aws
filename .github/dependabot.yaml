@@ -46,6 +46,7 @@ updates:
       - "infrastructure/modules/cloudwatch-metric-alarm"
       - "infrastructure/modules/cognito"
       - "infrastructure/modules/cw-firehose-splunk"
+      - "infrastructure/modules/dynamodb"
       - "infrastructure/modules/ec2-instance"
       - "infrastructure/modules/ecr"
       - "infrastructure/modules/ecs-cluster"
