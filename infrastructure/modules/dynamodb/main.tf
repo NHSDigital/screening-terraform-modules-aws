@@ -34,7 +34,9 @@ module "dynamodb_table" {
   # ----------------------------------------------------------------
   # Billing
   # ----------------------------------------------------------------
-  billing_mode = var.billing_mode
+  billing_mode   = var.billing_mode
+  read_capacity  = var.read_capacity
+  write_capacity = var.write_capacity
 
   # ----------------------------------------------------------------
   # Security baseline (fixed — not exposed as variables)
@@ -66,4 +68,11 @@ module "dynamodb_table" {
   # Tagging
   # ----------------------------------------------------------------
   tags = module.this.tags
+}
+
+check "stream_view_type_required" {
+  assert {
+    condition     = !var.stream_enabled || var.stream_view_type != null
+    error_message = "stream_view_type must be set when stream_enabled is true."
+  }
 }

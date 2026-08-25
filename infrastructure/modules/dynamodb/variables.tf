@@ -41,6 +41,18 @@ variable "billing_mode" {
   }
 }
 
+variable "read_capacity" {
+  description = "Read capacity units. Required when `billing_mode` is `PROVISIONED`; ignored for `PAY_PER_REQUEST`."
+  type        = number
+  default     = null
+}
+
+variable "write_capacity" {
+  description = "Write capacity units. Required when `billing_mode` is `PROVISIONED`; ignored for `PAY_PER_REQUEST`."
+  type        = number
+  default     = null
+}
+
 variable "kms_key_arn" {
   description = "Optional ARN of a customer-managed KMS key. When set, encryption switches from AWS-managed (alias/aws/dynamodb) to CMK. Source this from the `kms` module."
   type        = string
@@ -49,14 +61,27 @@ variable "kms_key_arn" {
 
 variable "global_secondary_indexes" {
   description = "List of global secondary index definitions."
-  type        = any
-  default     = []
+  type = list(object({
+    name               = string
+    hash_key           = string
+    range_key          = optional(string)
+    projection_type    = string
+    non_key_attributes = optional(list(string))
+    read_capacity      = optional(number)
+    write_capacity     = optional(number)
+  }))
+  default = []
 }
 
 variable "local_secondary_indexes" {
   description = "List of local secondary index definitions. These can only be set at table creation time."
-  type        = any
-  default     = []
+  type = list(object({
+    name               = string
+    range_key          = string
+    projection_type    = string
+    non_key_attributes = optional(list(string))
+  }))
+  default = []
 }
 
 variable "ttl_attribute_name" {
@@ -81,4 +106,9 @@ variable "stream_view_type" {
   description = "Determines what information is written to the stream when an item is modified. Valid values: `KEYS_ONLY`, `NEW_IMAGE`, `OLD_IMAGE`, `NEW_AND_OLD_IMAGES`. Required when `stream_enabled` is true."
   type        = string
   default     = null
+
+  validation {
+    condition     = var.stream_view_type == null || contains(["KEYS_ONLY", "NEW_IMAGE", "OLD_IMAGE", "NEW_AND_OLD_IMAGES"], var.stream_view_type)
+    error_message = "stream_view_type must be one of: KEYS_ONLY, NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES."
+  }
 }

@@ -9,7 +9,8 @@ output "table_id" {
 }
 
 output "table_name" {
-  description = "Name of the DynamoDB table."
+  # DynamoDB table name and ID are the same value; this output exists for ergonomic caller access.
+  description = "Name of the DynamoDB table (alias for table_id)."
   value       = module.dynamodb_table.dynamodb_table_id
 }
 
