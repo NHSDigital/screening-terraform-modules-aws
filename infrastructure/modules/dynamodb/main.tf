@@ -76,3 +76,17 @@ check "stream_view_type_required" {
     error_message = "stream_view_type must be set when stream_enabled is true."
   }
 }
+
+check "provisioned_capacity_required" {
+  assert {
+    condition     = var.billing_mode != "PROVISIONED" || (var.read_capacity != null && var.write_capacity != null)
+    error_message = "read_capacity and write_capacity must be set when billing_mode is PROVISIONED."
+  }
+}
+
+check "ttl_attribute_required" {
+  assert {
+    condition     = !var.ttl_enabled || var.ttl_attribute_name != null
+    error_message = "ttl_attribute_name must be set when ttl_enabled is true."
+  }
+}
