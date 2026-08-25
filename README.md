@@ -10,9 +10,11 @@ Canonical source of reusable, opinionated Terraform modules for the NHS Screenin
     - [Prerequisites](#prerequisites)
     - [Tool Version Source of Truth](#tool-version-source-of-truth)
     - [Configuration](#configuration)
+    - [Validation Tests](#validation-tests)
   - [Usage](#usage)
     - [Consuming a module](#consuming-a-module)
     - [Testing](#testing)
+    - [Refreshing provider locks and documentation](#refreshing-provider-locks-and-documentation)
   - [Design](#design)
     - [Repository structure](#repository-structure)
     - [Module layout](#module-layout)
@@ -22,8 +24,26 @@ Canonical source of reusable, opinionated Terraform modules for the NHS Screenin
   - [Pre-commit hooks](#pre-commit-hooks)
     - [Local setup](#local-setup)
     - [Hooks included](#hooks-included)
+    - [Understanding Hook Failures](#understanding-hook-failures)
+    - [Never Skip These Hooks](#never-skip-these-hooks)
+    - [Conventional commit hook implementation](#conventional-commit-hook-implementation)
     - [Conventional commits](#conventional-commits)
+      - [Implementation Notes](#implementation-notes)
+    - [Commit message tooling (recommended)](#commit-message-tooling-recommended)
+      - [Option A — Commitizen (Python)](#option-a--commitizen-python)
+      - [Option B — git-cz (Node.js)](#option-b--git-cz-nodejs)
+  - [Security and Supply Chain](#security-and-supply-chain)
+    - [GitHub Actions Pinning](#github-actions-pinning)
+    - [Pre-commit Hook Pinning](#pre-commit-hook-pinning)
+    - [Local Hook Implementation](#local-hook-implementation)
+    - [Verification](#verification)
   - [Contributing](#contributing)
+    - [Dependabot Policy](#dependabot-policy)
+      - [Automatic Configuration Discovery](#automatic-configuration-discovery)
+      - [When You Add a New Module](#when-you-add-a-new-module)
+      - [Testing Configuration Generation](#testing-configuration-generation)
+      - [Documentation Generation Style Rules](#documentation-generation-style-rules)
+      - [Dependabot PR Handling](#dependabot-pr-handling)
   - [Contacts](#contacts)
   - [Licence](#licence)
 
@@ -349,8 +369,8 @@ Rules:
 | `ssm-patch-manager` | cloudposse/ssm-patch-manager/aws | SSM Patch Manager for automated OS patching |
 | `tags` | — | Foundation: naming and tagging context module |
 | `vpc` | terraform-aws-modules/vpc/aws | VPC with subnets, routing, and gateways |
-| `vpce` | — | VPC endpoint (single service) (legacy) |
 | `vpc-endpoint` | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | VPC endpoints (Interface and Gateway) with policies |
+| `vpce` | — | VPC endpoint (single service) (legacy) |
 | `vpces` | — | VPC endpoints (multiple services) (legacy) |
 | `waf` | — | WAF web ACL with rules |
 
