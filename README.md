@@ -313,6 +313,7 @@ Rules:
 | `cloudwatch-metric-alarm` | terraform-aws-modules/cloudwatch/aws | CloudWatch metric alarms (single and multi-dimension) |
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
+| `dynamodb` | terraform-aws-modules/dynamodb-table/aws | DynamoDB table with PITR, encryption at rest, and deletion protection |
 | `ec2-instance` | — | — |
 | `ecr` | — | ECR repository with security controls |
 | `ecs-cluster` | terraform-aws-modules/ecs/aws//modules/cluster | ECS Fargate cluster |
@@ -348,8 +349,8 @@ Rules:
 | `ssm-patch-manager` | cloudposse/ssm-patch-manager/aws | SSM Patch Manager for automated OS patching |
 | `tags` | — | Foundation: naming and tagging context module |
 | `vpc` | terraform-aws-modules/vpc/aws | VPC with subnets, routing, and gateways |
-| `vpc-endpoint` | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | VPC endpoints (Interface and Gateway) with policies |
 | `vpce` | — | VPC endpoint (single service) (legacy) |
+| `vpc-endpoint` | terraform-aws-modules/vpc/aws//modules/vpc-endpoints | VPC endpoints (Interface and Gateway) with policies |
 | `vpces` | — | VPC endpoints (multiple services) (legacy) |
 | `waf` | — | WAF web ACL with rules |
 

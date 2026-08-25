@@ -57,6 +57,10 @@ cw-firehose-splunk:
   description: "CloudWatch logs to Splunk via Firehose"
   wraps: "—"
 
+dynamodb:
+  description: "DynamoDB table with PITR, encryption at rest, and deletion protection"
+  wraps: "terraform-aws-modules/dynamodb-table/aws"
+
 ecr:
   description: "ECR repository with security controls"
   wraps: "—"
