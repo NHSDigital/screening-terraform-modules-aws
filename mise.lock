@@ -4,37 +4,61 @@
 url = "https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda"
 checksum = "sha256:a2527b1d81792a0ccd2c05850960df119c2b6d8f5fdec97f2db7d25dc23b1068"
 
-[conda-packages.linux-arm64."libgcc-15.2.0-h8acb6b2_19"]
-url = "https://conda.anaconda.org/conda-forge/linux-aarch64/libgcc-15.2.0-h8acb6b2_19.conda"
-checksum = "sha256:4592b096e553f67799ae70d4b6167eeda3ec74587d68c7aecbf4e7b1df136681"
+[conda-packages.linux-arm64."libgcc-16.2.0-h205dda4_4"]
+url = "https://conda.anaconda.org/conda-forge/linux-aarch64/libgcc-16.2.0-h205dda4_4.conda"
+checksum = "sha256:a132d78d49d0fa0a08e9e2a77528a12d974e8e123bc32895c0bd0a737b8abd89"
 
-[conda-packages.linux-arm64."libgomp-15.2.0-h8acb6b2_19"]
-url = "https://conda.anaconda.org/conda-forge/linux-aarch64/libgomp-15.2.0-h8acb6b2_19.conda"
-checksum = "sha256:2370ef0ffcbae5bede3c4bf136add4abc257245eb91f724c99bb4a43116c5a83"
+[conda-packages.linux-arm64."libgomp-16.2.0-h8acb6b2_4"]
+url = "https://conda.anaconda.org/conda-forge/linux-aarch64/libgomp-16.2.0-h8acb6b2_4.conda"
+checksum = "sha256:6d216e6dc9a158b920f6e0c1dfdd6d77575bf79420dadf85d64576298ecb4503"
 
 [conda-packages.linux-arm64-musl."_openmp_mutex-4.5-20_gnu"]
 url = "https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda"
 checksum = "sha256:a2527b1d81792a0ccd2c05850960df119c2b6d8f5fdec97f2db7d25dc23b1068"
 
-[conda-packages.linux-arm64-musl."libgcc-15.2.0-h8acb6b2_19"]
-url = "https://conda.anaconda.org/conda-forge/linux-aarch64/libgcc-15.2.0-h8acb6b2_19.conda"
-checksum = "sha256:4592b096e553f67799ae70d4b6167eeda3ec74587d68c7aecbf4e7b1df136681"
+[conda-packages.linux-arm64-musl."libgcc-16.2.0-h205dda4_4"]
+url = "https://conda.anaconda.org/conda-forge/linux-aarch64/libgcc-16.2.0-h205dda4_4.conda"
+checksum = "sha256:a132d78d49d0fa0a08e9e2a77528a12d974e8e123bc32895c0bd0a737b8abd89"
 
-[conda-packages.linux-arm64-musl."libgomp-15.2.0-h8acb6b2_19"]
-url = "https://conda.anaconda.org/conda-forge/linux-aarch64/libgomp-15.2.0-h8acb6b2_19.conda"
-checksum = "sha256:2370ef0ffcbae5bede3c4bf136add4abc257245eb91f724c99bb4a43116c5a83"
+[conda-packages.linux-arm64-musl."libgomp-16.2.0-h8acb6b2_4"]
+url = "https://conda.anaconda.org/conda-forge/linux-aarch64/libgomp-16.2.0-h8acb6b2_4.conda"
+checksum = "sha256:6d216e6dc9a158b920f6e0c1dfdd6d77575bf79420dadf85d64576298ecb4503"
+
+[conda-packages.linux-x64."_openmp_mutex-4.5-20_gnu"]
+url = "https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda"
+checksum = "sha256:1dd3fffd892081df9726d7eb7e0dea6198962ba775bd88842135a4ddb4deb3c9"
+
+[conda-packages.linux-x64."libgcc-16.2.0-ha9f2e26_4"]
+url = "https://conda.anaconda.org/conda-forge/linux-64/libgcc-16.2.0-ha9f2e26_4.conda"
+checksum = "sha256:24090e675d34403b4ee1cd4372d8f6c0937da7ecfd66a19a57cac2ed0f4ea793"
+
+[conda-packages.linux-x64."libgomp-16.2.0-he0feb66_4"]
+url = "https://conda.anaconda.org/conda-forge/linux-64/libgomp-16.2.0-he0feb66_4.conda"
+checksum = "sha256:0fe5cb8e0752241ab55e11656ed1b9726248b522d23b929fe7c95b83eb55b9bb"
+
+[conda-packages.linux-x64-musl."_openmp_mutex-4.5-20_gnu"]
+url = "https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda"
+checksum = "sha256:1dd3fffd892081df9726d7eb7e0dea6198962ba775bd88842135a4ddb4deb3c9"
+
+[conda-packages.linux-x64-musl."libgcc-16.2.0-ha9f2e26_4"]
+url = "https://conda.anaconda.org/conda-forge/linux-64/libgcc-16.2.0-ha9f2e26_4.conda"
+checksum = "sha256:24090e675d34403b4ee1cd4372d8f6c0937da7ecfd66a19a57cac2ed0f4ea793"
+
+[conda-packages.linux-x64-musl."libgomp-16.2.0-he0feb66_4"]
+url = "https://conda.anaconda.org/conda-forge/linux-64/libgomp-16.2.0-he0feb66_4.conda"
+checksum = "sha256:0fe5cb8e0752241ab55e11656ed1b9726248b522d23b929fe7c95b83eb55b9bb"
 
 [conda-packages.windows-x64."_openmp_mutex-4.5-20_gnu"]
 url = "https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-20_gnu.conda"
 checksum = "sha256:8a1cee28bd0ee7451ada1cd50b64720e57e17ff994fc62dd8329bef570d382e4"
 
-[conda-packages.windows-x64."libgcc-15.2.0-h8ee18e1_19"]
-url = "https://conda.anaconda.org/conda-forge/win-64/libgcc-15.2.0-h8ee18e1_19.conda"
-checksum = "sha256:80e80ef5e31b00b12539db3c5aaecde60dab91381abfc1060e323d5c3b016dce"
+[conda-packages.windows-x64."libgcc-16.2.0-h110b43a_4"]
+url = "https://conda.anaconda.org/conda-forge/win-64/libgcc-16.2.0-h110b43a_4.conda"
+checksum = "sha256:32c0d1adcc96835d5f681c7e72b7f5e2e30088149239e002b8a6f581a072e1d2"
 
-[conda-packages.windows-x64."libgomp-15.2.0-h8ee18e1_19"]
-url = "https://conda.anaconda.org/conda-forge/win-64/libgomp-15.2.0-h8ee18e1_19.conda"
-checksum = "sha256:4dc958ced2fc7f42bc675b07e2c9abe3e150875ffdf62ca551d94fc6facf1fd7"
+[conda-packages.windows-x64."libgomp-16.2.0-h8ee18e1_4"]
+url = "https://conda.anaconda.org/conda-forge/win-64/libgomp-16.2.0-h8ee18e1_4.conda"
+checksum = "sha256:9ef1a22fb50b31fbf9c01cf709e8f55b60fd3c02401d150be4a55943f9e3832f"
 
 [conda-packages.windows-x64."libwinpthread-12.0.0.r4.gg4f2fc60ca-h57928b3_10"]
 url = "https://conda.anaconda.org/conda-forge/win-64/libwinpthread-12.0.0.r4.gg4f2fc60ca-h57928b3_10.conda"
@@ -219,50 +243,58 @@ backend = "conda:make"
 channel = "conda-forge"
 
 [tools.make."platforms.linux-arm64"]
-checksum = "sha256:d243aea768e6fa360b7eda598340f43d2a41c9fc169d9f97f505410be68815f8"
-url = "https://conda.anaconda.org/conda-forge/linux-aarch64/make-4.4.1-h2a6d0cb_2.conda"
+checksum = "sha256:b008fb8ba5c93478dacf36d60eed1b2de341d69773c3f73621d2a9e56f834d9d"
+url = "https://conda.anaconda.org/conda-forge/linux-aarch64/make-4.4.1-he30d5cf_3.conda"
 conda_deps = [
-    "libgcc-15.2.0-h8acb6b2_19",
+    "libgcc-16.2.0-h205dda4_4",
     "_openmp_mutex-4.5-20_gnu",
-    "libgomp-15.2.0-h8acb6b2_19",
+    "libgomp-16.2.0-h8acb6b2_4",
 ]
 
 [tools.make."platforms.linux-arm64-musl"]
-checksum = "sha256:d243aea768e6fa360b7eda598340f43d2a41c9fc169d9f97f505410be68815f8"
-url = "https://conda.anaconda.org/conda-forge/linux-aarch64/make-4.4.1-h2a6d0cb_2.conda"
+checksum = "sha256:b008fb8ba5c93478dacf36d60eed1b2de341d69773c3f73621d2a9e56f834d9d"
+url = "https://conda.anaconda.org/conda-forge/linux-aarch64/make-4.4.1-he30d5cf_3.conda"
 conda_deps = [
-    "libgcc-15.2.0-h8acb6b2_19",
+    "libgcc-16.2.0-h205dda4_4",
     "_openmp_mutex-4.5-20_gnu",
-    "libgomp-15.2.0-h8acb6b2_19",
+    "libgomp-16.2.0-h8acb6b2_4",
 ]
 
 [tools.make."platforms.linux-x64"]
-checksum = "sha256:d652c7bd4d3b6f82b0f6d063b0d8df6f54cc47531092d7ff008e780f3261bdda"
-url = "https://conda.anaconda.org/conda-forge/linux-64/make-4.4.1-hb9d3cd8_2.conda"
+checksum = "sha256:4c65d2769847778a6d84db6984ac81bcec6f8958d349f1fe57ae040ccc56a801"
+url = "https://conda.anaconda.org/conda-forge/linux-64/make-4.4.1-hb03c661_3.conda"
+conda_deps = [
+    "libgcc-16.2.0-ha9f2e26_4",
+    "_openmp_mutex-4.5-20_gnu",
+    "libgomp-16.2.0-he0feb66_4",
+]
 
 [tools.make."platforms.linux-x64-musl"]
-checksum = "sha256:d652c7bd4d3b6f82b0f6d063b0d8df6f54cc47531092d7ff008e780f3261bdda"
-url = "https://conda.anaconda.org/conda-forge/linux-64/make-4.4.1-hb9d3cd8_2.conda"
+checksum = "sha256:4c65d2769847778a6d84db6984ac81bcec6f8958d349f1fe57ae040ccc56a801"
+url = "https://conda.anaconda.org/conda-forge/linux-64/make-4.4.1-hb03c661_3.conda"
+conda_deps = [
+    "libgcc-16.2.0-ha9f2e26_4",
+    "_openmp_mutex-4.5-20_gnu",
+    "libgomp-16.2.0-he0feb66_4",
+]
 
 [tools.make."platforms.macos-arm64"]
 checksum = "sha256:90ca65e788406d9029ae23ad4bd944a8b5353ad5f59bd6ce326f980cde46f37e"
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/make-4.4.1-hc9fafa5_2.conda"
-conda_deps = []
 
 [tools.make."platforms.macos-x64"]
 checksum = "sha256:5a5ab3ee828309185e0a76ca80f5da85f31d8480d923abb508ca00fe194d1b5a"
 url = "https://conda.anaconda.org/conda-forge/osx-64/make-4.4.1-h00291cd_2.conda"
-conda_deps = []
 
 [tools.make."platforms.windows-x64"]
-checksum = "sha256:a810cdca3d5fa50d562cda23c0c1195b45ff5f9b0c41e0d4c8c2dd3c043ff4f2"
-url = "https://conda.anaconda.org/conda-forge/win-64/make-4.4.1-h0e40799_2.conda"
+checksum = "sha256:8b1a30f3e6442ed4c161e7aabab396ce35c61a3c235ece53edf2a78c95d18fed"
+url = "https://conda.anaconda.org/conda-forge/win-64/make-4.4.1-hba3369d_3.conda"
 conda_deps = [
-    "libgcc-15.2.0-h8ee18e1_19",
+    "libgcc-16.2.0-h110b43a_4",
     "libwinpthread-12.0.0.r4.gg4f2fc60ca-h57928b3_10",
     "ucrt-10.0.26100.0-h57928b3_0",
     "_openmp_mutex-4.5-20_gnu",
-    "libgomp-15.2.0-h8ee18e1_19",
+    "libgomp-16.2.0-h8ee18e1_4",
 ]
 
 [[tools.node]]
@@ -298,76 +330,76 @@ checksum = "sha256:edaca9bd58ec8e92037dac4e877d52f6b8f430b81c18b57e264b4e2fb111c
 url = "https://nodejs.org/dist/v24.16.0/node-v24.16.0-win-x64.zip"
 
 [[tools.pre-commit]]
-version = "4.6.0"
+version = "4.6.2"
 backend = "aqua:pre-commit/pre-commit"
 
 [tools.pre-commit."platforms.linux-arm64"]
-checksum = "sha256:ea8a0c84902e48c1875558f2f362ed8476773aa5fc8c16c5d8f2acc2a2830a65"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.0/pre-commit-4.6.0.pyz"
-url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/401888770"
+checksum = "sha256:43c09a73d82af8efff09900e60d76d67a2c3d990613c3c770b2b5c4418a16c4b"
+url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.2/pre-commit-4.6.2.pyz"
+url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/509317714"
 
 [tools.pre-commit."platforms.linux-arm64-musl"]
-checksum = "sha256:ea8a0c84902e48c1875558f2f362ed8476773aa5fc8c16c5d8f2acc2a2830a65"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.0/pre-commit-4.6.0.pyz"
-url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/401888770"
+checksum = "sha256:43c09a73d82af8efff09900e60d76d67a2c3d990613c3c770b2b5c4418a16c4b"
+url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.2/pre-commit-4.6.2.pyz"
+url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/509317714"
 
 [tools.pre-commit."platforms.linux-x64"]
-checksum = "sha256:ea8a0c84902e48c1875558f2f362ed8476773aa5fc8c16c5d8f2acc2a2830a65"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.0/pre-commit-4.6.0.pyz"
-url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/401888770"
+checksum = "sha256:43c09a73d82af8efff09900e60d76d67a2c3d990613c3c770b2b5c4418a16c4b"
+url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.2/pre-commit-4.6.2.pyz"
+url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/509317714"
 
 [tools.pre-commit."platforms.linux-x64-musl"]
-checksum = "sha256:ea8a0c84902e48c1875558f2f362ed8476773aa5fc8c16c5d8f2acc2a2830a65"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.0/pre-commit-4.6.0.pyz"
-url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/401888770"
+checksum = "sha256:43c09a73d82af8efff09900e60d76d67a2c3d990613c3c770b2b5c4418a16c4b"
+url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.2/pre-commit-4.6.2.pyz"
+url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/509317714"
 
 [tools.pre-commit."platforms.macos-arm64"]
-checksum = "sha256:ea8a0c84902e48c1875558f2f362ed8476773aa5fc8c16c5d8f2acc2a2830a65"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.0/pre-commit-4.6.0.pyz"
-url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/401888770"
+checksum = "sha256:43c09a73d82af8efff09900e60d76d67a2c3d990613c3c770b2b5c4418a16c4b"
+url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.2/pre-commit-4.6.2.pyz"
+url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/509317714"
 
 [tools.pre-commit."platforms.macos-x64"]
-checksum = "sha256:ea8a0c84902e48c1875558f2f362ed8476773aa5fc8c16c5d8f2acc2a2830a65"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.0/pre-commit-4.6.0.pyz"
-url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/401888770"
+checksum = "sha256:43c09a73d82af8efff09900e60d76d67a2c3d990613c3c770b2b5c4418a16c4b"
+url = "https://github.com/pre-commit/pre-commit/releases/download/v4.6.2/pre-commit-4.6.2.pyz"
+url_api = "https://api.github.com/repos/pre-commit/pre-commit/releases/assets/509317714"
 
 [[tools.python]]
 version = "3.12.13"
 backend = "core:python"
 
 [tools.python."platforms.linux-arm64"]
-checksum = "sha256:f226576b91491ffa5739aa85726521e9031f4d87f80627d64ed348ac77cb31e9"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260718/cpython-3.12.13+20260718-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:11e713ae1f969385907a76533cc554f6b2e3f1a84896009f91c3fc871034a170"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260807/cpython-3.12.13+20260807-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-arm64-musl"]
-checksum = "sha256:55ee512cae752b6a8b04e598923d888311e2ed60e3307a33306ef1ab0f003ae9"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260718/cpython-3.12.13+20260718-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
+checksum = "sha256:0c9164b6f4ab0768bbcdf84683aabd680e8d75fa8347c6cecfdc5dad817ffd08"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260807/cpython-3.12.13+20260807-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64"]
-checksum = "sha256:5854aa6ec71cad00334d5065633c210b2e7feb40956767a59a91791cadcf0b79"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260718/cpython-3.12.13+20260718-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:506191be3ee7bd190a8834dcdc1b3bc70aab50608deccc711935aa007239cabd"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260807/cpython-3.12.13+20260807-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64-musl"]
-checksum = "sha256:d62168126b2d92e5db649cfe89fb13bf165654c027707c0ef80d7823757c9b1d"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260718/cpython-3.12.13+20260718-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
+checksum = "sha256:dbe1e98775846b1503e0135353bbd47c51f02b0fc3dcf822ea82386921af1fbd"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260807/cpython-3.12.13+20260807-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-arm64"]
-checksum = "sha256:9a1e9e06175c10efd8378b904b07fa21bd791ab3345d7cdffeb4a76c9ff55903"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260718/cpython-3.12.13+20260718-aarch64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:25baa97c65b3f0aa90e21131b4f9e80aef8899e8144006db8a9d2c1ab9e807e3"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260807/cpython-3.12.13+20260807-aarch64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-x64"]
-checksum = "sha256:8e6b7e6533bdf746287008edf91102e7bee0a6ca1d24f16c4514237cafd706c5"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260718/cpython-3.12.13+20260718-x86_64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:127053f1736f721e391ddb46f07585d05756e15bb8d757d3bbc0519738998ba1"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260807/cpython-3.12.13+20260807-x86_64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.windows-x64"]
-checksum = "sha256:0d422a1439ec308e03f47df551bc30f5994727c456e414b026d202bcda9b7c1c"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260718/cpython-3.12.13+20260718-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+checksum = "sha256:18bcc65b17921806b72cdc88bcf000bf67a2c99a8fc381fe1629f2b9ba56858d"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260807/cpython-3.12.13+20260807-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [[tools.shellcheck]]
@@ -566,47 +598,47 @@ url = "https://github.com/vale-cli/vale/releases/download/v3.6.0/vale_3.6.0_Wind
 url_api = "https://api.github.com/repos/vale-cli/vale/releases/assets/174588942"
 
 [[tools.yq]]
-version = "4.53.3"
+version = "4.53.6"
 backend = "aqua:mikefarah/yq"
 
 [tools.yq."platforms.linux-arm64"]
-checksum = "sha256:578648e463a11c1b6db6010cbf41eafed6bee79466fcffa1bb446672cf7945ea"
-url = "https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_linux_arm64"
-url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/440146727"
+checksum = "sha256:88a1016bc1d657375a35864e4f44b6f333df8ff97b559f51bba0adcb2169df09"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_linux_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/522028007"
 provenance = "cosign"
 
 [tools.yq."platforms.linux-arm64-musl"]
-checksum = "sha256:578648e463a11c1b6db6010cbf41eafed6bee79466fcffa1bb446672cf7945ea"
-url = "https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_linux_arm64"
-url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/440146727"
+checksum = "sha256:88a1016bc1d657375a35864e4f44b6f333df8ff97b559f51bba0adcb2169df09"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_linux_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/522028007"
 provenance = "cosign"
 
 [tools.yq."platforms.linux-x64"]
-checksum = "sha256:fa52a4e758c63d38299163fbdd1edfb4c4963247918bf9c1c5d31d84789eded4"
-url = "https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_linux_amd64"
-url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/440146735"
+checksum = "sha256:c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_linux_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/522028022"
 provenance = "cosign"
 
 [tools.yq."platforms.linux-x64-musl"]
-checksum = "sha256:fa52a4e758c63d38299163fbdd1edfb4c4963247918bf9c1c5d31d84789eded4"
-url = "https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_linux_amd64"
-url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/440146735"
+checksum = "sha256:c5f056448f973ae7d39b5401949648a78f2dc1947d6a8eb65be60d5c504b9385"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_linux_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/522028022"
 provenance = "cosign"
 
 [tools.yq."platforms.macos-arm64"]
-checksum = "sha256:b4ba1ecce3c47f00803f4f964de38394326c7a32eb6540616e04fb2935a0f08d"
-url = "https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_darwin_amd64"
-url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/440146744"
+checksum = "sha256:cceb0b8d71ea5294334121f8429f33f92b920e7217d904a2f9f35443968ac424"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_darwin_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/522028033"
 provenance = "cosign"
 
 [tools.yq."platforms.macos-x64"]
-checksum = "sha256:b4ba1ecce3c47f00803f4f964de38394326c7a32eb6540616e04fb2935a0f08d"
-url = "https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_darwin_amd64"
-url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/440146744"
+checksum = "sha256:caa513cb04f3804b34d4752f0e0d7904fecb9e7cf1d34081289f83259319a7f6"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_darwin_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/522028031"
 provenance = "cosign"
 
 [tools.yq."platforms.windows-x64"]
-checksum = "sha256:e279bc506a452eeafcdf364f91a025455e402a8001169083caf01f4b64a544e2"
-url = "https://github.com/mikefarah/yq/releases/download/v4.53.3/yq_windows_amd64.exe"
-url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/440146721"
+checksum = "sha256:ece3dd8bb50d39f93610506273ea262feb91e5c486bbddbb10abf91b2a6c0f14"
+url = "https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_windows_amd64.exe"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/522027974"
 provenance = "cosign"
