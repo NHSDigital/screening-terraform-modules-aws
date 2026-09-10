@@ -22,7 +22,9 @@ No providers.
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+| ---- | ------ | ------- |
+| <a name="module_eventbridge"></a> [eventbridge](#module\_eventbridge) | git::https://github.com/terraform-aws-modules/terraform-aws-eventbridge.git | f9934726324c988f823682884b4fa003586a7b6f |
 
 ## Resources
 
