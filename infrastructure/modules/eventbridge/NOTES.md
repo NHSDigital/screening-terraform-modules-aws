@@ -41,7 +41,7 @@ The main on/off switch is called `create`.
 - name status: named and must be unique per AWS account and region
 - named by `Name` field of `var.connections` sub-value
   - modified if `var.append_connection_postfix` is true
-- encrypted using `kms_key_identifier` field of `var.archives` sub-value, falling back to unencrypted
+- encrypted using `kms_key_identifier` field of `var.connections` sub-value, falling back to unencrypted
 
 ### `aws_cloudwatch_event_permission.this`
 
@@ -204,10 +204,12 @@ The main on/off switch is called `create`.
 ### `aws_pipes_pipe.this`
 
 - name status: named and must be unique per AWS account and region
+- encrypted using `kms_key_identifier` field of `var.pipes` sub-value, falling back to unencrypted
 
 ### `aws_scheduler_schedule.this`
 
 - name status: named and must be unique per schedule group
+- encrypted using `kms_key_arn` field of `var.schedules` sub-value, falling back to unencrypted
 
 ### `aws_scheduler_schedule_group.this`
 
