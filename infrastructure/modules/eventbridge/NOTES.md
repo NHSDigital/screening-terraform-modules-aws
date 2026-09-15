@@ -19,7 +19,17 @@ The main on/off switch is called `create`.
 
 ### `aws_cloudwatch_event_api_destination.this`
 
+- resource
+- gated by `var.create_api_destinations`
+- named by `var.api_destinations` keys
+  - modified if `var.append_destination_postfix` is true
+
 ### `aws_cloudwatch_event_archive.this`
+
+- resource
+- gated by `var.create_archives`
+- named by `name` field of `var.archives` sub-value, falling back to `var.archives` key
+- encrypted using `kms_key_identifier` field of `var.archives` sub-value, falling back to unencrypted
 
 ### `aws_cloudwatch_event_connection.this`
 
