@@ -33,9 +33,23 @@ The main on/off switch is called `create`.
 
 ### `aws_cloudwatch_event_connection.this`
 
+- resource
+- gated by `var.create_connections`
+- named by `Name` field of `var.connections` sub-value
+  - modified if `var.append_connection_postfix` is true
+- encrypted using `kms_key_identifier` field of `var.archives` sub-value, falling back to unencrypted
+
 ### `aws_cloudwatch_event_permission.this`
 
+- resource
+- gated by `var.create_permissions`
+
 ### `aws_cloudwatch_event_rule.this`
+
+- resource
+- gated by `var.create_rules`
+- named by `var.rules` key
+  - modified if `var.append_rule_postfix` is true
 
 ### `aws_cloudwatch_event_target.this`
 
