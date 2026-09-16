@@ -12,4 +12,10 @@ locals {
       v
     )
   }
+
+  # connection names must be unique per AWS account and region
+  # prefix provided names with the module ID to ensure uniqueness
+  connections = {
+    for k, v in var.connections : "${module.this.id}-${k}" => v
+  }
 }
