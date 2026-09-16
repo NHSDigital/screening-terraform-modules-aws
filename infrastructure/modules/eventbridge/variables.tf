@@ -220,8 +220,24 @@ variable "permissions" {
 
 variable "connections" {
   description = "A map of objects with EventBridge Connection definitions."
-  type        = any
-  default     = {}
+  type = map(object({
+    authorization_type                 = string
+    auth_parameters                    = any
+    kms_key_identifier                 = string
+    description                        = optional(string)
+    invocation_connectivity_parameters = optional(any)
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for connection in var.connections :
+      connection.kms_key_identifier != null &&
+      trimspace(connection.kms_key_identifier) != ""
+    ])
+
+    error_message = "Each connection must specify a non-empty kms_key_identifier."
+  }
 }
 
 variable "api_destinations" {
