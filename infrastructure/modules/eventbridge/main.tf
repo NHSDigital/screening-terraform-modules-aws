@@ -32,7 +32,7 @@ module "eventbridge" {
   log_delivery                   = local.log_delivery # DAVEH: per-destination KMS keys can come from var.log_delivery.<key>.kms_key_identifier or fall back to unencrypted
   log_delivery_source_name       = var.log_delivery_source_name
   event_source_name              = var.event_source_name
-  kms_key_identifier             = var.kms_key_identifier # DAVEH: KMS key for the event bus comes from var.kms_key_identifier
+  kms_key_identifier             = var.kms_key_identifier
   dead_letter_config             = var.dead_letter_config
   schemas_discoverer_description = var.schemas_discoverer_description
   rules                          = var.rules
