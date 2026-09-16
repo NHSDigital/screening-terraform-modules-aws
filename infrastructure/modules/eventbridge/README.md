@@ -12,6 +12,8 @@ DAVEH: document var.log_delivery
 
 DAVEH: document var.connections
 
+DAVEH: document var.api_destinations
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->

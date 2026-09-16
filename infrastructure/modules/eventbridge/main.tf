@@ -42,8 +42,8 @@ module "eventbridge" {
   archives                       = var.archives
   permissions                    = var.permissions
   connections                    = local.connections
-  api_destinations               = var.api_destinations # DAVEH: unique per AWS account and region; the API destination name is taken from the key of var.api_destinations
-  schedule_groups                = var.schedule_groups  # DAVEH: unique per AWS account and region; the schedule group name is taken from var.schedule_groups.<key>.name or .name_prefix, falling back to the map key
+  api_destinations               = local.api_destinations
+  schedule_groups                = var.schedule_groups # DAVEH: unique per AWS account and region; the schedule group name is taken from var.schedule_groups.<key>.name or .name_prefix, falling back to the map key
   schedules                      = var.schedules
   pipes                          = var.pipes # DAVEH: unique per AWS account and region; the pipe name is taken from the key of var.pipes, and the related IAM role names derive from role_name_prefix in each entry
   schedule_group_timeouts        = var.schedule_group_timeouts
