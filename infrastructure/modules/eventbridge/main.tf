@@ -43,7 +43,7 @@ module "eventbridge" {
   api_destinations               = local.api_destinations
   schedule_groups                = local.schedule_groups
   schedules                      = var.schedules
-  pipes                          = local.pipes # DAVEH: per-pipe KMS keys can come from var.pipes.<key>.kms_key_identifier or fall back to unencrypted
+  pipes                          = local.pipes
   schedule_group_timeouts        = var.schedule_group_timeouts
   role_name                      = var.role_name
   role_description               = var.role_description
