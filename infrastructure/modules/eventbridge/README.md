@@ -10,6 +10,8 @@ DAVEH: document var.bus_name
 
 DAVEH: document var.log_delivery
 
+DAVEH: document var.connections
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
