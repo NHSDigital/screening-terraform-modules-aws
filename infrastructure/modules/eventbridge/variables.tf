@@ -254,8 +254,40 @@ variable "schedule_groups" {
 
 variable "schedules" {
   description = "A map of objects with EventBridge Schedule definitions."
-  type        = map(any)
-  default     = {}
+  type = map(object({
+    arn                           = string
+    schedule_expression           = string
+    name_prefix                   = optional(string)
+    description                   = optional(string)
+    group_name                    = optional(string)
+    start_date                    = optional(string)
+    end_date                      = optional(string)
+    kms_key_arn                   = string
+    timezone                      = optional(string)
+    state                         = optional(bool, true)
+    maximum_window_in_minutes     = optional(number)
+    use_flexible_time_window      = optional(bool, false)
+    role_arn                      = optional(string)
+    input                         = optional(string)
+    dead_letter_arn               = optional(string)
+    ecs_parameters                = optional(any)
+    eventbridge_parameters        = optional(any)
+    partition_key                 = optional(string)
+    sagemaker_pipeline_parameters = optional(any)
+    message_group_id              = optional(string)
+    retry_policy                  = optional(any)
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for schedule in var.schedules :
+      schedule.kms_key_arn != null &&
+      trimspace(schedule.kms_key_arn) != ""
+    ])
+
+    error_message = "Each schedule must specify a non-empty kms_key_arn."
+  }
 }
 
 variable "pipes" {
