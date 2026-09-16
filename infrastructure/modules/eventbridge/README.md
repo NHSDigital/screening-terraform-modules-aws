@@ -24,6 +24,10 @@ DAVEH: document var.pipes
 
 DAVEH: document var.kms_key_identifier
 
+DAVEH: document var.connections
+
+DAVEH: document var.schedules
+
 DAVEH: document var.pipes
 
 <!-- vale off -->
