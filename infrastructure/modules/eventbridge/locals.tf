@@ -24,4 +24,20 @@ locals {
   api_destinations = {
     for k, v in var.api_destinations : "${module.this.id}-${k}" => v
   }
+
+  # schedule group names must be unique per AWS account and region
+  # respect `name` and `name_prefix` if given
+  # otherwise include module ID and key in `name_prefix`
+  schedule_groups = {
+    for k, v in var.schedule_groups : k => (
+      contains(keys(v), "name") || contains(keys(v), "name_prefix")
+      ? v
+      : merge(
+        {
+          name_prefix = "${module.this.id}-${k}"
+        },
+        v
+      )
+    )
+  }
 }
