@@ -24,6 +24,8 @@ DAVEH: document var.pipes
 
 DAVEH: document var.kms_key_identifier
 
+DAVEH: document var.pipes
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -128,7 +130,7 @@ No resources.
 | <a name="input_on_off_pattern"></a> [on\_off\_pattern](#input\_on\_off\_pattern) | Used to turn resources on and off based on a time pattern | `string` | `"n/a"` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | The name and or NHS.net email address of the service owner | `string` | `"None"` | no |
 | <a name="input_permissions"></a> [permissions](#input\_permissions) | A map of objects with EventBridge Permission definitions. | `map(any)` | `{}` | no |
-| <a name="input_pipes"></a> [pipes](#input\_pipes) | A map of objects with EventBridge Pipe definitions. | `any` | `{}` | no |
+| <a name="input_pipes"></a> [pipes](#input\_pipes) | A map of EventBridge Pipe definitions. | <pre>map(object({<br/>    role_arn              = optional(string)<br/>    source                = string<br/>    target                = string<br/>    kms_key_identifier    = string<br/>    description           = optional(string)<br/>    desired_state         = optional(string)<br/>    source_parameters     = optional(any)<br/>    target_parameters     = optional(any)<br/>    enrichment            = optional(string)<br/>    enrichment_parameters = optional(any)<br/>    log_configuration     = optional(any)<br/>    tags                  = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
 | <a name="input_policies"></a> [policies](#input\_policies) | List of policy statements ARN to attach to IAM role | `list(string)` | `[]` | no |
 | <a name="input_policy"></a> [policy](#input\_policy) | An additional policy document ARN to attach to IAM role | `string` | `null` | no |
 | <a name="input_policy_json"></a> [policy\_json](#input\_policy\_json) | An additional policy document as JSON to attach to IAM role | `string` | `null` | no |

@@ -291,9 +291,32 @@ variable "schedules" {
 }
 
 variable "pipes" {
-  description = "A map of objects with EventBridge Pipe definitions."
-  type        = any
-  default     = {}
+  description = "A map of EventBridge Pipe definitions."
+  type = map(object({
+    role_arn              = optional(string)
+    source                = string
+    target                = string
+    kms_key_identifier    = string
+    description           = optional(string)
+    desired_state         = optional(string)
+    source_parameters     = optional(any)
+    target_parameters     = optional(any)
+    enrichment            = optional(string)
+    enrichment_parameters = optional(any)
+    log_configuration     = optional(any)
+    tags                  = optional(map(string), {})
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for pipe in var.pipes :
+      pipe.kms_key_identifier != null &&
+      trimspace(pipe.kms_key_identifier) != ""
+    ])
+
+    error_message = "Each pipe must specify a non-empty kms_key_identifier."
+  }
 }
 
 variable "schedule_group_timeouts" {

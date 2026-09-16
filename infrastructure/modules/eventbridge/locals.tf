@@ -44,6 +44,8 @@ locals {
   # pipe names must be unique per AWS account and region
   # prefix keys with the module ID to ensure uniqueness
   pipes = {
-    for k, v in var.pipes : "${module.this.id}-${k}" => v
+    for k, v in var.pipes : "${module.this.id}-${k}" => {
+      for attribute, value in v : attribute => value if value != null
+    }
   }
 }
