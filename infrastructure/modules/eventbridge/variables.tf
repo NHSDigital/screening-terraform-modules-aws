@@ -125,9 +125,10 @@ variable "create_log_delivery" {
 }
 
 variable "bus_name" {
-  description = "A unique name for your EventBridge Bus"
+  description = "A unique name for your EventBridge Bus. Must be unique per AWS account and region. Defaults to whatever the tags module produces"
   type        = string
-  default     = "default"
+  nullable    = true
+  default     = null
 }
 
 variable "bus_description" {
