@@ -1,8 +1,6 @@
 module "eventbridge" {
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-eventbridge.git?ref=f9934726324c988f823682884b4fa003586a7b6f" # v4.3.2
 
-  # DAVEH: force enable encryption
-
   create = module.this.enabled
   tags   = module.this.tags
 
@@ -31,21 +29,21 @@ module "eventbridge" {
   bus_name                       = local.bus_name
   bus_description                = var.bus_description
   log_config                     = var.log_config
-  log_delivery                   = local.log_delivery
+  log_delivery                   = local.log_delivery # DAVEH: per-destination KMS keys can come from var.log_delivery.<key>.kms_key_identifier or fall back to unencrypted
   log_delivery_source_name       = var.log_delivery_source_name
   event_source_name              = var.event_source_name
-  kms_key_identifier             = var.kms_key_identifier
+  kms_key_identifier             = var.kms_key_identifier # DAVEH: KMS key for the event bus comes from var.kms_key_identifier
   dead_letter_config             = var.dead_letter_config
   schemas_discoverer_description = var.schemas_discoverer_description
   rules                          = var.rules
   targets                        = var.targets
   archives                       = var.archives
   permissions                    = var.permissions
-  connections                    = local.connections
+  connections                    = local.connections # DAVEH: per-connection KMS keys can come from var.connections.<key>.kms_key_identifier or fall back to unencrypted
   api_destinations               = local.api_destinations
   schedule_groups                = local.schedule_groups
-  schedules                      = var.schedules
-  pipes                          = local.pipes
+  schedules                      = var.schedules # DAVEH: per-schedule KMS keys can come from var.schedules.<key>.kms_key_arn or fall back to unencrypted
+  pipes                          = local.pipes   # DAVEH: per-pipe KMS keys can come from var.pipes.<key>.kms_key_identifier or fall back to unencrypted
   schedule_group_timeouts        = var.schedule_group_timeouts
   role_name                      = var.role_name
   role_description               = var.role_description
