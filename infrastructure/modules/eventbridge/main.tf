@@ -39,7 +39,7 @@ module "eventbridge" {
   targets                        = var.targets
   archives                       = var.archives
   permissions                    = var.permissions
-  connections                    = local.connections # DAVEH: per-connection KMS keys can come from var.connections.<key>.kms_key_identifier or fall back to unencrypted
+  connections                    = local.connections
   api_destinations               = local.api_destinations
   schedule_groups                = local.schedule_groups
   schedules                      = var.schedules # DAVEH: per-schedule KMS keys can come from var.schedules.<key>.kms_key_arn or fall back to unencrypted
