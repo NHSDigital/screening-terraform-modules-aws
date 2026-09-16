@@ -16,6 +16,8 @@ DAVEH: document var.api_destinations
 
 DAVEH: document var.schedule_groups
 
+DAVEH: document var.pipes
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
