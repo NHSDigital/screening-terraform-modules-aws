@@ -47,7 +47,7 @@ module "eventbridge" {
   schedules                      = var.schedules
   pipes                          = local.pipes
   schedule_group_timeouts        = var.schedule_group_timeouts
-  role_name                      = var.role_name # DAVEH: unique per AWS account; the EventBridge role and related IAM policy names are derived from var.role_name, falling back to var.bus_name
+  role_name                      = var.role_name
   role_description               = var.role_description
   role_path                      = var.role_path
   policy_path                    = var.policy_path
