@@ -177,9 +177,9 @@ variable "event_source_name" {
 }
 
 variable "kms_key_identifier" {
-  description = "The identifier of the AWS KMS customer managed key for EventBridge to use, if you choose to use a customer managed key to encrypt events on this event bus. The identifier can be the key Amazon Resource Name (ARN), KeyId, key alias, or key alias ARN."
+  description = "The identifier of the AWS KMS customer managed key for EventBridge to use, to encrypt events on this event bus. The identifier can be the key Amazon Resource Name (ARN), KeyId, key alias, or key alias ARN."
   type        = string
-  default     = null
+  nullable    = false
 }
 
 variable "dead_letter_config" {
