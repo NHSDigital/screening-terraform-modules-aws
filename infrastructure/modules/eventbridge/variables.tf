@@ -165,7 +165,7 @@ variable "log_delivery" {
 }
 
 variable "log_delivery_source_name" {
-  description = "Name of log delivery source"
+  description = "Name of log delivery source; defaults to the name we use for the bus"
   type        = string
   default     = null
 }

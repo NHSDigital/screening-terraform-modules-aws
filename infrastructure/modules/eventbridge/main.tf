@@ -31,8 +31,8 @@ module "eventbridge" {
   bus_name                       = local.bus_name
   bus_description                = var.bus_description
   log_config                     = var.log_config
-  log_delivery                   = var.log_delivery             # DAVEH: unique per AWS account; the destination name comes from var.log_delivery.<key>.name, falling back to var.bus_name and the map key
-  log_delivery_source_name       = var.log_delivery_source_name # DAVEH: unique per AWS account; the source name is taken from var.log_delivery_source_name, falling back to var.bus_name
+  log_delivery                   = var.log_delivery # DAVEH: unique per AWS account; the destination name comes from var.log_delivery.<key>.name, falling back to var.bus_name and the map key
+  log_delivery_source_name       = var.log_delivery_source_name
   event_source_name              = var.event_source_name
   kms_key_identifier             = var.kms_key_identifier
   dead_letter_config             = var.dead_letter_config
