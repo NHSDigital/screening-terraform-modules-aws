@@ -66,8 +66,25 @@ variable "endpoints" {
     **Security consideration:** Endpoint policies restrict access. If not specified,
     the endpoint allows all principals. Recommended to set restrictive policies.
   EOT
-  type        = any
-  default     = {}
+  type = map(object({
+    service               = optional(string)
+    service_endpoint      = optional(string)
+    service_type          = optional(string, "Interface")
+    policy                = optional(string)
+    subnet_ids            = optional(list(string))
+    security_group_ids    = optional(list(string))
+    private_dns_enabled   = optional(bool)
+    route_table_ids       = optional(list(string))
+    tags                  = optional(map(string), {})
+    name                  = optional(string)
+    auto_accept           = optional(bool)
+    service_region        = optional(string)
+    dns_options           = optional(any)
+    ip_address_type       = optional(string)
+    subnet_configurations = optional(any)
+    create                = optional(bool, true)
+  }))
+  default = {}
 
   validation {
     condition     = alltrue([for k, v in var.endpoints : try(v.service, null) != null || try(v.service_endpoint, null) != null])
