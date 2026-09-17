@@ -53,7 +53,8 @@ variable "endpoints" {
       - Do NOT use security_group_ids or subnet_ids
 
     Supported per-endpoint attributes:
-      service              - AWS service name (e.g. "s3", "ecr.api") [REQUIRED]
+      service              - AWS service name (e.g. "s3", "ecr.api") [REQUIRED unless service_endpoint is set]
+      service_endpoint     - Explicit endpoint service name, for custom endpoint services
       service_type         - "Interface" (default) or "Gateway"
       policy               - JSON endpoint policy document (optional but recommended)
       subnet_ids           - Override default intra subnets (optional; Interface only)
@@ -69,8 +70,8 @@ variable "endpoints" {
   default     = {}
 
   validation {
-    condition     = alltrue([for k, v in var.endpoints : try(v.service, null) != null])
-    error_message = "Each endpoint must specify 'service' (e.g. 's3', 'ecr.api')."
+    condition     = alltrue([for k, v in var.endpoints : try(v.service, null) != null || try(v.service_endpoint, null) != null])
+    error_message = "Each endpoint must specify either 'service' (e.g. 's3', 'ecr.api') or 'service_endpoint'."
   }
 
   validation {

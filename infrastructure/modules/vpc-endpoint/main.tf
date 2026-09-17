@@ -12,6 +12,9 @@ module "vpc_endpoints" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
   version = "6.6.1"
 
+  create = var.enabled
+  region = var.region
+
   vpc_id = var.vpc_id
 
   # Default subnet placement: intra (no internet route, high isolation)
