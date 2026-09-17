@@ -10,24 +10,24 @@ locals {
   # Precedence: per-endpoint values > module defaults > upstream defaults
   # This enables a caller to set defaults while allowing per-endpoint overrides.
   endpoints_merged = {
-    for k, v in var.endpoints :
+    for k in keys(var.endpoints) :
     k => merge(
-      v,
+      var.endpoints[k],
       # Merge security_group_ids: per-endpoint > default
       # Only add security_group_ids if:
       # 1. Endpoint doesn't already specify them AND
       # 2. var.security_group_id is set AND
       # 3. Endpoint is Interface type (or unspecified, defaulting to Interface)
-      try(v.security_group_ids, null) == null &&
+      try(var.endpoints[k].security_group_ids, null) == null &&
       var.security_group_id != null &&
-      try(v.service_type, "Interface") == "Interface" ?
+      try(var.endpoints[k].service_type, "Interface") == "Interface" ?
       { security_group_ids = [var.security_group_id] } :
       {},
       # Merge subnet_ids: per-endpoint > default
       # Only add subnet_ids if:
       # 1. Endpoint doesn't already specify them AND
       # 2. var.subnet_ids is set
-      try(v.subnet_ids, null) == null &&
+      try(var.endpoints[k].subnet_ids, null) == null &&
       length(var.subnet_ids) > 0 ?
       { subnet_ids = var.subnet_ids } :
       {},
@@ -36,8 +36,8 @@ locals {
       # Per-endpoint tags from v.tags are preserved alongside the injected Name.
       {
         tags = merge(
-          try(v.tags, {}),
-          { Name = try(v.name, "${module.this.id}-${replace(k, ".", "-")}") }
+          try(var.endpoints[k].tags, {}),
+          { Name = try(var.endpoints[k].name, "${module.this.id}-${replace(k, ".", "-")}") }
         )
       }
     )
