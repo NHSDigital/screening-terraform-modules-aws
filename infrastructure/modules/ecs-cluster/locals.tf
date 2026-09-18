@@ -29,8 +29,13 @@ locals {
     logging           = "OVERRIDE"
   } : null
 
+  managed_storage_configuration = var.fargate_ephemeral_storage_kms_key_id != null ? {
+    fargate_ephemeral_storage_kms_key_id = var.fargate_ephemeral_storage_kms_key_id
+  } : null
+
   # Cluster-level configuration block for upstream module
   cluster_configuration = var.enable_execute_command ? {
     execute_command_configuration = local.execute_command_configuration
+    managed_storage_configuration = local.managed_storage_configuration
   } : null
 }
