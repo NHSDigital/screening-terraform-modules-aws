@@ -34,6 +34,12 @@ variable "execute_command_kms_key_id" {
   default     = null
 }
 
+variable "fargate_ephemeral_storage_kms_key_id" {
+  description = "Customer managed KMS key ARN for Fargate ephemeral storage encryption."
+  type        = string
+  default     = null
+}
+
 variable "cloud_watch_encryption_enabled" {
   description = "Whether to enable encryption for ECS Exec logs stored in CloudWatch Logs. Encryption is mandatory when using CloudWatch destination."
   type        = bool
