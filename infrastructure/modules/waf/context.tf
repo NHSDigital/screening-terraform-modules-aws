@@ -82,7 +82,14 @@ variable "context" {
     label_value_case    = null
     terraform_source    = null
     descriptor_formats  = {}
-    labels_as_tags      = ["unset"]
+    # Note: we have to use [] instead of null for unset lists due to
+    # https://github.com/hashicorp/terraform/issues/28137
+    # which was not fixed until Terraform 1.0.0,
+    # but we want the default to be all the labels in `label_order`
+    # and we want users to be able to prevent all tag generation
+    # by setting `labels_as_tags` to `[]`, so we need
+    # a different sentinel to indicate "default"
+    labels_as_tags = ["unset"]
   }
   description = <<-EOT
     Single object for setting entire context at once.
@@ -132,19 +139,16 @@ variable "project" {
   default     = null
   description = "ID element. A project identifier, indicating the name or role of the project the resource is for, such as `website` or `api`"
 }
-
 variable "stack" {
   type        = string
   default     = null
   description = "ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks`"
 }
-
 variable "workspace" {
   type        = string
   default     = null
   description = "ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces"
 }
-
 variable "environment" {
   type        = string
   default     = null
@@ -158,7 +162,7 @@ variable "name" {
     ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.
     This is the only ID element not also included as a `tag`.
     The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input.
-  EOT
+    EOT
 }
 
 variable "delimiter" {
@@ -178,7 +182,7 @@ variable "attributes" {
     in the order they appear in the list. New attributes are appended to the
     end of the list. The elements of the list are joined by the `delimiter`
     and treated as a single ID element.
-  EOT
+    EOT
 }
 
 variable "labels_as_tags" {
@@ -193,7 +197,7 @@ variable "labels_as_tags" {
       The value of the `name` tag, if included, will be the `id`, not the `name`.
       Unlike other `null-label` inputs, the initial setting of `labels_as_tags` cannot be
       changed in later chained modules. Attempts to change it will be silently ignored.
-  EOT
+    EOT
 }
 
 variable "tags" {
@@ -202,7 +206,7 @@ variable "tags" {
   description = <<-EOT
     Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).
     Neither the tag keys nor the tag values will be modified by this module.
-  EOT
+    EOT
 }
 
 variable "additional_tag_map" {
@@ -212,7 +216,7 @@ variable "additional_tag_map" {
     Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.
     This is for some rare cases where resources want additional configuration of tags
     and therefore take a list of maps with tag key, value, and additional configuration.
-  EOT
+    EOT
 }
 
 variable "label_order" {
@@ -222,7 +226,7 @@ variable "label_order" {
     The order in which the labels (ID elements) appear in the `id`.
     Defaults to ["namespace", "environment", "stage", "name", "attributes"].
     You can omit any of the 6 labels ("tenant" is the 6th), but at least one must be present.
-  EOT
+    EOT
 }
 
 variable "regex_replace_chars" {
@@ -244,7 +248,6 @@ variable "id_length_limit" {
     Set to `null` for keep the existing setting, which defaults to `0`.
     Does not affect `id_full`.
   EOT
-
   validation {
     condition     = var.id_length_limit == null ? true : var.id_length_limit >= 6 || var.id_length_limit == 0
     error_message = "The id_length_limit must be >= 6 if supplied (not null), or 0 for unlimited length."
@@ -301,7 +304,7 @@ variable "descriptor_formats" {
     Label values will be normalized before being passed to `format()` so they will be
     identical to how they appear in `id`.
     Default is `{}` (`descriptors` output will be empty).
-  EOT
+    EOT
 }
 
 variable "owner" {
@@ -320,7 +323,6 @@ variable "data_classification" {
   type        = string
   description = "Used to identify the data classification of the resource, e.g 1-5"
   default     = "n/a"
-
   validation {
     condition     = contains(["n/a", "1", "2", "3", "4", "5"], var.data_classification)
     error_message = "Data Classification must be \"n/a\" or between 1-5"
@@ -331,12 +333,12 @@ variable "data_type" {
   type        = string
   description = "The tag data_type"
   default     = "None"
-
   validation {
     condition     = contains(["None", "PCD", "PID", "Anonymised", "UserAccount", "Audit"], var.data_type)
     error_message = "Data Type must be one of None, PCD, PID, Anonymised, UserAccount, Audit"
   }
 }
+
 
 variable "public_facing" {
   type        = bool
@@ -348,13 +350,11 @@ variable "service_category" {
   type        = string
   description = "The tag service_category"
   default     = "n/a"
-
   validation {
     condition     = contains(["n/a", "Bronze", "Silver", "Gold", "Platinum"], var.service_category)
     error_message = "The Service Category must be one of n/a, Bronze, Silver, Gold, Platinum"
   }
 }
-
 variable "on_off_pattern" {
   type        = string
   description = "Used to turn resources on and off based on a time pattern"
