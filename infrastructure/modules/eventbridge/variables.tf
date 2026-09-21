@@ -248,8 +248,21 @@ variable "api_destinations" {
 
 variable "schedule_groups" {
   description = "A map of objects with EventBridge Schedule Group definitions."
-  type        = any
-  default     = {}
+  type = map(object({
+    name        = optional(string)
+    name_prefix = optional(string)
+    tags        = optional(map(string), {})
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for schedule_group in var.schedule_groups :
+      schedule_group.name == null || schedule_group.name_prefix == null
+    ])
+
+    error_message = "Each schedule group may specify either name or name_prefix, but not both."
+  }
 }
 
 variable "schedules" {
