@@ -22,7 +22,6 @@
 #
 
 module "this" {
-  # tflint-ignore: terraform_module_pinned_source
   source = "../tags"
 
   enabled             = var.enabled

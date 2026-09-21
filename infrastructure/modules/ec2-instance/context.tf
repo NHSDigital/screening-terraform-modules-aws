@@ -24,6 +24,7 @@
 module "this" {
   source = "../tags"
 
+  enabled             = var.enabled
   service             = var.service
   project             = var.project
   region              = var.region
