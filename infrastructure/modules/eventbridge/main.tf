@@ -42,7 +42,7 @@ module "eventbridge" {
   connections                    = local.connections
   api_destinations               = local.api_destinations
   schedule_groups                = local.schedule_groups
-  schedules                      = var.schedules
+  schedules                      = local.schedules
   pipes                          = local.pipes
   schedule_group_timeouts        = var.schedule_group_timeouts
   role_name                      = var.role_name
