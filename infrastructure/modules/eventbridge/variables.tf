@@ -244,9 +244,19 @@ variable "archives" {
     description        = optional(string)
     event_pattern      = optional(string)
     retention_days     = optional(number)
-    kms_key_identifier = optional(string)
+    kms_key_identifier = string
   }))
   default = {}
+
+  validation {
+    condition = alltrue([
+      for archive in var.archives :
+      archive.kms_key_identifier != null &&
+      trimspace(archive.kms_key_identifier) != ""
+    ])
+
+    error_message = "Each archive must specify a non-empty kms_key_identifier."
+  }
 }
 
 variable "permissions" {
