@@ -30,6 +30,8 @@ DAVEH: document var.schedules
 
 DAVEH: document var.pipes
 
+DAVEH: document var.archives
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -68,7 +70,7 @@ No resources.
 | <a name="input_append_schedule_group_postfix"></a> [append\_schedule\_group\_postfix](#input\_append\_schedule\_group\_postfix) | Controls whether to append '-group' to the name of the schedule group | `bool` | `true` | no |
 | <a name="input_append_schedule_postfix"></a> [append\_schedule\_postfix](#input\_append\_schedule\_postfix) | Controls whether to append '-schedule' to the name of the schedule | `bool` | `true` | no |
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
-| <a name="input_archives"></a> [archives](#input\_archives) | A map of objects with the EventBridge Archive definitions. | <pre>map(object({<br/>    name               = optional(string)<br/>    event_source_arn   = optional(string)<br/>    description        = optional(string)<br/>    event_pattern      = optional(string)<br/>    retention_days     = optional(number)<br/>    kms_key_identifier = optional(string)<br/>  }))</pre> | `{}` | no |
+| <a name="input_archives"></a> [archives](#input\_archives) | A map of objects with the EventBridge Archive definitions. | <pre>map(object({<br/>    name               = optional(string)<br/>    event_source_arn   = optional(string)<br/>    description        = optional(string)<br/>    event_pattern      = optional(string)<br/>    retention_days     = optional(number)<br/>    kms_key_identifier = string<br/>  }))</pre> | `{}` | no |
 | <a name="input_attach_api_destination_policy"></a> [attach\_api\_destination\_policy](#input\_attach\_api\_destination\_policy) | Controls whether the API Destination policy should be added to IAM role for EventBridge Target | `bool` | `false` | no |
 | <a name="input_attach_cloudwatch_policy"></a> [attach\_cloudwatch\_policy](#input\_attach\_cloudwatch\_policy) | Controls whether the Cloudwatch policy should be added to IAM role for EventBridge Target | `bool` | `false` | no |
 | <a name="input_attach_ecs_policy"></a> [attach\_ecs\_policy](#input\_attach\_ecs\_policy) | Controls whether the ECS policy should be added to IAM role for EventBridge Target | `bool` | `false` | no |
