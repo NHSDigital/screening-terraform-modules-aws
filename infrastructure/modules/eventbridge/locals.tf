@@ -24,6 +24,9 @@ locals {
   api_destinations = {
     for k, v in var.api_destinations : "${module.this.id}-${k}" => v
   }
+  # DAVEH: API destination → connection
+  # The wrapper prefixes connections keys in locals.tf:18-21, but does
+  # not update api_destinations[*].connection_name.
 
   # schedule group names must be unique per AWS account and region
   # prefix provided names with the module ID to ensure uniqueness
@@ -56,4 +59,10 @@ locals {
       for attribute, value in v : attribute => value if value != null
     }
   }
+  # DAVEH: Pipe → API destination enrichment
+  # The wrapper prefixes API-destination keys, but leaves pipes[*].enrichment unchanged.
+
+  # DAVEH: EventBridge target → API destination
+  # The wrapper prefixes api_destinations keys in locals.tf:23-26, but
+  # leaves targets[*].destination unchanged.
 }
