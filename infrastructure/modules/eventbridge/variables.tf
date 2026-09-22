@@ -184,8 +184,10 @@ variable "kms_key_identifier" {
 
 variable "dead_letter_config" {
   description = "Configuration details of the Amazon SQS queue for EventBridge to use as a dead-letter queue (DLQ)"
-  type        = any
-  default     = {}
+  type = object({
+    arn = optional(string)
+  })
+  default = {}
 }
 
 variable "schemas_discoverer_description" {
@@ -196,26 +198,65 @@ variable "schemas_discoverer_description" {
 
 variable "rules" {
   description = "A map of objects with EventBridge Rule definitions."
-  type        = map(any)
-  default     = {}
+  type = map(object({
+    name_prefix         = optional(string)
+    description         = optional(string)
+    event_pattern       = optional(string)
+    schedule_expression = optional(string)
+    role_arn            = optional(bool)
+    enabled             = optional(bool)
+    state               = optional(string)
+    force_destroy       = optional(bool)
+  }))
+  default = {}
 }
 
 variable "targets" {
   description = "A map of objects with EventBridge Target definitions."
-  type        = any
-  default     = {}
+  type = map(list(object({
+    name                = string
+    arn                 = optional(string)
+    destination         = optional(string)
+    target_id           = optional(string)
+    input               = optional(string)
+    input_path          = optional(string)
+    force_destroy       = optional(bool)
+    attach_role_arn     = optional(bool)
+    run_command_targets = optional(any)
+    ecs_target          = optional(any)
+    batch_target        = optional(any)
+    partition_key_path  = optional(string)
+    message_group_id    = optional(string)
+    http_target         = optional(any)
+    appsync_target      = optional(any)
+    input_transformer   = optional(any)
+    dead_letter_arn     = optional(string)
+    retry_policy        = optional(any)
+  })))
+  default = {}
 }
 
 variable "archives" {
   description = "A map of objects with the EventBridge Archive definitions."
-  type        = map(any)
-  default     = {}
+  type = map(object({
+    name               = optional(string)
+    event_source_arn   = optional(string)
+    description        = optional(string)
+    event_pattern      = optional(string)
+    retention_days     = optional(number)
+    kms_key_identifier = optional(string)
+  }))
+  default = {}
 }
 
 variable "permissions" {
   description = "A map of objects with EventBridge Permission definitions."
-  type        = map(any)
-  default     = {}
+  type = map(object({
+    action         = optional(string)
+    event_bus_name = optional(string)
+    condition_org  = optional(string)
+  }))
+  default = {}
 }
 
 variable "connections" {
@@ -242,8 +283,14 @@ variable "connections" {
 
 variable "api_destinations" {
   description = "A map of objects with EventBridge Destination definitions."
-  type        = map(any)
-  default     = {}
+  type = map(object({
+    description                      = optional(string)
+    invocation_endpoint              = string
+    http_method                      = string
+    invocation_rate_limit_per_second = optional(number)
+    connection_name                  = optional(string)
+  }))
+  default = {}
 }
 
 variable "schedule_groups" {
@@ -563,6 +610,16 @@ variable "policies" {
 
 variable "policy_statements" {
   description = "Map of dynamic policy statements to attach to IAM role"
-  type        = any
-  default     = {}
+  type = map(object({
+    sid            = optional(string)
+    effect         = optional(string)
+    actions        = optional(list(string))
+    not_actions    = optional(list(string))
+    resources      = optional(list(string))
+    not_resources  = optional(list(string))
+    principals     = optional(any)
+    not_principals = optional(any)
+    condition      = optional(any)
+  }))
+  default = {}
 }
