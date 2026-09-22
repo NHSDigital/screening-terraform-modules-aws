@@ -19,14 +19,20 @@ locals {
     for k, v in var.connections : "${module.this.id}-${k}" => v
   }
 
-  # API destination names must be unique per AWS account and region
-  # prefix provided names with the module ID to ensure uniqueness
+  # API destination names must be unique per AWS account and region.
+  # We prefix provided names with the module ID to ensure uniqueness.
+  # Furthermore, `connection_name`s must match up with the keys of
+  # `connections`.
   api_destinations = {
-    for k, v in var.api_destinations : "${module.this.id}-${k}" => v
+    for k, v in var.api_destinations : "${module.this.id}-${k}" => merge(
+      v,
+      can(v, "connection_name")
+      && v.connection_name != null
+      && contains(keys(var.connections), v.connection_name)
+      ? { connection_name = "${module.this.id}-${v.connection_name}" }
+      : {}
+    )
   }
-  # DAVEH: API destination → connection
-  # The wrapper prefixes connections keys in locals.tf:18-21, but does
-  # not update api_destinations[*].connection_name.
 
   # schedule group names must be unique per AWS account and region
   # prefix provided names with the module ID to ensure uniqueness
