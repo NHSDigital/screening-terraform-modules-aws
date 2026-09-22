@@ -24,6 +24,7 @@
 module "this" {
   source = "../tags"
 
+  enabled             = var.enabled
   service             = var.service
   project             = var.project
   region              = var.region
@@ -48,6 +49,7 @@ module "this" {
 }
 
 # Copy contents of screening-terraform-modules-aws/tags/variables.tf here
+# tflint-ignore: terraform_unused_declarations
 variable "aws_region" {
   type        = string
   description = "The AWS region"
@@ -111,7 +113,7 @@ variable "context" {
 variable "terraform_source" {
   type        = string
   default     = null
-  description = "Source location to record in the Terraform_source tag. Defaults to this module path."
+  description = "Source location to record in the Terraform_source tag. Defaults to the caller module path when not set."
 }
 
 variable "enabled" {
