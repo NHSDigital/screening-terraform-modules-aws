@@ -183,11 +183,21 @@ variable "kms_key_identifier" {
 }
 
 variable "dead_letter_config" {
-  description = "Configuration details of the Amazon SQS queue for EventBridge to use as a dead-letter queue (DLQ)"
-  type = object({
-    arn = optional(string)
-  })
-  default = {}
+  description = <<-EOF
+    Configuration details of the Amazon SQS queue for EventBridge to use as a
+    dead-letter queue (DLQ).
+
+    The type should really be
+
+      object({
+        arn = optional(string)
+      })
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = any
+  default     = {}
 }
 
 variable "schemas_discoverer_description" {
@@ -197,56 +207,82 @@ variable "schemas_discoverer_description" {
 }
 
 variable "rules" {
-  description = "A map of objects with EventBridge Rule definitions."
-  type = map(object({
-    name_prefix         = optional(string)
-    description         = optional(string)
-    event_pattern       = optional(string)
-    schedule_expression = optional(string)
-    role_arn            = optional(bool)
-    enabled             = optional(bool)
-    state               = optional(string)
-    force_destroy       = optional(bool)
-  }))
-  default = {}
+  description = <<-EOF
+    A map of objects with EventBridge Rule definitions.
+
+    The type should really be
+
+      map(object({
+        name_prefix         = optional(string)
+        description         = optional(string)
+        event_pattern       = optional(string)
+        schedule_expression = optional(string)
+        role_arn            = optional(bool)
+        enabled             = optional(bool)
+        state               = optional(string)
+        force_destroy       = optional(bool)
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = map(any)
+  default     = {}
 }
 
 variable "targets" {
-  description = "A map of objects with EventBridge Target definitions."
-  type = map(list(object({
-    name                = string
-    arn                 = optional(string)
-    destination         = optional(string)
-    target_id           = optional(string)
-    input               = optional(string)
-    input_path          = optional(string)
-    force_destroy       = optional(bool)
-    attach_role_arn     = optional(bool)
-    run_command_targets = optional(any)
-    ecs_target          = optional(any)
-    batch_target        = optional(any)
-    partition_key_path  = optional(string)
-    message_group_id    = optional(string)
-    http_target         = optional(any)
-    appsync_target      = optional(any)
-    input_transformer   = optional(any)
-    dead_letter_arn     = optional(string)
-    retry_policy        = optional(any)
-  })))
-  default = {}
+  description = <<-EOF
+    A map of objects with EventBridge Target definitions.
+
+    The type should really be
+
+      map(list(object({
+        name                = string
+        arn                 = optional(string)
+        destination         = optional(string)
+        target_id           = optional(string)
+        input               = optional(string)
+        input_path          = optional(string)
+        force_destroy       = optional(bool)
+        attach_role_arn     = optional(bool)
+        run_command_targets = optional(any)
+        ecs_target          = optional(any)
+        batch_target        = optional(any)
+        partition_key_path  = optional(string)
+        message_group_id    = optional(string)
+        http_target         = optional(any)
+        appsync_target      = optional(any)
+        input_transformer   = optional(any)
+        dead_letter_arn     = optional(string)
+        retry_policy        = optional(any)
+      })))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = any
+  default     = {}
 }
 
 variable "archives" {
-  description = "A map of objects with the EventBridge Archive definitions."
-  type = map(object({
-    name               = optional(string)
-    event_source_arn   = optional(string)
-    description        = optional(string)
-    event_pattern      = optional(string)
-    retention_days     = optional(number)
-    kms_key_identifier = string
-  }))
-  default = {}
+  description = <<-EOF
+    A map of objects with the EventBridge Archive definitions.
+
+    The type should really be
+
+      map(object({
+        name               = optional(string)
+        event_source_arn   = optional(string)
+        description        = optional(string)
+        event_pattern      = optional(string)
+        retention_days     = optional(number)
+        kms_key_identifier = string
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = map(any)
 
   validation {
     condition = alltrue([
@@ -260,25 +296,43 @@ variable "archives" {
 }
 
 variable "permissions" {
-  description = "A map of objects with EventBridge Permission definitions."
-  type = map(object({
-    action         = optional(string)
-    event_bus_name = optional(string)
-    condition_org  = optional(string)
-  }))
-  default = {}
+  description = <<-EOF
+    A map of objects with EventBridge Permission definitions.
+
+    The type should really be
+
+      map(object({
+        action         = optional(string)
+        event_bus_name = optional(string)
+        condition_org  = optional(string)
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = map(any)
+  default     = {}
 }
 
 variable "connections" {
-  description = "A map of objects with EventBridge Connection definitions."
-  type = map(object({
-    authorization_type                 = string
-    auth_parameters                    = any
-    kms_key_identifier                 = string
-    description                        = optional(string)
-    invocation_connectivity_parameters = optional(any)
-  }))
-  default = {}
+  description = <<-EOF
+    A map of objects with EventBridge Connection definitions.
+
+    The type should really be
+
+      map(object({
+        authorization_type                 = string
+        auth_parameters                    = any
+        kms_key_identifier                 = string
+        description                        = optional(string)
+        invocation_connectivity_parameters = optional(any)
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = any
+  default     = {}
 
   validation {
     condition = alltrue([
@@ -292,51 +346,80 @@ variable "connections" {
 }
 
 variable "api_destinations" {
-  description = "A map of objects with EventBridge Destination definitions."
-  type = map(object({
-    description                      = optional(string)
-    invocation_endpoint              = string
-    http_method                      = string
-    invocation_rate_limit_per_second = optional(number)
-    connection_name                  = optional(string)
-  }))
-  default = {}
+  description = <<-EOF
+    A map of objects with EventBridge Destination definitions.
+
+    The type should really be
+
+      map(object({
+        description                      = optional(string)
+        invocation_endpoint              = string
+        http_method                      = string
+        invocation_rate_limit_per_second = optional(number)
+        connection_name                  = optional(string)
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = map(any)
+  default     = {}
 }
 
 variable "schedule_groups" {
-  description = "A map of objects with EventBridge Schedule Group definitions. Names are derived from the object keys and cannot be overridden."
-  type = map(object({
-    tags = optional(map(string), {})
-  }))
-  default = {}
+  description = <<-EOF
+    A map of objects with EventBridge Schedule Group definitions.
+
+    Names are derived from the object keys and cannot be overridden.
+
+    The type should really be
+
+      map(object({
+        tags = optional(map(string), {})
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = any
+  default     = {}
 }
 
 variable "schedules" {
-  description = "A map of objects with EventBridge Schedule definitions."
-  type = map(object({
-    arn                           = string
-    schedule_expression           = string
-    name_prefix                   = optional(string)
-    description                   = optional(string)
-    group_name                    = optional(string)
-    start_date                    = optional(string)
-    end_date                      = optional(string)
-    kms_key_arn                   = string
-    timezone                      = optional(string)
-    state                         = optional(bool, true)
-    maximum_window_in_minutes     = optional(number)
-    use_flexible_time_window      = optional(bool, false)
-    role_arn                      = optional(string)
-    input                         = optional(string)
-    dead_letter_arn               = optional(string)
-    ecs_parameters                = optional(any)
-    eventbridge_parameters        = optional(any)
-    partition_key                 = optional(string)
-    sagemaker_pipeline_parameters = optional(any)
-    message_group_id              = optional(string)
-    retry_policy                  = optional(any)
-  }))
-  default = {}
+  description = <<-EOF
+    A map of objects with EventBridge Schedule definitions.
+
+    The type should really be
+
+      map(object({
+        arn                           = string
+        schedule_expression           = string
+        name_prefix                   = optional(string)
+        description                   = optional(string)
+        group_name                    = optional(string)
+        start_date                    = optional(string)
+        end_date                      = optional(string)
+        kms_key_arn                   = string
+        timezone                      = optional(string)
+        state                         = optional(bool, true)
+        maximum_window_in_minutes     = optional(number)
+        use_flexible_time_window      = optional(bool, false)
+        role_arn                      = optional(string)
+        input                         = optional(string)
+        dead_letter_arn               = optional(string)
+        ecs_parameters                = optional(any)
+        eventbridge_parameters        = optional(any)
+        partition_key                 = optional(string)
+        sagemaker_pipeline_parameters = optional(any)
+        message_group_id              = optional(string)
+        retry_policy                  = optional(any)
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = map(any)
+  default     = {}
 
   validation {
     condition = alltrue([
@@ -350,22 +433,31 @@ variable "schedules" {
 }
 
 variable "pipes" {
-  description = "A map of EventBridge Pipe definitions."
-  type = map(object({
-    role_arn              = optional(string)
-    source                = string
-    target                = string
-    kms_key_identifier    = string
-    description           = optional(string)
-    desired_state         = optional(string)
-    source_parameters     = optional(any)
-    target_parameters     = optional(any)
-    enrichment            = optional(string)
-    enrichment_parameters = optional(any)
-    log_configuration     = optional(any)
-    tags                  = optional(map(string), {})
-  }))
-  default = {}
+  description = <<-EOF
+    A map of EventBridge Pipe definitions.
+
+    The type should really be
+
+      map(object({
+        role_arn              = optional(string)
+        source                = string
+        target                = string
+        kms_key_identifier    = string
+        description           = optional(string)
+        desired_state         = optional(string)
+        source_parameters     = optional(any)
+        target_parameters     = optional(any)
+        enrichment            = optional(string)
+        enrichment_parameters = optional(any)
+        log_configuration     = optional(any)
+        tags                  = optional(map(string), {})
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+    EOF
+  type        = any
+  default     = {}
 
   validation {
     condition = alltrue([
@@ -619,17 +711,26 @@ variable "policies" {
 }
 
 variable "policy_statements" {
-  description = "Map of dynamic policy statements to attach to IAM role"
-  type = map(object({
-    sid            = optional(string)
-    effect         = optional(string)
-    actions        = optional(list(string))
-    not_actions    = optional(list(string))
-    resources      = optional(list(string))
-    not_resources  = optional(list(string))
-    principals     = optional(any)
-    not_principals = optional(any)
-    condition      = optional(any)
-  }))
-  default = {}
+  description = <<-EOF
+    Map of dynamic policy statements to attach to IAM role
+
+    The type should really be
+
+      map(object({
+        sid            = optional(string)
+        effect         = optional(string)
+        actions        = optional(list(string))
+        not_actions    = optional(list(string))
+        resources      = optional(list(string))
+        not_resources  = optional(list(string))
+        principals     = optional(any)
+        not_principals = optional(any)
+        condition      = optional(any)
+      }))
+
+    but it causes problems in the community module when Terraform sets
+    omitted fields to null.
+  EOF
+  type        = any
+  default     = {}
 }
