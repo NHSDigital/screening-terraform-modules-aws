@@ -283,6 +283,7 @@ variable "archives" {
     omitted fields to null.
     EOF
   type        = map(any)
+  default     = {}
 
   validation {
     condition = alltrue([
