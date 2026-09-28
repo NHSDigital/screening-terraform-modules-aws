@@ -65,10 +65,4 @@ locals {
       for attribute, value in v : attribute => value if value != null
     }
   }
-  # DAVEH: Pipe → API destination enrichment
-  # The wrapper prefixes API-destination keys, but leaves pipes[*].enrichment unchanged.
-
-  # DAVEH: EventBridge target → API destination
-  # The wrapper prefixes api_destinations keys in locals.tf:23-26, but
-  # leaves targets[*].destination unchanged.
 }
