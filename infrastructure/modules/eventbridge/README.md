@@ -3,34 +3,30 @@
 NHS Screening wrapper around the community
 [`terraform-aws-modules/terraform-aws-eventbridge`](https://registry.terraform.io/modules/terraform-aws-modules/eventbridge/aws/4.3.2)
 module that consumes the shared `context.tf` for naming and tagging.
+Note that this provides access to AWS EventBridge Scheduler in addition
+to AWS EventBridge.
 
-DAVEH
+Main differences from the wrapped module:
 
-DAVEH: document var.bus_name
+1. KMS keys must be provided.
 
-----
+    Many of the underlying resources take an optional KMS key, falling back to
+    using an AWS-owned key. In this module, we make it compulsory to provide
+    these keys.
 
-DAVEH: document var.log_delivery
+2. Names are modified in an attempt to avoid clashes when deploying into
+multiple namespaces.
 
-DAVEH: document var.connections
+    The underlying module names many resources based on the keys of maps passed
+    in as variables. This causes conflicts when a stack is deployed into
+    multiple workspaces in the same AWS account.
 
-DAVEH: document var.api_destinations
+    This module prefixes many of these keys with the bus name. The bus name by
+    default includes the workspace id.
 
-DAVEH: document var.schedule_groups
-
-DAVEH: document var.pipes
-
-----
-
-DAVEH: document var.kms_key_identifier
-
-DAVEH: document var.connections
-
-DAVEH: document var.schedules
-
-DAVEH: document var.pipes
-
-DAVEH: document var.archives
+    It is likely that we are not yet prefixing some keys that are vulnerable to
+    this sort of name conflict. You should be prepared to update this module if
+    you encounter such a case in your deployment.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
