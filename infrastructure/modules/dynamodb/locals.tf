@@ -1,3 +1,3 @@
 locals {
-  table_name = coalesce(var.table_name, module.this.id)
+  table_name = module.this.enabled ? coalesce(var.table_name, module.this.id) : null
 }

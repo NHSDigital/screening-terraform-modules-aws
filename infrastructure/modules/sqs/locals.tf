@@ -1,5 +1,5 @@
 locals {
-  queue_name = coalesce(var.custom_name, module.this.id)
+  queue_name = module.this.enabled ? coalesce(var.custom_name, module.this.id) : ""
 
   dead_letter_queue_name = "${local.queue_name}-dlq"
 
