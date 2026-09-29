@@ -340,7 +340,7 @@ Rules:
 | `ecs-service` | terraform-aws-modules/ecs/aws//modules/service | ECS service and task definition |
 | `efs` | terraform-aws-modules/efs/aws | EFS file system with access points and mount targets |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
-| `eventbridge` | — | — |
+| `eventbridge` | terraform-aws-modules/eventbridge/aws | EventBridge buses, rules, targets, pipes, connections, and archives with KMS encryption; EventBridge Scheduler |
 | `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
 | `iam` | terraform-aws-modules/iam/aws | IAM policies and roles |
