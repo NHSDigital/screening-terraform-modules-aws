@@ -92,7 +92,7 @@ variable "endpoints" {
   }
 
   validation {
-    condition     = length(var.endpoints) > 0
+    condition     = !module.this.enabled || length(var.endpoints) > 0
     error_message = "At least one endpoint must be specified. If vpc-endpoint module is not needed, remove it from the configuration."
   }
 }

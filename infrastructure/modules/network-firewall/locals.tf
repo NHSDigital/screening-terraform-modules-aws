@@ -42,7 +42,7 @@ locals {
     for k, v in var.rule_groups : k => merge(
       { resource_arn = module.rule_group[k].arn },
       v.priority != null ? { priority = v.priority } : {}
-    ) if v.type == "STATEFUL"
+    ) if v.type == "STATEFUL" && module.this.enabled
   }
 
   # Normalise a nullable caller input to an empty map so the later
