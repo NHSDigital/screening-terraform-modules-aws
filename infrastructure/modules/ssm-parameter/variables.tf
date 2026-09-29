@@ -28,7 +28,7 @@ variable "key_id" {
   default     = null
 
   validation {
-    condition     = var.type != "SecureString" || var.key_id != null
+    condition     = !module.this.enabled || var.type != "SecureString" || var.key_id != null
     error_message = "`key_id` must be specified when `type` is \"SecureString\""
   }
 }

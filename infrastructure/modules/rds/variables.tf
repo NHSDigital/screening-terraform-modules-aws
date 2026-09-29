@@ -77,7 +77,7 @@ variable "kms_key_id" {
   default     = null
 
   validation {
-    condition     = var.kms_key_id != null
+    condition     = !module.this.enabled || var.kms_key_id != null
     error_message = "kms_key_id must be set. AWS-managed keys are not acceptable per platform policy."
   }
 }
@@ -152,7 +152,7 @@ variable "vpc_security_group_ids" {
   default     = []
 
   validation {
-    condition     = length(var.vpc_security_group_ids) > 0
+    condition     = !module.this.enabled || length(var.vpc_security_group_ids) > 0
     error_message = "vpc_security_group_ids must not be empty. Create a security group using the dedicated security group module and pass its ID here."
   }
 }

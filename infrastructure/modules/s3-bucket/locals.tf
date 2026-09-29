@@ -15,7 +15,7 @@ locals {
   # data "aws_region" "current" {}
   # region_suffix = data.aws_region.current.region
   # default_bucket_name = format("%s-%s", module.this.id, local.region_suffix)
-  bucket_name = coalesce(var.bucket_name, local.default_bucket_name)
+  bucket_name = module.this.enabled ? coalesce(var.bucket_name, local.default_bucket_name) : null
 
   # Versioning is enabled by default. Callers can suspend it by
   # setting `var.versioning_enabled = false`.
