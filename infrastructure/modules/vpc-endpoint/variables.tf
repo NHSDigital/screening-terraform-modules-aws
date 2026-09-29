@@ -7,7 +7,7 @@ variable "vpc_id" {
   type        = string
 
   validation {
-    condition     = can(regex("^vpc-[a-f0-9]{17}$", var.vpc_id))
+    condition     = !module.this.enabled || can(regex("^vpc-[a-f0-9]{17}$", var.vpc_id))
     error_message = "vpc_id must be a valid AWS VPC ID (vpc-xxxxxxxxxxxxxxxx)."
   }
 }
@@ -17,7 +17,7 @@ variable "subnet_ids" {
   type        = list(string)
 
   validation {
-    condition     = length(var.subnet_ids) > 0
+    condition     = !module.this.enabled || length(coalesce(var.subnet_ids, [])) > 0
     error_message = "subnet_ids must contain at least one subnet ID."
   }
 }
