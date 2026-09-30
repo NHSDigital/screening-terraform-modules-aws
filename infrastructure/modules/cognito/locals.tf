@@ -1,6 +1,6 @@
 locals {
   user_pool_name          = coalesce(var.user_pool_name, "${module.this.id}-users-pool")
-  domain_name             = coalesce(var.domain, module.this.id)
+  domain_name             = module.this.enabled ? coalesce(var.domain, module.this.id) : null
   default_app_client_name = coalesce(var.app_client_name, "${module.this.id}-users-client")
 
   default_admin_create_user_config = {

@@ -25,7 +25,7 @@ variable "kms_key_arn" {
   type        = string
 
   validation {
-    condition     = can(regex("^arn:aws:kms:", var.kms_key_arn))
+    condition     = !module.this.enabled || can(regex("^arn:aws:kms:", var.kms_key_arn))
     error_message = "kms_key_arn must be a valid KMS ARN (arn:aws:kms:...)."
   }
 }

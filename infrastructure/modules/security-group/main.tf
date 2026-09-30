@@ -25,8 +25,9 @@ module "security_group" {
   enable_exclusive_rules = var.enable_exclusive_rules
   revoke_rules_on_delete = var.revoke_rules_on_delete
 
-  egress_rules  = var.egress_rules
-  ingress_rules = var.ingress_rules
+  # Upstream validates rules even when create = false, so skip them when disabled.
+  egress_rules  = module.this.enabled ? var.egress_rules : {}
+  ingress_rules = module.this.enabled ? var.ingress_rules : {}
 
   vpc_id = var.vpc_id
 

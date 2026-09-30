@@ -8,10 +8,11 @@ locals {
   iam_path = var.path != null ? var.path : local.default_iam_path
 
   # role_key -> { static_name => policy_arn } for attached policies.
-  role_policies = {
+  # module.policies is empty when disabled, so the lookups below would fail.
+  role_policies = module.this.enabled ? {
     for role_key, role in var.roles : role_key => merge(
       { for idx, arn in role.policy_arns : "external-${idx}" => arn },
       { for k in role.policy_keys : k => module.policies[k].arn }
     )
-  }
+  } : {}
 }

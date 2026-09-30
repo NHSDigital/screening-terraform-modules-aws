@@ -7,6 +7,8 @@ module "lambda_function" {
   # downgrade version as workaround for bug https://github.com/terraform-aws-modules/terraform-aws-lambda/issues/733
   version = "8.8.0"
 
+  create = module.this.enabled
+
   function_name          = local.function_name
   description            = var.function_description
   handler                = "${var.handler_prefix}.lambda_handler"
@@ -27,21 +29,45 @@ module "lambda_function" {
 ###############
 
 resource "aws_iam_role_policy_attachment" "vpc_access_execution" {
+  count      = module.this.enabled ? 1 : 0
   role       = module.lambda_function.lambda_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_to_cw_policy" {
+  count      = module.this.enabled ? 1 : 0
   role       = module.lambda_function.lambda_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 resource "aws_iam_role_policy_attachment" "push_to_cloudwatch" {
+  count      = module.this.enabled ? 1 : 0
   role       = module.lambda_function.lambda_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
 resource "aws_iam_role_policy_attachment" "sqs" {
+  count      = module.this.enabled ? 1 : 0
   role       = module.lambda_function.lambda_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
+}
+
+moved {
+  from = aws_iam_role_policy_attachment.vpc_access_execution
+  to   = aws_iam_role_policy_attachment.vpc_access_execution[0]
+}
+
+moved {
+  from = aws_iam_role_policy_attachment.lambda_to_cw_policy
+  to   = aws_iam_role_policy_attachment.lambda_to_cw_policy[0]
+}
+
+moved {
+  from = aws_iam_role_policy_attachment.push_to_cloudwatch
+  to   = aws_iam_role_policy_attachment.push_to_cloudwatch[0]
+}
+
+moved {
+  from = aws_iam_role_policy_attachment.sqs
+  to   = aws_iam_role_policy_attachment.sqs[0]
 }

@@ -1,5 +1,5 @@
 locals {
-  api_name = coalesce(var.custom_name, module.this.id)
+  api_name = module.this.enabled ? coalesce(var.custom_name, module.this.id) : null
 
   access_log_format = jsonencode({
     requestId               = "$context.requestId"
