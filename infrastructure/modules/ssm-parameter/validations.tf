@@ -20,7 +20,7 @@ resource "terraform_data" "validations" {
       error_message = "value and values are mutually exclusive; specify only one."
     }
     precondition {
-      condition     = var.type != "SecureString" || var.value_wo_version == null || (var.value != null || var.value_wo_version != null)
+      condition     = var.value_wo_version == null || var.type == "SecureString"
       error_message = "value_wo_version is only valid when type is \"SecureString\"."
     }
     precondition {
