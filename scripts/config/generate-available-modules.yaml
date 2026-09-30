@@ -82,7 +82,7 @@ elasticache:
   wraps: "—"
 
 eventbridge:
-  description: "EventBridge buses, rules, targets, pipes, connections, and archives with KMS encryption; EventBridge Scheduler"
+  description: "AWS EventBridge Resources"
   wraps: "terraform-aws-modules/eventbridge/aws"
 
 github-config:
