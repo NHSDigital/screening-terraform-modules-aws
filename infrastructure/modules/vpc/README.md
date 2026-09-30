@@ -222,6 +222,21 @@ module "vpc" {
 }
 ```
 
+Lower the automatic cap (e.g. two AZs for a cheaper non-production VPC):
+
+```terraform
+module "vpc" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "dev"
+  service     = "bcss"
+  name        = "vpc"
+
+  vpc_cidr               = "10.0.0.0/16"
+  max_availability_zones = 2
+}
+```
+
 Pin an explicit AZ list (recommended for long-lived environments). `max_availability_zones` is ignored when `availability_zones` is set. Selecting by zone ID keeps the same physical AZs across accounts and stops subnets being replaced if AZ availability changes:
 
 ```terraform
