@@ -610,9 +610,17 @@ variable "sns_target_arns" {
 }
 
 variable "sns_kms_arns" {
-  description = "The Amazon Resource Name (ARN) of the AWS KMS's configured for AWS SNS you want Decrypt/GenerateDataKey for"
+  description = "Specific customer-managed KMS key ARNs used by SNS targets; required when attach_sns_policy is enabled"
   type        = list(string)
-  default     = ["*"]
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for arn in var.sns_kms_arns :
+      can(regex("^arn:[^:]+:kms:[^:]+:[0-9]{12}:key/[A-Za-z0-9-]+$", arn))
+    ])
+    error_message = "sns_kms_arns must contain only specific KMS key ARNs (not aliases or wildcards)."
+  }
 }
 
 variable "ecs_target_arns" {
