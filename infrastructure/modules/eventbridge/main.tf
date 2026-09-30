@@ -1,3 +1,13 @@
+################################################################
+# EventBridge
+#
+# Thin NHS wrapper around the community EventBridge module:
+#   * Customer-managed KMS keys are required for encrypted resources.
+#   * SNS KMS permissions are restricted to explicitly approved keys.
+#   * Resource names and tags are derived from context.tf.
+#   * Creation is gated by module.this.enabled.
+################################################################
+
 module "eventbridge" {
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-eventbridge.git?ref=f9934726324c988f823682884b4fa003586a7b6f" # v4.3.2
 
@@ -51,7 +61,7 @@ module "eventbridge" {
   policy_path                    = var.policy_path
   role_force_detach_policies     = var.role_force_detach_policies
   role_permissions_boundary      = var.role_permissions_boundary
-  role_tags                      = var.role_tags
+  role_tags                      = merge(var.role_tags, module.this.tags)
   ecs_pass_role_resources        = var.ecs_pass_role_resources
   attach_kinesis_policy          = var.attach_kinesis_policy
   attach_kinesis_firehose_policy = var.attach_kinesis_firehose_policy

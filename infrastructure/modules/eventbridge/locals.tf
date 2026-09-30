@@ -9,7 +9,7 @@ locals {
       {
         name = "${module.this.id}-${k}"
       },
-      v
+      { for attribute, value in v : attribute => value if value != null }
     )
   }
 
