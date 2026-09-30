@@ -24,7 +24,7 @@ Treat adoption of this module as a migration, not a drop-in swap.
 | Private | /23 | Private workloads with internet access via NAT Gateway |
 | Intra | /23 | Intra, no internet route via NAT Gateway |
 
-Subnet CIDRs are auto-calculated from the VPC CIDR across the first three available AZs in the region by default. Set `availability_zones` to pin a specific AZ list or to use a different AZ count. Explicit CIDR overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `intra_subnets`.
+Subnet CIDRs are auto-calculated from the VPC CIDR across up to `max_availability_zones` (default 3) available AZs in the region; fewer are used if the region has fewer. Set `availability_zones` to pin a specific AZ list instead. Explicit CIDR overrides are available via `firewall_subnets`, `public_subnets`, `private_subnets`, and `intra_subnets`.
 
 **Auto-calculation logic:** The module uses Terraform's `cidrsubnets()` function to carve non-overlapping subnets from the VPC CIDR, sizing each tier per the `*_subnet_prefix` variables. For example:
 
@@ -203,6 +203,64 @@ resource "aws_route" "private_to_tgw" {
 }
 ```
 
+### Availability zone selection
+
+By default the module auto-selects up to `max_availability_zones` (default `3`) available AZs in the current region. If the region has fewer, it uses all of them. Every enabled subnet tier gets one subnet per AZ, so make sure `vpc_cidr` is large enough for the resulting count.
+
+Raise the automatic cap (e.g. to use all four AZs in `eu-west-1`):
+
+```terraform
+module "vpc" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "prod"
+  service     = "bcss"
+  name        = "vpc"
+
+  vpc_cidr               = "10.0.0.0/16"
+  max_availability_zones = 4
+}
+```
+
+Lower the automatic cap (e.g. two AZs for a cheaper non-production VPC):
+
+```terraform
+module "vpc" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "dev"
+  service     = "bcss"
+  name        = "vpc"
+
+  vpc_cidr               = "10.0.0.0/16"
+  max_availability_zones = 2
+}
+```
+
+Pin an explicit AZ list (recommended for long-lived environments). `max_availability_zones` is ignored when `availability_zones` is set. Selecting by zone ID keeps the same physical AZs across accounts and stops subnets being replaced if AZ availability changes:
+
+```terraform
+data "aws_availability_zones" "selected" {
+  state = "available"
+
+  filter {
+    name   = "zone-id"
+    values = ["euw2-az1", "euw2-az2", "euw2-az3"]
+  }
+}
+
+module "vpc" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "prod"
+  service     = "bcss"
+  name        = "vpc"
+
+  vpc_cidr           = "10.0.0.0/16"
+  availability_zones = data.aws_availability_zones.selected.names
+}
+```
+
 ## Key variables
 
 | Variable | Description | Default |
@@ -212,7 +270,8 @@ resource "aws_route" "private_to_tgw" {
 | `create_public_subnets` | Whether to create public subnets (internet-facing resources, NAT gateways) | `true` |
 | `create_private_subnets` | Whether to create private subnets (NAT-routed workloads with internet access) | `true` |
 | `create_intra_subnets` | Whether to create intra subnets (no internet access) | `true` |
-| `availability_zones` | Explicit AZs for subnet placement; defaults to the first three available AZs | `null` |
+| `availability_zones` | Explicit AZs for subnet placement; defaults to auto-selecting up to `max_availability_zones` | `null` |
+| `max_availability_zones` | Cap on auto-selected AZs when `availability_zones` is unset | `3` |
 | `single_nat_gateway` | Use one shared NAT instead of per-AZ | `false` |
 | `create_private_nat_gateway_route` | Create the default NAT route on private route tables; set `false` to inject a custom default route (e.g. TGW) instead | `true` |
 | `enable_flow_log` | Enable VPC flow logs | `true` |
@@ -289,7 +348,7 @@ Cross-variable checks in `validations.tf` enforce flow-log destination requireme
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
-| <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | Availability zones to use for the VPC. Leave null to use the first three available AZs in the current region. | `list(string)` | `null` | no |
+| <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | Availability zones to use for the VPC. Leave null to auto-select up to max\_availability\_zones available AZs in the current region. | `list(string)` | `null` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_create_firewall_subnets"></a> [create\_firewall\_subnets](#input\_create\_firewall\_subnets) | Whether to create firewall subnets (required for Network Firewall routing mode). | `bool` | `true` | no |
@@ -333,6 +392,7 @@ Cross-variable checks in `validations.tf` enforce flow-log destination requireme
 | <a name="input_manage_default_network_acl"></a> [manage\_default\_network\_acl](#input\_manage\_default\_network\_acl) | Adopt and manage the default network ACL. | `bool` | `true` | no |
 | <a name="input_manage_default_security_group"></a> [manage\_default\_security\_group](#input\_manage\_default\_security\_group) | Adopt and manage the default security group, removing all inline rules. | `bool` | `true` | no |
 | <a name="input_map_public_ip_on_launch"></a> [map\_public\_ip\_on\_launch](#input\_map\_public\_ip\_on\_launch) | Auto-assign public IPs to instances launched in public subnets. | `bool` | `false` | no |
+| <a name="input_max_availability_zones"></a> [max\_availability\_zones](#input\_max\_availability\_zones) | Maximum number of AZs to auto-select when availability\_zones is not set. Fewer are used if the region has fewer available. | `number` | `3` | no |
 | <a name="input_name"></a> [name](#input\_name) | ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.<br/>This is the only ID element not also included as a `tag`.<br/>The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input. | `string` | `null` | no |
 | <a name="input_on_off_pattern"></a> [on\_off\_pattern](#input\_on\_off\_pattern) | Used to turn resources on and off based on a time pattern | `string` | `"n/a"` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | The name and or NHS.net email address of the service owner | `string` | `"None"` | no |

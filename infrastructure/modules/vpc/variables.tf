@@ -49,9 +49,20 @@ variable "vpc_cidr" {
 ################################################################
 
 variable "availability_zones" {
-  description = "Availability zones to use for the VPC. Leave null to use the first three available AZs in the current region."
+  description = "Availability zones to use for the VPC. Leave null to auto-select up to max_availability_zones available AZs in the current region."
   type        = list(string)
   default     = null
+}
+
+variable "max_availability_zones" {
+  description = "Maximum number of AZs to auto-select when availability_zones is not set. Fewer are used if the region has fewer available."
+  type        = number
+  default     = 3
+
+  validation {
+    condition     = var.max_availability_zones >= 1 && floor(var.max_availability_zones) == var.max_availability_zones
+    error_message = "max_availability_zones must be a whole number of at least 1."
+  }
 }
 
 ################################################################

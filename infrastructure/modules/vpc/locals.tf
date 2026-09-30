@@ -1,6 +1,8 @@
 locals {
-  azs      = length(coalesce(var.availability_zones, [])) > 0 ? var.availability_zones : slice(try(data.aws_availability_zones.available[0].names, []), 0, 3)
-  az_count = length(local.azs)
+  azs = length(coalesce(var.availability_zones, [])) > 0 ? var.availability_zones : slice(local.available_azs, 0, min(var.max_availability_zones, length(local.available_azs)))
+  # Empty when the module is disabled (data source count = 0).
+  available_azs = try(data.aws_availability_zones.available[0].names, [])
+  az_count      = length(local.azs)
 
   # ─────────────────────────────────────────────────────────────
   # VPC CIDR prefix validation
