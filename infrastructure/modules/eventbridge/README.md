@@ -24,9 +24,102 @@ multiple namespaces.
     This module prefixes many of these keys with the bus name. The bus name by
     default includes the workspace id.
 
-    It is likely that we are not yet prefixing some keys that are vulnerable to
-    this sort of name conflict. You should be prepared to update this module if
-    you encounter such a case in your deployment.
+        Not every upstream resource name is prefixed; check planned names for
+        collisions when deploying several workspaces into one account and region.
+
+## What this module enforces
+
+| Control | How it is enforced |
+| --- | --- |
+| Encryption at rest | A customer-managed KMS key is required for the bus, and for each configured archive, connection, schedule, and pipe. |
+| SNS KMS access | SNS target policies require specific KMS key ARNs; wildcard keys are rejected. |
+| Naming | The bus defaults to the context ID; connection, destination, pipe, schedule-group, and log-delivery names are scoped to the context. |
+| Tagging | Bus resources and IAM roles receive context tags. |
+| Creation gate | `module.this.enabled` controls creation of the upstream module. |
+
+## Usage
+
+### Minimal encrypted bus
+
+```hcl
+module "events" {
+    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
+
+    service            = "bcss"
+    environment        = "test"
+    name               = "events"
+    kms_key_identifier = module.eventbridge_kms.key_arn
+}
+```
+
+### Production SNS target
+
+```hcl
+module "events" {
+    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
+
+    service            = "bcss"
+    environment        = "production"
+    name               = "notifications"
+    kms_key_identifier = module.eventbridge_kms.key_arn
+
+    rules = {
+        screening_completed = {
+            description   = "Route completed screening events"
+            event_pattern = jsonencode({ source = ["bcss.screening"] })
+        }
+    }
+    targets = {
+        screening_completed = [{ name = "notifications", arn = aws_sns_topic.notifications.arn }]
+    }
+
+    attach_sns_policy = true
+    sns_target_arns   = [aws_sns_topic.notifications.arn]
+    sns_kms_arns      = [module.sns_kms.key_arn]
+}
+```
+
+### Advanced scheduler group
+
+```hcl
+module "scheduled_events" {
+    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
+
+    service            = "bcss"
+    environment        = "production"
+    name               = "jobs"
+    kms_key_identifier = module.eventbridge_kms.key_arn
+
+    schedule_groups = { nightly = {} }
+    schedules = {
+        nightly_job = {
+            arn                 = aws_lambda_function.job.arn
+            schedule_expression = "cron(0 2 * * ? *)"
+            group_name          = "nightly"
+            kms_key_arn         = module.scheduler_kms.key_arn
+        }
+    }
+}
+```
+
+## Conventions
+
+- Pass a pinned release ref and supply the required customer-managed KMS keys.
+- Keys of `schedule_groups` are logical identifiers; schedule `group_name` references a key, not the prefixed AWS name.
+- `log_delivery` entries default to context-prefixed names when `name` is omitted or null.
+- Additional `role_tags` are combined with context tags; context values take precedence.
+- Review the plan for resource names, policies, and target permissions before applying.
+
+## Validation
+
+When `attach_sns_policy` is true, provide at least one specific KMS key ARN in `sns_kms_arns`.
+Wildcards and aliases are not accepted for this policy.
+
+## What this module does NOT do
+
+- It does not create KMS keys, SNS topics, target resources, or their resource policies.
+- It does not guarantee unique names for every upstream resource or configure all target permissions.
+- It does not keep connection credentials out of Terraform state; use encrypted remote state and limit access to plans and state.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
@@ -40,7 +133,9 @@ multiple namespaces.
 
 ## Providers
 
-No providers.
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -51,7 +146,9 @@ No providers.
 
 ## Resources
 
-No resources.
+| Name | Type |
+| ---- | ---- |
+| [terraform_data.validations](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
@@ -157,7 +254,7 @@ No resources.
 | <a name="input_service"></a> [service](#input\_service) | ID element. Usually an abbreviation of your service directorate name, e.g. 'bcss' or 'csms', to help ensure generated IDs are globally unique | `string` | `null` | no |
 | <a name="input_service_category"></a> [service\_category](#input\_service\_category) | The tag service\_category | `string` | `"n/a"` | no |
 | <a name="input_sfn_target_arns"></a> [sfn\_target\_arns](#input\_sfn\_target\_arns) | The Amazon Resource Name (ARN) of the StepFunctions you want to use as EventBridge targets | `list(string)` | `[]` | no |
-| <a name="input_sns_kms_arns"></a> [sns\_kms\_arns](#input\_sns\_kms\_arns) | The Amazon Resource Name (ARN) of the AWS KMS's configured for AWS SNS you want Decrypt/GenerateDataKey for | `list(string)` | <pre>[<br/>  "*"<br/>]</pre> | no |
+| <a name="input_sns_kms_arns"></a> [sns\_kms\_arns](#input\_sns\_kms\_arns) | Specific customer-managed KMS key ARNs used by SNS targets; required when attach\_sns\_policy is enabled | `list(string)` | `[]` | no |
 | <a name="input_sns_target_arns"></a> [sns\_target\_arns](#input\_sns\_target\_arns) | The Amazon Resource Name (ARN) of the AWS SNS's you want to use as EventBridge targets | `list(string)` | `[]` | no |
 | <a name="input_sqs_target_arns"></a> [sqs\_target\_arns](#input\_sqs\_target\_arns) | The Amazon Resource Name (ARN) of the AWS SQS Queues you want to use as EventBridge targets | `list(string)` | `[]` | no |
 | <a name="input_stack"></a> [stack](#input\_stack) | ID element. The name of the stack/component, e.g. `database`, `web`, `waf`, `eks` | `string` | `null` | no |
