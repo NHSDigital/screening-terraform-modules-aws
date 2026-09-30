@@ -176,6 +176,12 @@ variable "single_nat_gateway" {
   default     = false
 }
 
+variable "create_private_nat_gateway_route" {
+  description = "Controls whether the module creates the default 0.0.0.0/0 route to the NAT Gateway(s) on private route tables. Set to false when a consumer needs to inject a custom default route instead (e.g. to a Transit Gateway attachment); the private route table IDs remain available via the private_route_table_ids output regardless of this setting."
+  type        = bool
+  default     = true
+}
+
 ################################################################
 # DNS
 ################################################################

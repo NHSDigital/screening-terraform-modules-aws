@@ -174,6 +174,35 @@ module "vpc_public" {
 }
 ```
 
+### Private subnets with a custom default route (e.g. Transit Gateway)
+
+Disable the module-managed NAT default route and inject your own at the stack level. Works the same way whether `single_nat_gateway` is `true` (1 private route table) or `false` (one per AZ) — iterate over `private_route_table_ids`.
+
+```terraform
+module "vpc" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/vpc?ref=<version>"
+
+  environment = "prod"
+  service     = "bcss"
+  name        = "vpc"
+
+  vpc_cidr           = "10.0.0.0/16"
+  single_nat_gateway = false
+
+  # Suppress the module's own 0.0.0.0/0 -> NAT route
+  create_private_nat_gateway_route = false
+}
+
+# Stack-level: point the default route at a manually attached TGW instead
+resource "aws_route" "private_to_tgw" {
+  for_each = toset(module.vpc.private_route_table_ids)
+
+  route_table_id         = each.value
+  destination_cidr_block = "0.0.0.0/0"
+  transit_gateway_id     = var.tgw_id
+}
+```
+
 ## Key variables
 
 | Variable | Description | Default |
@@ -185,6 +214,7 @@ module "vpc_public" {
 | `create_intra_subnets` | Whether to create intra subnets (no internet access) | `true` |
 | `availability_zones` | Explicit AZs for subnet placement; defaults to the first three available AZs | `null` |
 | `single_nat_gateway` | Use one shared NAT instead of per-AZ | `false` |
+| `create_private_nat_gateway_route` | Create the default NAT route on private route tables; set `false` to inject a custom default route (e.g. TGW) instead | `true` |
 | `enable_flow_log` | Enable VPC flow logs | `true` |
 | `flow_log_destination_type` | Flow log destination type (`cloud-watch-logs` or `s3`) | `cloud-watch-logs` |
 | `flow_log_destination_arn` | Consumer-managed destination ARN | `null` |
@@ -264,6 +294,7 @@ Cross-variable checks in `validations.tf` enforce flow-log destination requireme
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_create_firewall_subnets"></a> [create\_firewall\_subnets](#input\_create\_firewall\_subnets) | Whether to create firewall subnets (required for Network Firewall routing mode). | `bool` | `true` | no |
 | <a name="input_create_intra_subnets"></a> [create\_intra\_subnets](#input\_create\_intra\_subnets) | Whether to create intra subnets (no internet access). | `bool` | `true` | no |
+| <a name="input_create_private_nat_gateway_route"></a> [create\_private\_nat\_gateway\_route](#input\_create\_private\_nat\_gateway\_route) | Controls whether the module creates the default 0.0.0.0/0 route to the NAT Gateway(s) on private route tables. Set to false when a consumer needs to inject a custom default route instead (e.g. to a Transit Gateway attachment); the private route table IDs remain available via the private\_route\_table\_ids output regardless of this setting. | `bool` | `true` | no |
 | <a name="input_create_private_subnets"></a> [create\_private\_subnets](#input\_create\_private\_subnets) | Whether to create private subnets (workloads with outbound internet access via NAT gateway). | `bool` | `true` | no |
 | <a name="input_create_public_subnets"></a> [create\_public\_subnets](#input\_create\_public\_subnets) | Whether to create public subnets (internet-facing resources, NAT gateways). | `bool` | `true` | no |
 | <a name="input_data_classification"></a> [data\_classification](#input\_data\_classification) | Used to identify the data classification of the resource, e.g 1-5 | `string` | `"n/a"` | no |

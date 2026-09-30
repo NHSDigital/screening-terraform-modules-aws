@@ -44,6 +44,11 @@ module "vpc" {
   single_nat_gateway     = var.single_nat_gateway
   one_nat_gateway_per_az = !var.single_nat_gateway
 
+  # When false, the module skips creating the 0.0.0.0/0 -> NAT route on
+  # private route tables, so a caller can inject a custom default route
+  # (e.g. to a Transit Gateway attachment) at the stack level instead.
+  create_private_nat_gateway_route = var.create_private_nat_gateway_route
+
   # DNS
   enable_dns_hostnames = var.enable_dns_hostnames
   enable_dns_support   = var.enable_dns_support
