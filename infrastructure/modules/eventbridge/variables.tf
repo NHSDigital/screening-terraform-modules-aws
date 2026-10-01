@@ -269,8 +269,7 @@ variable "archives" {
   validation {
     condition = alltrue([
       for archive in var.archives :
-      archive.kms_key_identifier != null &&
-      trimspace(archive.kms_key_identifier) != ""
+      try(trimspace(archive.kms_key_identifier), "") != ""
     ])
 
     error_message = "Each archive must specify a non-empty kms_key_identifier."
@@ -354,8 +353,7 @@ variable "schedules" {
   validation {
     condition = alltrue([
       for schedule in var.schedules :
-      schedule.kms_key_arn != null &&
-      trimspace(schedule.kms_key_arn) != ""
+      try(trimspace(schedule.kms_key_arn), "") != ""
     ])
 
     error_message = "Each schedule must specify a non-empty kms_key_arn."
@@ -392,8 +390,7 @@ variable "pipes" {
   validation {
     condition = alltrue([
       for pipe in var.pipes :
-      pipe.kms_key_identifier != null &&
-      trimspace(pipe.kms_key_identifier) != ""
+      try(trimspace(pipe.kms_key_identifier), "") != ""
     ])
 
     error_message = "Each pipe must specify a non-empty kms_key_identifier."
