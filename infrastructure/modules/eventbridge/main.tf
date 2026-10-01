@@ -6,6 +6,7 @@
 #   * SNS KMS permissions are restricted to explicitly approved keys.
 #   * Resource names and tags are derived from context.tf.
 #   * Creation is gated by module.this.enabled.
+#   * Cross-variable input constraints are enforced in validations.tf.
 #   * Connections have been removed from this wrapper, because the
 #     underlying community module stores them in full in the terraform
 #     state, including credentials.
