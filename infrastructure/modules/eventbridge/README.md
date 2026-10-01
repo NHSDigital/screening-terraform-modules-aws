@@ -119,7 +119,7 @@ Wildcards and aliases are not accepted for this policy.
 
 - It does not create KMS keys, SNS topics, target resources, or their resource policies.
 - It does not guarantee unique names for every upstream resource or configure all target permissions.
-- It does not keep connection credentials out of Terraform state; use encrypted remote state and limit access to plans and state.
+- It does not support EventBridge connections or API destinations
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
