@@ -30,7 +30,6 @@ module "eventbridge" {
   create_permissions             = var.create_permissions
   create_archives                = var.create_archives
   create_api_destinations        = var.create_api_destinations
-  create_schemas_discoverer      = var.create_schemas_discoverer
   create_schedule_groups         = var.create_schedule_groups
   create_schedules               = var.create_schedules
   create_pipes                   = var.create_pipes

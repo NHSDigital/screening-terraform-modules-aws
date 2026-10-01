@@ -76,12 +76,6 @@ variable "create_api_destinations" {
   default     = false
 }
 
-variable "create_schemas_discoverer" {
-  description = "Controls whether default schemas discoverer should be created"
-  type        = bool
-  default     = false
-}
-
 variable "create_schedule_groups" {
   description = "Controls whether EventBridge Schedule Group resources should be created"
   type        = bool
