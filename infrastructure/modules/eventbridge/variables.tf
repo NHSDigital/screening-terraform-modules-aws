@@ -210,7 +210,7 @@ variable "rules" {
         description         = optional(string)
         event_pattern       = optional(string)
         schedule_expression = optional(string)
-        role_arn            = optional(bool)
+        role_arn            = optional(bool) # the underlying module uses the role created by the wrapped module if true, or null if false
         enabled             = optional(bool)
         state               = optional(string)
         force_destroy       = optional(bool)
