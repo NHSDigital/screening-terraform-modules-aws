@@ -105,6 +105,11 @@ variable "bus_name" {
   type        = string
   nullable    = true
   default     = null
+
+  validation {
+    condition     = try(trimspace(var.bus_name), "null") != ""
+    error_message = "bus_name must not be empty"
+  }
 }
 
 variable "bus_description" {
