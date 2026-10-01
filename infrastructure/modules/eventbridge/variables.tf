@@ -161,11 +161,6 @@ variable "kms_key_identifier" {
   description = "The identifier of the AWS KMS customer managed key for EventBridge to use, to encrypt events on this event bus. The identifier can be the key Amazon Resource Name (ARN), KeyId, key alias, or key alias ARN."
   type        = string
   nullable    = false
-
-  validation {
-    condition     = trimspace(var.kms_key_identifier) != ""
-    error_message = "kms_key_identifier must not be empty"
-  }
 }
 
 variable "dead_letter_config" {
