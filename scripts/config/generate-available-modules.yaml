@@ -181,6 +181,10 @@ sqs:
   description: "SQS queue with encryption"
   wraps: "—"
 
+ssm-parameter-wo:
+  description: "SSM parameter with write-only, ephemeral-capable SecureString values (never stored in state)"
+  wraps: "Native resources"
+
 ssm-patch-manager:
   description: "SSM Patch Manager for automated OS patching"
   wraps: "cloudposse/ssm-patch-manager/aws"

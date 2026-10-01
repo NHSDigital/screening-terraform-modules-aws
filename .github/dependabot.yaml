@@ -79,6 +79,7 @@ updates:
       - "infrastructure/modules/ses"
       - "infrastructure/modules/sns"
       - "infrastructure/modules/sqs"
+      - "infrastructure/modules/ssm-parameter-wo"
       - "infrastructure/modules/ssm-parameter"
       - "infrastructure/modules/ssm-patch-manager"
       - "infrastructure/modules/tags"
