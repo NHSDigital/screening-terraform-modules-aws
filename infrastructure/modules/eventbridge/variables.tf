@@ -364,7 +364,7 @@ variable "schedules" {
         end_date                      = optional(string)
         kms_key_arn                   = string
         timezone                      = optional(string)
-        state                         = optional(bool, true)
+        state                         = optional(bool, true) # the underlying module turns this into "ENABLED" if true or "DISABLED" if false
         maximum_window_in_minutes     = optional(number)
         use_flexible_time_window      = optional(bool, false)
         role_arn                      = optional(string)
