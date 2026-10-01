@@ -45,6 +45,15 @@ clean:: # Remove Terraform files (terraform) - optional: terraform_dir|dir=[path
 		dir=$(or ${terraform_dir}, ${dir}) \
 		opts=$(or ${terraform_opts}, ${opts})
 
+terraform-test: # Run terraform test for modules with a tests directory - optional: module=[module name under infrastructure/modules, default is all modules with tests] @Testing
+	for tests_dir in infrastructure/modules/$(or ${module},*)/tests; do
+		[[ -d "$${tests_dir}" ]] || continue
+		module_dir="$${tests_dir%/tests}"
+		echo "==> $${module_dir}"
+		mise x -- terraform -chdir="$${module_dir}" init -backend=false -input=false >/dev/null
+		mise x -- terraform -chdir="$${module_dir}" test
+	done
+
 _terraform: # Terraform command wrapper - mandatory: cmd=[command to execute]; optional: dir=[path to a directory where the command will be executed, relative to the project's top-level directory, default is one of the module variables or the example directory, if not set], opts=[options to pass to the Terraform command, default is none/empty]
 	dir=$(or ${dir}, ${TERRAFORM_STACK}); . scripts/terraform/terraform.lib.sh; terraform-${cmd} # 'dir' and 'opts' are accessible by the function as environment variables, if set
 
@@ -74,4 +83,5 @@ ${VERBOSE}.SILENT: \
 	terraform-install \
 	terraform-plan \
 	terraform-shellscript-lint \
+	terraform-test \
 	terraform-validate \
