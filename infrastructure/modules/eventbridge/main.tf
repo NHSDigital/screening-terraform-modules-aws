@@ -29,7 +29,6 @@ module "eventbridge" {
   create_targets                 = var.create_targets
   create_permissions             = var.create_permissions
   create_archives                = var.create_archives
-  create_api_destinations        = var.create_api_destinations
   create_schedule_groups         = var.create_schedule_groups
   create_schedules               = var.create_schedules
   create_pipes                   = var.create_pipes
@@ -49,7 +48,6 @@ module "eventbridge" {
   targets                        = var.targets
   archives                       = var.archives
   permissions                    = var.permissions
-  api_destinations               = local.api_destinations
   schedule_groups                = local.schedule_groups
   schedules                      = local.schedules
   pipes                          = local.pipes

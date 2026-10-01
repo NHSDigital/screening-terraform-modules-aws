@@ -70,12 +70,6 @@ variable "create_archives" {
   default     = false
 }
 
-variable "create_api_destinations" {
-  description = "Controls whether EventBridge Destination resources should be created"
-  type        = bool
-  default     = false
-}
-
 variable "create_schedule_groups" {
   description = "Controls whether EventBridge Schedule Group resources should be created"
   type        = bool
@@ -293,27 +287,6 @@ variable "permissions" {
         action         = optional(string)
         event_bus_name = optional(string)
         condition_org  = optional(string)
-      }))
-
-    but it causes problems in the community module when Terraform sets
-    omitted fields to null.
-    EOF
-  type        = map(any)
-  default     = {}
-}
-
-variable "api_destinations" {
-  description = <<-EOF
-    A map of objects with EventBridge Destination definitions.
-
-    The type should really be
-
-      map(object({
-        description                      = optional(string)
-        invocation_endpoint              = string
-        http_method                      = string
-        invocation_rate_limit_per_second = optional(number)
-        connection_name                  = optional(string) # but connections have been removed from this wrapper anyway
       }))
 
     but it causes problems in the community module when Terraform sets

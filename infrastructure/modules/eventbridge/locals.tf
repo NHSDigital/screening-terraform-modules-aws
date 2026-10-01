@@ -13,12 +13,6 @@ locals {
     )
   }
 
-  # API destination names must be unique per AWS account and region.
-  # We prefix provided names with the module ID to ensure uniqueness.
-  api_destinations = {
-    for k, v in var.api_destinations : "${module.this.id}-${k}" => v
-  }
-
   # schedule group names must be unique per AWS account and region
   # prefix provided names with the module ID to ensure uniqueness
   # disallow explicitly setting `name` or `name_prefix`
