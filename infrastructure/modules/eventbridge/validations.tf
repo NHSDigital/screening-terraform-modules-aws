@@ -3,7 +3,12 @@ resource "terraform_data" "validations" {
 
   lifecycle {
     precondition {
-      condition     = !var.attach_sns_policy || length(var.sns_kms_arns) > 0
+      condition = anytrue([
+        !var.create_role,
+        !var.attach_sns_policy,
+        length(var.sns_kms_arns) > 0,
+      ])
+
       error_message = "attach_sns_policy requires at least one specific sns_kms_arns entry."
     }
   }
