@@ -317,6 +317,23 @@ variable "schedule_groups" {
     EOF
   type        = any
   default     = {}
+
+  validation {
+    condition = alltrue([
+      for k, v in var.schedule_groups :
+      try(
+        !(
+          contains(keys(v), "name") || contains(keys(v), "name_prefix")
+        ),
+        false,
+      )
+    ])
+
+    error_message = <<-EOF
+      To ensure uniqueness, we disallow setting the `name` or `name_prefix`
+      attributes in `schedule_groups`.
+    EOF
+  }
 }
 
 variable "schedules" {

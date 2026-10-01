@@ -19,7 +19,7 @@ locals {
 
   # schedule group names must be unique per AWS account and region
   # prefix provided names with the module ID to ensure uniqueness
-  # disallow explicitly setting `name` or `name_prefix`
+  # validation prevents explicitly setting `name` or `name_prefix`
   schedule_groups = {
     for k, v in var.schedule_groups : k => (
       merge(v, { name = "${module.this.id}-${k}" })
