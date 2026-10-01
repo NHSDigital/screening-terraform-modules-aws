@@ -26,7 +26,7 @@ locals {
   # name in schedule_groups
   schedules = {
     for k, v in var.schedules : k => (
-      contains(keys(v), "group_name") && local.schedule_groups[v.group_name] != null
+      try(local.schedule_groups[v.group_name], null) != null # either property could be absent
       ? merge(
         v,
         {
