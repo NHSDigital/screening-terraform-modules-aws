@@ -27,80 +27,78 @@ multiple namespaces.
         Not every upstream resource name is prefixed; check planned names for
         collisions when deploying several workspaces into one account and region.
 
+3. Connections are disallowed, as the underlying module does not redact
+credentials contained therein from the terraform state.
+
 ## What this module enforces
 
 | Control | How it is enforced |
 | --- | --- |
-| Encryption at rest | A customer-managed KMS key is required for the bus, and for each configured archive, connection, schedule, and pipe. |
+| Encryption at rest | A customer-managed KMS key is required for the bus, and for each configured archive, schedule, and pipe. |
 | SNS KMS access | SNS target policies require specific KMS key ARNs; wildcard keys are rejected. |
 | Naming | The bus defaults to the context ID; connection, destination, pipe, schedule-group, and log-delivery names are scoped to the context. |
 | Tagging | Bus resources and IAM roles receive context tags. |
 | Creation gate | `module.this.enabled` controls creation of the upstream module. |
+| Secrets protection | Connections are disallowed, as the wrapped module doesn't handle them safely |
 
 ## Usage
 
 ### Minimal encrypted bus
 
-```hcl
-module "events" {
-    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
+    module "events" {
+        source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
 
-    service            = "bcss"
-    environment        = "test"
-    name               = "events"
-    kms_key_identifier = module.eventbridge_kms.key_arn
-}
-```
+        service            = "bcss"
+        environment        = "test"
+        name               = "events"
+        kms_key_identifier = module.eventbridge_kms.key_arn
+    }
 
 ### Production SNS target
 
-```hcl
-module "events" {
-    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
+    module "events" {
+        source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
 
-    service            = "bcss"
-    environment        = "production"
-    name               = "notifications"
-    kms_key_identifier = module.eventbridge_kms.key_arn
+        service            = "bcss"
+        environment        = "production"
+        name               = "notifications"
+        kms_key_identifier = module.eventbridge_kms.key_arn
 
-    rules = {
-        screening_completed = {
-            description   = "Route completed screening events"
-            event_pattern = jsonencode({ source = ["bcss.screening"] })
+        rules = {
+            screening_completed = {
+                description   = "Route completed screening events"
+                event_pattern = jsonencode({ source = ["bcss.screening"] })
+            }
         }
-    }
-    targets = {
-        screening_completed = [{ name = "notifications", arn = aws_sns_topic.notifications.arn }]
-    }
+        targets = {
+            screening_completed = [{ name = "notifications", arn = aws_sns_topic.notifications.arn }]
+        }
 
-    attach_sns_policy = true
-    sns_target_arns   = [aws_sns_topic.notifications.arn]
-    sns_kms_arns      = [module.sns_kms.key_arn]
-}
-```
+        attach_sns_policy = true
+        sns_target_arns   = [aws_sns_topic.notifications.arn]
+        sns_kms_arns      = [module.sns_kms.key_arn]
+    }
 
 ### Advanced scheduler group
 
-```hcl
-module "scheduled_events" {
-    source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
+    module "scheduled_events" {
+        source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
 
-    service            = "bcss"
-    environment        = "production"
-    name               = "jobs"
-    kms_key_identifier = module.eventbridge_kms.key_arn
+        service            = "bcss"
+        environment        = "production"
+        name               = "jobs"
+        kms_key_identifier = module.eventbridge_kms.key_arn
 
-    schedule_groups = { nightly = {} }
-    schedules = {
-        nightly_job = {
-            arn                 = aws_lambda_function.job.arn
-            schedule_expression = "cron(0 2 * * ? *)"
-            group_name          = "nightly"
-            kms_key_arn         = module.scheduler_kms.key_arn
+        schedule_groups = { nightly = {} }
+        schedules = {
+            nightly_job = {
+                arn                 = aws_lambda_function.job.arn
+                schedule_expression = "cron(0 2 * * ? *)"
+                group_name          = "nightly"
+                kms_key_arn         = module.scheduler_kms.key_arn
+            }
         }
     }
-}
-```
 
 ## Conventions
 
@@ -155,8 +153,7 @@ Wildcards and aliases are not accepted for this policy.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
-| <a name="input_api_destinations"></a> [api\_destinations](#input\_api\_destinations) | A map of objects with EventBridge Destination definitions.<br/><br/>The type should really be<br/><br/>  map(object({<br/>    description                      = optional(string)<br/>    invocation\_endpoint              = string<br/>    http\_method                      = string<br/>    invocation\_rate\_limit\_per\_second = optional(number)<br/>    connection\_name                  = optional(string)<br/>  }))<br/><br/>but it causes problems in the community module when Terraform sets<br/>omitted fields to null. | `map(any)` | `{}` | no |
-| <a name="input_append_connection_postfix"></a> [append\_connection\_postfix](#input\_append\_connection\_postfix) | Controls whether to append '-connection' to the name of the connection | `bool` | `true` | no |
+| <a name="input_api_destinations"></a> [api\_destinations](#input\_api\_destinations) | A map of objects with EventBridge Destination definitions.<br/><br/>The type should really be<br/><br/>  map(object({<br/>    description                      = optional(string)<br/>    invocation\_endpoint              = string<br/>    http\_method                      = string<br/>    invocation\_rate\_limit\_per\_second = optional(number)<br/>    connection\_name                  = optional(string) # but connections have been removed from this wrapper anyway<br/>  }))<br/><br/>but it causes problems in the community module when Terraform sets<br/>omitted fields to null. | `map(any)` | `{}` | no |
 | <a name="input_append_destination_postfix"></a> [append\_destination\_postfix](#input\_append\_destination\_postfix) | Controls whether to append '-destination' to the name of the destination | `bool` | `true` | no |
 | <a name="input_append_pipe_postfix"></a> [append\_pipe\_postfix](#input\_append\_pipe\_postfix) | Controls whether to append '-pipe' to the name of the pipe | `bool` | `true` | no |
 | <a name="input_append_rule_postfix"></a> [append\_rule\_postfix](#input\_append\_rule\_postfix) | Controls whether to append '-rule' to the name of the rule | `bool` | `true` | no |
@@ -184,12 +181,10 @@ Wildcards and aliases are not accepted for this policy.
 | <a name="input_bus_description"></a> [bus\_description](#input\_bus\_description) | Event bus description | `string` | `null` | no |
 | <a name="input_bus_name"></a> [bus\_name](#input\_bus\_name) | A unique name for your EventBridge Bus. Must be unique per AWS account and region. Defaults to whatever the tags module produces | `string` | `null` | no |
 | <a name="input_cloudwatch_target_arns"></a> [cloudwatch\_target\_arns](#input\_cloudwatch\_target\_arns) | The Amazon Resource Name (ARN) of the Cloudwatch Log Streams you want to use as EventBridge targets | `list(string)` | `[]` | no |
-| <a name="input_connections"></a> [connections](#input\_connections) | A map of objects with EventBridge Connection definitions.<br/><br/>The type should really be<br/><br/>  map(object({<br/>    authorization\_type                 = string<br/>    auth\_parameters                    = any<br/>    kms\_key\_identifier                 = string<br/>    description                        = optional(string)<br/>    invocation\_connectivity\_parameters = optional(any)<br/>  }))<br/><br/>but it causes problems in the community module when Terraform sets<br/>omitted fields to null. | `any` | `{}` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_create_api_destinations"></a> [create\_api\_destinations](#input\_create\_api\_destinations) | Controls whether EventBridge Destination resources should be created | `bool` | `false` | no |
 | <a name="input_create_archives"></a> [create\_archives](#input\_create\_archives) | Controls whether EventBridge Archive resources should be created | `bool` | `false` | no |
 | <a name="input_create_bus"></a> [create\_bus](#input\_create\_bus) | Controls whether EventBridge Bus resource should be created | `bool` | `true` | no |
-| <a name="input_create_connections"></a> [create\_connections](#input\_create\_connections) | Controls whether EventBridge Connection resources should be created | `bool` | `false` | no |
 | <a name="input_create_log_delivery"></a> [create\_log\_delivery](#input\_create\_log\_delivery) | Controls whether EventBridge log delivery resources should be created | `bool` | `true` | no |
 | <a name="input_create_log_delivery_source"></a> [create\_log\_delivery\_source](#input\_create\_log\_delivery\_source) | Controls whether EventBridge log delivery source resource should be created | `bool` | `true` | no |
 | <a name="input_create_permissions"></a> [create\_permissions](#input\_create\_permissions) | Controls whether EventBridge Permission resources should be created | `bool` | `true` | no |

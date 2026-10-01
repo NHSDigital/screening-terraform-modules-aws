@@ -16,12 +16,6 @@ variable "append_rule_postfix" {
   default     = true
 }
 
-variable "append_connection_postfix" {
-  description = "Controls whether to append '-connection' to the name of the connection"
-  type        = bool
-  default     = true
-}
-
 variable "append_destination_postfix" {
   description = "Controls whether to append '-destination' to the name of the destination"
   type        = bool
@@ -72,12 +66,6 @@ variable "create_permissions" {
 
 variable "create_archives" {
   description = "Controls whether EventBridge Archive resources should be created"
-  type        = bool
-  default     = false
-}
-
-variable "create_connections" {
-  description = "Controls whether EventBridge Connection resources should be created"
   type        = bool
   default     = false
 }
@@ -315,37 +303,6 @@ variable "permissions" {
   default     = {}
 }
 
-variable "connections" {
-  description = <<-EOF
-    A map of objects with EventBridge Connection definitions.
-
-    The type should really be
-
-      map(object({
-        authorization_type                 = string
-        auth_parameters                    = any
-        kms_key_identifier                 = string
-        description                        = optional(string)
-        invocation_connectivity_parameters = optional(any)
-      }))
-
-    but it causes problems in the community module when Terraform sets
-    omitted fields to null.
-    EOF
-  type        = any
-  default     = {}
-
-  validation {
-    condition = alltrue([
-      for connection in var.connections :
-      connection.kms_key_identifier != null &&
-      trimspace(connection.kms_key_identifier) != ""
-    ])
-
-    error_message = "Each connection must specify a non-empty kms_key_identifier."
-  }
-}
-
 variable "api_destinations" {
   description = <<-EOF
     A map of objects with EventBridge Destination definitions.
@@ -357,7 +314,7 @@ variable "api_destinations" {
         invocation_endpoint              = string
         http_method                      = string
         invocation_rate_limit_per_second = optional(number)
-        connection_name                  = optional(string)
+        connection_name                  = optional(string) # but connections have been removed from this wrapper anyway
       }))
 
     but it causes problems in the community module when Terraform sets

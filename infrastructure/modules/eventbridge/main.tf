@@ -6,6 +6,9 @@
 #   * SNS KMS permissions are restricted to explicitly approved keys.
 #   * Resource names and tags are derived from context.tf.
 #   * Creation is gated by module.this.enabled.
+#   * Connections have been removed from this wrapper, because the
+#     underlying community module stores them in full in the terraform
+#     state, including credentials.
 ################################################################
 
 module "eventbridge" {
@@ -17,7 +20,6 @@ module "eventbridge" {
   create_role                    = var.create_role
   create_pipe_role_only          = var.create_pipe_role_only
   append_rule_postfix            = var.append_rule_postfix
-  append_connection_postfix      = var.append_connection_postfix
   append_destination_postfix     = var.append_destination_postfix
   append_schedule_group_postfix  = var.append_schedule_group_postfix
   append_schedule_postfix        = var.append_schedule_postfix
@@ -27,7 +29,6 @@ module "eventbridge" {
   create_targets                 = var.create_targets
   create_permissions             = var.create_permissions
   create_archives                = var.create_archives
-  create_connections             = var.create_connections
   create_api_destinations        = var.create_api_destinations
   create_schemas_discoverer      = var.create_schemas_discoverer
   create_schedule_groups         = var.create_schedule_groups
@@ -49,7 +50,6 @@ module "eventbridge" {
   targets                        = var.targets
   archives                       = var.archives
   permissions                    = var.permissions
-  connections                    = local.connections
   api_destinations               = local.api_destinations
   schedule_groups                = local.schedule_groups
   schedules                      = local.schedules
