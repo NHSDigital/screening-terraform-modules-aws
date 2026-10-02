@@ -1,3 +1,7 @@
+################################################################
+# Creation controls
+################################################################
+
 variable "create_role" {
   description = "Controls whether IAM roles should be created"
   type        = bool
@@ -8,36 +12,6 @@ variable "create_pipe_role_only" {
   description = "Controls whether an IAM role should be created for the pipes only"
   type        = bool
   default     = false
-}
-
-variable "append_rule_postfix" {
-  description = "Controls whether to append '-rule' to the name of the rule"
-  type        = bool
-  default     = true
-}
-
-variable "append_destination_postfix" {
-  description = "Controls whether to append '-destination' to the name of the destination"
-  type        = bool
-  default     = true
-}
-
-variable "append_schedule_group_postfix" {
-  description = "Controls whether to append '-group' to the name of the schedule group"
-  type        = bool
-  default     = true
-}
-
-variable "append_schedule_postfix" {
-  description = "Controls whether to append '-schedule' to the name of the schedule"
-  type        = bool
-  default     = true
-}
-
-variable "append_pipe_postfix" {
-  description = "Controls whether to append '-pipe' to the name of the pipe"
-  type        = bool
-  default     = true
 }
 
 variable "create_bus" {
@@ -99,6 +73,44 @@ variable "create_log_delivery" {
   type        = bool
   default     = true
 }
+
+################################################################
+# Naming
+################################################################
+
+variable "append_rule_postfix" {
+  description = "Controls whether to append '-rule' to the name of the rule"
+  type        = bool
+  default     = true
+}
+
+variable "append_destination_postfix" {
+  description = "Controls whether to append '-destination' to the name of the destination"
+  type        = bool
+  default     = true
+}
+
+variable "append_schedule_group_postfix" {
+  description = "Controls whether to append '-group' to the name of the schedule group"
+  type        = bool
+  default     = true
+}
+
+variable "append_schedule_postfix" {
+  description = "Controls whether to append '-schedule' to the name of the schedule"
+  type        = bool
+  default     = true
+}
+
+variable "append_pipe_postfix" {
+  description = "Controls whether to append '-pipe' to the name of the pipe"
+  type        = bool
+  default     = true
+}
+
+################################################################
+# Bus and logging
+################################################################
 
 variable "bus_name" {
   description = "A unique name for your EventBridge Bus. Must be unique per AWS account and region. Defaults to whatever the tags module produces"
@@ -186,6 +198,10 @@ variable "schemas_discoverer_description" {
   type        = string
   default     = "Auto schemas discoverer event"
 }
+
+################################################################
+# EventBridge resources
+################################################################
 
 variable "rules" {
   description = <<-EOF
@@ -420,6 +436,10 @@ variable "schedule_group_timeouts" {
   default     = {}
 }
 
+################################################################
+# IAM role
+################################################################
+
 variable "role_name" {
   description = "Name of IAM role to use for EventBridge"
   type        = string
@@ -467,6 +487,10 @@ variable "ecs_pass_role_resources" {
   type        = list(string)
   default     = []
 }
+
+################################################################
+# Target policies
+################################################################
 
 variable "attach_kinesis_policy" {
   description = "Controls whether the Kinesis policy should be added to IAM role for EventBridge Target"
