@@ -1,9 +1,14 @@
 locals {
   # allow bus name to be overridden without touching tags
-  bus_name = coalesce(
-    var.bus_name,
-    # `module.this.id` is `""` when `var.enabled` is false
-    module.this.enabled ? module.this.id : null,
+  bus_name = (
+    # `module.this.id` is `""` (an error) when `module.this.enabled` is false
+    # `coalesce()` errors if all arguments are null
+    module.this.enabled
+    ? coalesce(
+      var.bus_name,
+      module.this.enabled ? module.this.id : null,
+    )
+    : null
   )
 
   # log delivery names must be unique per AWS account
