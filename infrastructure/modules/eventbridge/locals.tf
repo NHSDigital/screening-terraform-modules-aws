@@ -3,7 +3,7 @@ locals {
   bus_name = coalesce(
     var.bus_name,
     # `module.this.id` is `""` when `var.enabled` is false
-    var.enabled ? module.this.id : null,
+    module.this.enabled ? module.this.id : null,
   )
 
   # log delivery names must be unique per AWS account
