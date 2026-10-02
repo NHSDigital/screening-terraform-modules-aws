@@ -1,0 +1,96 @@
+################################################################
+# EventBridge
+#
+# Thin NHS wrapper around the community EventBridge module:
+#   * Customer-managed KMS keys are required for encrypted resources.
+#   * SNS KMS permissions are restricted to explicitly approved keys.
+#   * Resource names and tags are derived from context.tf.
+#   * Creation is gated by module.this.enabled.
+#   * Cross-variable input constraints are enforced in validations.tf.
+#   * Connections have been removed from this wrapper, because the
+#     underlying community module stores them in full in the terraform
+#     state, including credentials.
+################################################################
+
+module "eventbridge" {
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-eventbridge.git?ref=f9934726324c988f823682884b4fa003586a7b6f" # v4.3.2
+
+  create = module.this.enabled
+  tags   = module.this.tags
+
+  create_role                    = var.create_role
+  create_pipe_role_only          = var.create_pipe_role_only
+  append_rule_postfix            = var.append_rule_postfix
+  append_destination_postfix     = var.append_destination_postfix
+  append_schedule_group_postfix  = var.append_schedule_group_postfix
+  append_schedule_postfix        = var.append_schedule_postfix
+  append_pipe_postfix            = var.append_pipe_postfix
+  create_bus                     = var.create_bus
+  create_rules                   = var.create_rules
+  create_targets                 = var.create_targets
+  create_permissions             = var.create_permissions
+  create_archives                = var.create_archives
+  create_schedule_groups         = var.create_schedule_groups
+  create_schedules               = var.create_schedules
+  create_pipes                   = var.create_pipes
+  create_log_delivery_source     = var.create_log_delivery_source
+  create_log_delivery            = var.create_log_delivery
+  region                         = var.aws_region
+  bus_name                       = local.bus_name
+  bus_description                = var.bus_description
+  log_config                     = var.log_config
+  log_delivery                   = local.log_delivery
+  log_delivery_source_name       = var.log_delivery_source_name
+  event_source_name              = var.event_source_name
+  kms_key_identifier             = var.kms_key_identifier
+  dead_letter_config             = var.dead_letter_config
+  schemas_discoverer_description = var.schemas_discoverer_description
+  rules                          = var.rules
+  targets                        = var.targets
+  archives                       = var.archives
+  permissions                    = var.permissions
+  schedule_groups                = local.schedule_groups
+  schedules                      = local.schedules
+  pipes                          = local.pipes
+  schedule_group_timeouts        = var.schedule_group_timeouts
+  role_name                      = var.role_name
+  role_description               = var.role_description
+  role_path                      = var.role_path
+  policy_path                    = var.policy_path
+  role_force_detach_policies     = var.role_force_detach_policies
+  role_permissions_boundary      = var.role_permissions_boundary
+  role_tags                      = merge(var.role_tags, module.this.tags)
+  ecs_pass_role_resources        = var.ecs_pass_role_resources
+  attach_kinesis_policy          = var.attach_kinesis_policy
+  attach_kinesis_firehose_policy = var.attach_kinesis_firehose_policy
+  attach_sqs_policy              = var.attach_sqs_policy
+  attach_sns_policy              = var.attach_sns_policy
+  attach_ecs_policy              = var.attach_ecs_policy
+  attach_lambda_policy           = var.attach_lambda_policy
+  attach_sfn_policy              = var.attach_sfn_policy
+  attach_cloudwatch_policy       = var.attach_cloudwatch_policy
+  attach_api_destination_policy  = var.attach_api_destination_policy
+  attach_tracing_policy          = var.attach_tracing_policy
+  kinesis_target_arns            = var.kinesis_target_arns
+  kinesis_firehose_target_arns   = var.kinesis_firehose_target_arns
+  sqs_target_arns                = var.sqs_target_arns
+  sns_target_arns                = var.sns_target_arns
+  sns_kms_arns                   = var.sns_kms_arns
+  ecs_target_arns                = var.ecs_target_arns
+  lambda_target_arns             = var.lambda_target_arns
+  sfn_target_arns                = var.sfn_target_arns
+  cloudwatch_target_arns         = var.cloudwatch_target_arns
+  attach_policy_json             = var.attach_policy_json
+  attach_policy_jsons            = var.attach_policy_jsons
+  attach_policy                  = var.attach_policy
+  attach_policies                = var.attach_policies
+  number_of_policy_jsons         = var.number_of_policy_jsons
+  number_of_policies             = var.number_of_policies
+  attach_policy_statements       = var.attach_policy_statements
+  trusted_entities               = var.trusted_entities
+  policy_json                    = var.policy_json
+  policy_jsons                   = var.policy_jsons
+  policy                         = var.policy
+  policies                       = var.policies
+  policy_statements              = var.policy_statements
+}
