@@ -23,8 +23,8 @@ multiple namespaces.
     in as variables. This causes conflicts when a stack is deployed into
     multiple workspaces in the same AWS account.
 
-    This module prefixes many of these keys with the bus name. The bus name by
-    default includes the workspace id.
+    This module prefixes many of these keys with the context ID, which by
+    default includes the workspace.
 
         Not every upstream resource name is prefixed; check planned names for
         collisions when deploying several workspaces into one account and region.
@@ -38,7 +38,8 @@ credentials contained therein from the terraform state.
 | --- | --- |
 | Encryption at rest | A customer-managed KMS key is required for the bus, and for each configured archive, schedule, and pipe. |
 | SNS KMS access | SNS target policies require specific KMS key ARNs; wildcard keys are rejected. |
-| Naming | The bus defaults to the context ID; connection, destination, pipe, schedule-group, and log-delivery names are scoped to the context. |
+| Naming | The bus and IAM role default to the context ID; connection, destination, pipe, schedule-group, schedule, and log-delivery names are scoped to the context. |
+| IAM path | The role and its policies default to the `/<service>/<project>/<environment>/` path, matching the `iam` and `ecs-service` modules. |
 | Tagging | Bus resources and IAM roles receive context tags. |
 | Creation gate | `module.this.enabled` controls creation of the upstream module. |
 | Secrets protection | Connections are disallowed, as the wrapped module doesn't handle them safely |
@@ -102,10 +103,59 @@ credentials contained therein from the terraform state.
         }
     }
 
+With the context above (`bcss-production-jobs`), this creates the schedule group
+`bcss-production-jobs-nightly-group` and the schedule
+`bcss-production-jobs-nightly-job-schedule`, with the IAM role
+`/bcss/production/bcss-production-jobs`.
+
+### Scheduler on the default bus (no bus created)
+
+Use the default bus when rules must match AWS service events, which are only
+delivered there. Universal targets (`arn:aws:scheduler:::aws-sdk:<service>:<action>`)
+call AWS APIs directly; grant the actions through `policy_json`.
+
+    module "operating_hours" {
+        source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
+
+        context = module.this.context
+        name    = "hours"
+
+        create_bus                 = false
+        bus_name                   = "default"
+        create_log_delivery_source = false
+        create_log_delivery        = false
+        # Only used for a module-created bus.
+        kms_key_identifier = module.scheduler_kms.key_arn
+
+        append_schedule_group_postfix = false
+        append_schedule_postfix       = false
+        schedule_groups               = { oracle = {} }
+        schedules = {
+            oracle-stop = {
+                arn                 = "arn:aws:scheduler:::aws-sdk:ec2:stopInstances"
+                input               = jsonencode({ InstanceIds = [module.oracle_ec2.ec2_instance_id] })
+                schedule_expression = "cron(0 19 ? * MON-FRI *)"
+                timezone            = "Europe/London"
+                group_name          = "oracle"
+                kms_key_arn         = module.scheduler_kms.key_arn
+            }
+        }
+
+        attach_policy_json = true
+        policy_json        = data.aws_iam_policy_document.operating_hours.json
+    }
+
+With a context ID of `bcss-test-application-integration-3`, this creates the group
+`bcss-test-application-integration-3-hours-oracle`, the schedule
+`bcss-test-application-integration-3-hours-oracle-stop`, and the role
+`/bcss/bcss/test/bcss-test-application-integration-3-hours`.
+
 ## Conventions
 
 - Pass a pinned release ref and supply the required customer-managed KMS keys.
 - Keys of `schedule_groups` are logical identifiers; schedule `group_name` references a key, not the prefixed AWS name.
+- Keys of `schedules` are logical identifiers; the AWS schedule name is `<context ID>-<key>` (plus `-schedule` when `append_schedule_postfix` is true) and must not exceed 64 characters. Set `append_schedule_postfix = false` when the context ID is long.
+- Set `role_name` only when another resource must reference the role ARN before apply (for example `iam:PassRole` or an SSM `AutomationAssumeRole`); include `role_path` in that ARN.
 - `log_delivery` entries default to context-prefixed names when `name` is omitted or null.
 - Additional `role_tags` are combined with context tags; context values take precedence.
 - Review the plan for resource names, policies, and target permissions before applying.
@@ -228,7 +278,7 @@ Wildcards and aliases are not accepted for this policy.
 | <a name="input_policy"></a> [policy](#input\_policy) | An additional policy document ARN to attach to IAM role | `string` | `null` | no |
 | <a name="input_policy_json"></a> [policy\_json](#input\_policy\_json) | An additional policy document as JSON to attach to IAM role | `string` | `null` | no |
 | <a name="input_policy_jsons"></a> [policy\_jsons](#input\_policy\_jsons) | List of additional policy documents as JSON to attach to IAM role | `list(string)` | `[]` | no |
-| <a name="input_policy_path"></a> [policy\_path](#input\_policy\_path) | Path of IAM policy to use for EventBridge | `string` | `null` | no |
+| <a name="input_policy_path"></a> [policy\_path](#input\_policy\_path) | Path of IAM policy to use for EventBridge. Defaults to `/<service>/<project>/<environment>/` derived from context. | `string` | `null` | no |
 | <a name="input_policy_statements"></a> [policy\_statements](#input\_policy\_statements) | Map of dynamic policy statements to attach to IAM role<br/><br/>The type should really be<br/><br/>  map(object({<br/>    sid            = optional(string)<br/>    effect         = optional(string)<br/>    actions        = optional(list(string))<br/>    not\_actions    = optional(list(string))<br/>    resources      = optional(list(string))<br/>    not\_resources  = optional(list(string))<br/>    principals     = optional(any)<br/>    not\_principals = optional(any)<br/>    condition      = optional(any)<br/>  }))<br/><br/>but it causes problems in the community module when Terraform sets<br/>omitted fields to null. | `any` | `{}` | no |
 | <a name="input_project"></a> [project](#input\_project) | ID element. A project identifier, indicating the name or role of the project the resource is for, such as `website` or `api` | `string` | `null` | no |
 | <a name="input_public_facing"></a> [public\_facing](#input\_public\_facing) | Whether this resource is public facing | `bool` | `false` | no |
@@ -236,8 +286,8 @@ Wildcards and aliases are not accepted for this policy.
 | <a name="input_region"></a> [region](#input\_region) | ID element \_(Rarely used, not included by default)\_.  Usually an abbreviation of the selected AWS region e.g. 'uw2', 'ew2' or 'gbl' for resources like IAM roles that have no region | `string` | `null` | no |
 | <a name="input_role_description"></a> [role\_description](#input\_role\_description) | Description of IAM role to use for EventBridge | `string` | `null` | no |
 | <a name="input_role_force_detach_policies"></a> [role\_force\_detach\_policies](#input\_role\_force\_detach\_policies) | Specifies to force detaching any policies the IAM role has before destroying it. | `bool` | `true` | no |
-| <a name="input_role_name"></a> [role\_name](#input\_role\_name) | Name of IAM role to use for EventBridge | `string` | `null` | no |
-| <a name="input_role_path"></a> [role\_path](#input\_role\_path) | Path of IAM role to use for EventBridge | `string` | `null` | no |
+| <a name="input_role_name"></a> [role\_name](#input\_role\_name) | Name of IAM role to use for EventBridge. Defaults to the context ID. | `string` | `null` | no |
+| <a name="input_role_path"></a> [role\_path](#input\_role\_path) | Path of IAM role to use for EventBridge. Defaults to `/<service>/<project>/<environment>/` derived from context. | `string` | `null` | no |
 | <a name="input_role_permissions_boundary"></a> [role\_permissions\_boundary](#input\_role\_permissions\_boundary) | The ARN of the policy that is used to set the permissions boundary for the IAM role used by EventBridge | `string` | `null` | no |
 | <a name="input_role_tags"></a> [role\_tags](#input\_role\_tags) | A map of tags to assign to IAM role | `map(string)` | `{}` | no |
 | <a name="input_rules"></a> [rules](#input\_rules) | A map of objects with EventBridge Rule definitions.<br/><br/>The type should really be<br/><br/>  map(object({<br/>    name\_prefix         = optional(string)<br/>    description         = optional(string)<br/>    event\_pattern       = optional(string)<br/>    schedule\_expression = optional(string)<br/>    role\_arn            = optional(bool) # the underlying module uses the role created by the wrapped module if true, or null if false<br/>    enabled             = optional(bool)<br/>    state               = optional(string)<br/>    force\_destroy       = optional(bool)<br/>  }))<br/><br/>but it causes problems in the community module when Terraform sets<br/>omitted fields to null. | `map(any)` | `{}` | no |

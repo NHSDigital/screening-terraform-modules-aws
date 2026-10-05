@@ -441,7 +441,7 @@ variable "schedule_group_timeouts" {
 ################################################################
 
 variable "role_name" {
-  description = "Name of IAM role to use for EventBridge"
+  description = "Name of IAM role to use for EventBridge. Defaults to the context ID."
   type        = string
   default     = null
 }
@@ -453,15 +453,25 @@ variable "role_description" {
 }
 
 variable "role_path" {
-  description = "Path of IAM role to use for EventBridge"
+  description = "Path of IAM role to use for EventBridge. Defaults to `/<service>/<project>/<environment>/` derived from context."
   type        = string
   default     = null
+
+  validation {
+    condition     = var.role_path == null || can(regex("^/.*/$", coalesce(var.role_path, "/")))
+    error_message = "role_path must start and end with a forward slash, e.g. \"/bcss/\"."
+  }
 }
 
 variable "policy_path" {
-  description = "Path of IAM policy to use for EventBridge"
+  description = "Path of IAM policy to use for EventBridge. Defaults to `/<service>/<project>/<environment>/` derived from context."
   type        = string
   default     = null
+
+  validation {
+    condition     = var.policy_path == null || can(regex("^/.*/$", coalesce(var.policy_path, "/")))
+    error_message = "policy_path must start and end with a forward slash, e.g. \"/bcss/\"."
+  }
 }
 
 variable "role_force_detach_policies" {
