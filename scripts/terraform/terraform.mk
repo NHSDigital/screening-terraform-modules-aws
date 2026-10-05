@@ -53,6 +53,7 @@ terraform-test: # Run terraform test for modules with a tests directory - option
 		mise x -- terraform -chdir="$${module_dir}" init -backend=false -input=false >/dev/null
 		mise x -- terraform -chdir="$${module_dir}" test
 	done
+	bash tests/test-ssm-parameter-wo-ordering.sh
 
 _terraform: # Terraform command wrapper - mandatory: cmd=[command to execute]; optional: dir=[path to a directory where the command will be executed, relative to the project's top-level directory, default is one of the module variables or the example directory, if not set], opts=[options to pass to the Terraform command, default is none/empty]
 	dir=$(or ${dir}, ${TERRAFORM_STACK}); . scripts/terraform/terraform.lib.sh; terraform-${cmd} # 'dir' and 'opts' are accessible by the function as environment variables, if set
