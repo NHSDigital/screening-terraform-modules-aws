@@ -53,10 +53,10 @@ module "eventbridge" {
   schedules                      = local.schedules
   pipes                          = local.pipes
   schedule_group_timeouts        = var.schedule_group_timeouts
-  role_name                      = var.role_name
+  role_name                      = local.role_name
   role_description               = var.role_description
-  role_path                      = var.role_path
-  policy_path                    = var.policy_path
+  role_path                      = local.role_path
+  policy_path                    = local.policy_path
   role_force_detach_policies     = var.role_force_detach_policies
   role_permissions_boundary      = var.role_permissions_boundary
   role_tags                      = merge(var.role_tags, module.this.tags)
