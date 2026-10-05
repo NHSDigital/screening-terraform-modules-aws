@@ -81,6 +81,10 @@ elasticache:
   description: "ElastiCache cluster (Redis/Memcached)"
   wraps: "—"
 
+eventbridge:
+  description: "AWS EventBridge Resources"
+  wraps: "terraform-aws-modules/eventbridge/aws"
+
 github-config:
   description: "GitHub OIDC provider and runner configuration"
   wraps: "—"
