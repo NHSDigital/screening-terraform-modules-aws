@@ -93,10 +93,10 @@ jobs:
           # Compare PR head against base to find modules with provider constraint changes.
           base_sha="${{ github.event.pull_request.base.sha }}"
 
+          # xargs -r avoids calling dirname with empty stdin when grep finds no matches.
           mapfile -t modules_to_upgrade < <(
             git diff --name-only "$base_sha...HEAD" \
               | grep '^infrastructure/modules/.*/versions\.tf$' \
-              # -r avoids calling dirname with empty stdin when grep finds no matches.
               | xargs -r -n1 dirname \
               | sort -u
           )
@@ -139,12 +139,14 @@ jobs:
         # Push an auto-fix commit so the next PR workflow run validates the refreshed content.
         if: steps.detect.outputs.changed == 'true'
         shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "chore(dependabot): regenerate terraform docs and lockfiles"
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          git push origin "HEAD:${HEAD_REF}"
 
       - name: "Comment on PR with auto-fix summary"
         if: steps.detect.outputs.changed == 'true'
