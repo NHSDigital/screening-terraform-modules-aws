@@ -5,7 +5,7 @@ tflint 0.62.1
 terraform-docs 0.24.0
 go 1.26.5
 go:github.com/hashicorp/terraform-config-inspect latest
-pre-commit 4.6.0
+pre-commit 4.6.2
 python 3.12
 vale 3.6.0
 gitleaks 8.30.1
