@@ -47,5 +47,7 @@ runs:
 
     - name: Echo branch name
       shell: bash
+      env:
+        BRANCH_NAME: ${{ steps.extract.outputs.branch_name }}
       run: |
-        echo "branch_name = '${{ steps.extract.outputs.branch_name }}'"
+        echo "branch_name = '${BRANCH_NAME}'"
