@@ -129,26 +129,30 @@ check_file_exists ".tool-versions"
 check_file_exists "mise.toml"
 check_file_exists "mise.lock"
 
-# Count matching tool lines
-if [ -f ".tool-versions" ] && [ -f "mise.toml" ]; then
-  # Get terraform version from both
-  TV_VERSION=$(grep "^terraform " ".tool-versions" | awk '{print $2}')
-  MT_VERSION=$(grep 'terraform.*=' "mise.toml" | grep -v '#' | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+test_tool_version_sync() {
+  local tool="$1"
+  local tool_version
+  local mise_version
 
-  if [ "$TV_VERSION" = "$MT_VERSION" ]; then
+  tool_version=$(awk -v tool="$tool" '$1 == tool { print $2; exit }' ".tool-versions")
+  mise_version=$(awk -F '"' -v tool="$tool" '$1 ~ "^[[:space:]]*" tool "[[:space:]]*=[[:space:]]*$" { print $2; exit }' "mise.toml")
+
+  printf "%-60s ... " "$tool versions in sync"
+  if [ -n "$tool_version" ] && [ "$tool_version" = "$mise_version" ]; then
     PASSED=$((PASSED + 1))
-    printf "%-60s ... " "Terraform versions in sync"
     printf "%b\n" "${GREEN}✓${NC}"
   else
     FAILED=$((FAILED + 1))
-    printf "%-60s ... " "Terraform versions in sync"
     printf "%b\n" "${RED}✗${NC}"
-    printf "  .tool-versions: %s, mise.toml: %s\n" "$TV_VERSION" "$MT_VERSION"
+    printf "  .tool-versions: %s, mise.toml: %s\n" "$tool_version" "$mise_version"
   fi
-fi
+}
 
-test_pattern_exists ".tool-versions" "pre-commit 4\\.6\\.0" "pre-commit version in .tool-versions"
-test_pattern_exists "mise.toml" "pre-commit.*4\\.6\\.0" "pre-commit version in mise.toml"
+if [ -f ".tool-versions" ] && [ -f "mise.toml" ]; then
+  for tool in terraform pre-commit; do
+    test_tool_version_sync "$tool"
+  done
+fi
 echo ""
 
 # Summary
