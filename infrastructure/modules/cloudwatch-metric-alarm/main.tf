@@ -14,20 +14,20 @@
 
 module "metric_alarm" {
   source  = "terraform-aws-modules/cloudwatch/aws//modules/metric-alarm"
-  version = "5.7.2"
+  version = "5.7.3"
 
   create_metric_alarm = module.this.enabled && var.metric_alarm != null
 
   alarm_name          = local.single_alarm_name
-  comparison_operator = var.metric_alarm.comparison_operator
-  evaluation_periods  = var.metric_alarm.evaluation_periods
-  threshold           = var.metric_alarm.threshold
-  statistic           = var.metric_alarm.statistic
-  period              = var.metric_alarm.period
-  actions_enabled     = var.metric_alarm.actions_enabled
+  comparison_operator = local.single_metric_alarm.comparison_operator
+  evaluation_periods  = local.single_metric_alarm.evaluation_periods
+  threshold           = local.single_metric_alarm.threshold
+  statistic           = local.single_metric_alarm.statistic
+  period              = local.single_metric_alarm.period
+  actions_enabled     = local.single_metric_alarm.actions_enabled
 
-  metric_name = var.metric_alarm.metric_name
-  namespace   = var.metric_alarm.namespace
+  metric_name = local.single_metric_alarm.metric_name
+  namespace   = local.single_metric_alarm.namespace
 
   alarm_actions             = var.alarm_actions
   ok_actions                = var.ok_actions
@@ -39,21 +39,24 @@ module "metric_alarm" {
 
 module "metric_alarms_by_multiple_dimensions" {
   source  = "terraform-aws-modules/cloudwatch/aws//modules/metric-alarms-by-multiple-dimensions"
-  version = "5.7.2"
+  version = "5.7.3"
 
   create_metric_alarm = module.this.enabled && var.metric_alarms_by_multiple_dimensions != null
 
-  alarm_name          = local.multi_dimension_alarm_name
-  comparison_operator = var.metric_alarms_by_multiple_dimensions.comparison_operator
-  evaluation_periods  = var.metric_alarms_by_multiple_dimensions.evaluation_periods
-  threshold           = var.metric_alarms_by_multiple_dimensions.threshold
-  statistic           = var.metric_alarms_by_multiple_dimensions.statistic
-  period              = var.metric_alarms_by_multiple_dimensions.period
-  actions_enabled     = var.metric_alarms_by_multiple_dimensions.actions_enabled
-  dimensions          = var.metric_alarms_by_multiple_dimensions.dimensions
+  alarm_name           = local.multi_dimension_alarm_name
+  alarm_name_delimiter = "-"
+  comparison_operator  = local.multi_dimension_metric_alarm.comparison_operator
+  evaluation_periods   = local.multi_dimension_metric_alarm.evaluation_periods
+  threshold            = local.multi_dimension_metric_alarm.threshold
+  statistic            = local.multi_dimension_metric_alarm.statistic
+  period               = local.multi_dimension_metric_alarm.period
+  actions_enabled      = local.multi_dimension_metric_alarm.actions_enabled
+  dimensions = {
+    default = local.multi_dimension_metric_alarm.dimensions
+  }
 
-  metric_name = var.metric_alarms_by_multiple_dimensions.metric_name
-  namespace   = var.metric_alarms_by_multiple_dimensions.namespace
+  metric_name = local.multi_dimension_metric_alarm.metric_name
+  namespace   = local.multi_dimension_metric_alarm.namespace
 
   alarm_actions             = var.alarm_actions
   ok_actions                = var.ok_actions
