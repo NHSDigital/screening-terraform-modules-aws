@@ -7,7 +7,7 @@ NHS Screening wrapper around the [terraform-aws-modules/CloudWatch/aws](https://
 | Control | How it is enforced |
 | --- | --- |
 | Naming | Alarm names derived from context.id + alarm suffix |
-| Period | Hardcoded to 60 seconds for consistency |
+| Period | Defaults to 60 seconds; configurable per alarm |
 | Statistic | Defaults to Sum; configurable per alarm |
 | SNS actions | Optional list of topic ARNs for notifications |
 | Missing data | Defaults to `notBreaching` (safe default) |
@@ -33,6 +33,7 @@ module "app_errors_alarm" {
     evaluation_periods = 2
     threshold          = 10
     statistic          = "Sum"
+    period             = 300
   }
 
   alarm_actions = [module.sns.topic_arn]
@@ -53,6 +54,7 @@ module "ecs_task_alarms" {
     comparison_operator = "GreaterThanThreshold"
     evaluation_periods = 3
     threshold          = 80
+    period             = 60
     dimensions = {
       ServiceName = "my-service"
       ClusterName = "my-cluster"
@@ -63,6 +65,8 @@ module "ecs_task_alarms" {
   insufficient_data_actions = [module.sns.dead_letter_arn]
 }
 ```
+
+`period` is optional and defaults to 60 seconds for each alarm. Set it to 3600 seconds for hourly metrics such as AWS License Manager usage. `actions_enabled` also defaults to `true`; set it to `false` when you want alarms to track state without sending configured alarm actions. SNS alarm, recovery, and insufficient-data destinations are configured separately through the corresponding action inputs.
 
 ### Referencing log metric filter output
 
@@ -97,8 +101,8 @@ module "error_alarm" {
 
 ## Conventions
 
-- Alarm names use format `{context.id}-alarm` (single) or `{context.id}-multi-alarm` (multi-dimension).
-- Period is always 60 seconds for simplicity.
+- Alarm names use format `{context.id}-alarm` (single) or `{context.id}-malarm` (multi-dimension).
+- Period defaults to 60 seconds and may be overridden independently for each alarm input.
 - Missing data defaults to `notBreaching` (safe for production).
 - SNS actions (alarm, ok, insufficient data) are all optional.
 - At least one of `metric_alarm` or `metric_alarms_by_multiple_dimensions` must be configured (enforced by check block).
@@ -121,8 +125,8 @@ No providers.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_metric_alarm"></a> [metric\_alarm](#module\_metric\_alarm) | terraform-aws-modules/cloudwatch/aws//modules/metric-alarm | 5.7.2 |
-| <a name="module_metric_alarms_by_multiple_dimensions"></a> [metric\_alarms\_by\_multiple\_dimensions](#module\_metric\_alarms\_by\_multiple\_dimensions) | terraform-aws-modules/cloudwatch/aws//modules/metric-alarms-by-multiple-dimensions | 5.7.2 |
+| <a name="module_metric_alarm"></a> [metric\_alarm](#module\_metric\_alarm) | terraform-aws-modules/cloudwatch/aws//modules/metric-alarm | 5.7.3 |
+| <a name="module_metric_alarms_by_multiple_dimensions"></a> [metric\_alarms\_by\_multiple\_dimensions](#module\_metric\_alarms\_by\_multiple\_dimensions) | terraform-aws-modules/cloudwatch/aws//modules/metric-alarms-by-multiple-dimensions | 5.7.3 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
@@ -168,7 +172,7 @@ No resources.
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
-| <a name="input_treat_missing_data"></a> [treat\_missing\_data](#input\_treat\_missing\_data) | How to handle missing data points: 'notBreaching', 'breaching', 'missing', 'ignoreMetricTime'. | `string` | `"notBreaching"` | no |
+| <a name="input_treat_missing_data"></a> [treat\_missing\_data](#input\_treat\_missing\_data) | How to handle missing data points: 'notBreaching', 'breaching', 'missing', or 'ignore'. | `string` | `"missing"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
 
 ## Outputs
