@@ -32,6 +32,11 @@ module "ssm_param_label" {
 resource "aws_ssm_parameter" "this" {
   count = module.ssm_param_label.enabled && !var.ignore_value_changes ? 1 : 0
 
+  # Both resources share one parameter name. On a mode switch, retire the old
+  # address before writing through the new one so its destroy cannot delete the
+  # newly written parameter.
+  depends_on = [aws_ssm_parameter.ignore_value]
+
   name            = local.parameter_name
   type            = var.type
   description     = var.description
@@ -50,10 +55,6 @@ resource "aws_ssm_parameter" "this" {
 
 resource "aws_ssm_parameter" "ignore_value" {
   count = module.ssm_param_label.enabled && var.ignore_value_changes ? 1 : 0
-
-  # Both resources share one parameter name: this edge makes Terraform destroy the old
-  # address before creating the new one when ignore_value_changes is toggled (either way).
-  depends_on = [aws_ssm_parameter.this]
 
   name            = local.parameter_name
   type            = var.type
