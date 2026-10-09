@@ -108,7 +108,7 @@ For `SecureString` callers you must also provide `value_wo_version`. `value` sti
   - `String` / `StringList` — non-secret configuration. Stored in state as `insecure_value` and exposed via the `value` output.
   - `SecureString` — secrets. **Requires `key_id` and `value_wo_version`.** The value is never stored in state or plan files, and the `value`, `raw_value` and `secure_value` outputs are always `null`.
 - **Choosing `value_wo_version`:** use a number that changes when the secret changes but reveals nothing about it, such as the source SSM parameter's `version` or a manually bumped revision. Do **not** derive it from a hash of the secret.
-- **Console or rotation-managed values:** set `ignore_value_changes = true`. Terraform seeds the value on creation and never overwrites it. Toggling this flag replaces the resource, which re-seeds the value. The module always destroys the old parameter before creating the new one, so it never deletes a freshly created parameter. If an apply fails midway through a toggle, check the next plan: it must not show a destroy for a parameter with the same name.
+- **Console or rotation-managed values:** set `ignore_value_changes = true`. Terraform seeds the value on creation and never overwrites it. Toggling this flag transfers management between two Terraform addresses for the same SSM parameter; the old address must be destroyed before the new address writes. If an apply is interrupted during a toggle, run a refreshed plan and verify the parameter will be recreated if the destroy completed before the write.
 - **Naming:** Parameter names are derived from context labels. When `delimiter = "/"`, names are path-style with a leading `/`. Override with `parameter_name` if custom naming is required.
 
 ## What this module does NOT do
@@ -138,6 +138,7 @@ make terraform-test module=ssm-parameter-wo
 ```
 
 Tests use `mock_provider` and `command = plan`, because `terraform test` cannot re-supply ephemeral inputs to the apply phase.
+`make terraform-test module=ssm-parameter-wo` also checks the generated dependency graph to guard the resource handoff order when `ignore_value_changes` is toggled.
 
 <!-- vale off -->
 <!-- markdownlint-disable -->
