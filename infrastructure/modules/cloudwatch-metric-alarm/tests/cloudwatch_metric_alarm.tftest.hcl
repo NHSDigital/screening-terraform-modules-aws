@@ -56,6 +56,11 @@ run "single_metric_alarm_only" {
     condition     = local.single_metric_alarm.period == 60 && local.single_metric_alarm.actions_enabled
     error_message = "A single metric alarm must default to a 60-second period with actions enabled."
   }
+
+  assert {
+    condition     = var.treat_missing_data == "missing"
+    error_message = "Missing data must default to missing when no value is supplied."
+  }
 }
 
 run "multi_dimension_alarm_only" {
@@ -125,6 +130,43 @@ run "both_alarm_types_allow_custom_periods_and_disabled_actions" {
     )
     error_message = "Both alarm inputs must support independent periods and disabled actions."
   }
+}
+
+run "ignore_missing_data_value_is_accepted" {
+  command = plan
+
+  variables {
+    metric_alarm = {
+      metric_name         = "ExampleMetric"
+      namespace           = "Example/Tests"
+      comparison_operator = "GreaterThanThreshold"
+      evaluation_periods  = 1
+      threshold           = 1
+    }
+    treat_missing_data = "ignore"
+  }
+
+  assert {
+    condition     = var.treat_missing_data == "ignore"
+    error_message = "The CloudWatch-supported ignore value must be accepted for missing data."
+  }
+}
+
+run "invalid_missing_data_value_is_rejected" {
+  command = plan
+
+  variables {
+    metric_alarm = {
+      metric_name         = "ExampleMetric"
+      namespace           = "Example/Tests"
+      comparison_operator = "GreaterThanThreshold"
+      evaluation_periods  = 1
+      threshold           = 1
+    }
+    treat_missing_data = "ignoreMetricTime"
+  }
+
+  expect_failures = [var.treat_missing_data]
 }
 
 run "at_least_one_alarm_configuration_is_required" {

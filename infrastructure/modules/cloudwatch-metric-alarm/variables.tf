@@ -77,11 +77,11 @@ variable "insufficient_data_actions" {
 
 variable "treat_missing_data" {
   type        = string
-  default     = "notBreaching"
-  description = "How to handle missing data points: 'notBreaching', 'breaching', 'missing', 'ignoreMetricTime'."
+  default     = "missing"
+  description = "How to handle missing data points: 'notBreaching', 'breaching', 'missing', or 'ignore'."
 
   validation {
-    condition     = contains(["notBreaching", "breaching", "missing", "ignoreMetricTime"], var.treat_missing_data)
-    error_message = "treat_missing_data must be one of: notBreaching, breaching, missing, ignoreMetricTime."
+    condition     = contains(["notBreaching", "breaching", "missing", "ignore"], var.treat_missing_data)
+    error_message = "treat_missing_data must be one of: notBreaching, breaching, missing, ignore."
   }
 }

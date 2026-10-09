@@ -6,7 +6,7 @@
 # screening platform baseline controls:
 #
 #   * Naming: derived from context.id + alarm suffix
-#   * Period: hardcoded to 60 seconds (enforced)
+#   * Period: defaults to 60 seconds (configurable per alarm)
 #   * Statistic: defaults to Sum (configurable per-alarm)
 #   * Actions: SNS topic ARNs optional for notifications
 #   * Enabled flag: create = module.this.enabled
