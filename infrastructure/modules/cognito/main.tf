@@ -18,7 +18,7 @@
 
 module "cognito" {
   source  = "lgallard/cognito-user-pool/aws"
-  version = "4.0.2"
+  version = "5.1.4"
 
   enabled = module.this.enabled
 
@@ -47,7 +47,7 @@ resource "aws_cognito_user" "bootstrap_users" {
 
   user_pool_id   = module.cognito.id
   username       = each.value.bcss_username
-  password       = coalesce(try(each.value.user_password, null), var.user_password)
+  password       = try(coalesce(try(each.value.user_password, null), var.user_password), null)
   message_action = var.message_action
 
   attributes = {

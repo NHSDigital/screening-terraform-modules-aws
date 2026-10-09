@@ -181,8 +181,9 @@ variable "user_email" {
 
 # tflint-ignore: terraform_unused_declarations
 variable "user_password" {
-  description = "Fallback password for bootstrap Cognito users when an individual bootstrap_users entry does not provide user_password."
+  description = "Fallback password for bootstrap Cognito users when an individual bootstrap_users entry does not provide user_password. Set to null when a caller will set passwords out of band."
   type        = string
   default     = "changeme"
   sensitive   = true
+  nullable    = true
 }

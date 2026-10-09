@@ -113,6 +113,9 @@ module "cognito" {
       rbac_role          = "[{activities=[BS-Select], activity_codes=[B1808]}]"
     },
   ]
+
+  # Set this to null when a trusted external process sets users' passwords.
+  user_password = null
 }
 ```
 
@@ -188,13 +191,13 @@ If those become required later, they can be added back with an explicit shared-r
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.68.0 |
 
 ## Modules
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_cognito"></a> [cognito](#module\_cognito) | lgallard/cognito-user-pool/aws | 4.0.2 |
+| <a name="module_cognito"></a> [cognito](#module\_cognito) | lgallard/cognito-user-pool/aws | 5.1.4 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
@@ -252,7 +255,7 @@ If those become required later, they can be added back with an explicit shared-r
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_user_email"></a> [user\_email](#input\_user\_email) | Email attribute applied to bootstrap Cognito users. | `string` | `"nhsdigital.axe@nhs.net"` | no |
-| <a name="input_user_password"></a> [user\_password](#input\_user\_password) | Fallback password for bootstrap Cognito users when an individual bootstrap\_users entry does not provide user\_password. | `string` | `"changeme"` | no |
+| <a name="input_user_password"></a> [user\_password](#input\_user\_password) | Fallback password for bootstrap Cognito users when an individual bootstrap\_users entry does not provide user\_password. Set to null when a caller will set passwords out of band. | `string` | `"changeme"` | no |
 | <a name="input_user_pool_name"></a> [user\_pool\_name](#input\_user\_pool\_name) | Override for the Cognito user pool name. Defaults to `<module.this.id>-users-pool`. | `string` | `null` | no |
 | <a name="input_user_pool_tier"></a> [user\_pool\_tier](#input\_user\_pool\_tier) | Cognito User Pool tier. LITE avoids iam:PassRole requirements from ESSENTIALS/PLUS threat-protection features. Valid values: LITE, ESSENTIALS, PLUS. | `string` | `"LITE"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
