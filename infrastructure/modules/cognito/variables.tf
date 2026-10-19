@@ -131,7 +131,7 @@ variable "create" {
 }
 
 variable "bootstrap_users" {
-  description = "Optional list of bootstrap Cognito users to create. This covers the current BCSS stack pattern where initial training or shared users are provisioned during stack deployment."
+  description = "Optional list of bootstrap Cognito users to create. This covers the current BCSS stack pattern where initial training or shared users are provisioned during stack deployment. A per-user user_password overrides var.user_password, is stored in Terraform state, and must satisfy password_policy."
   type = list(object({
     uuid               = string
     bcss_username      = string
@@ -179,11 +179,9 @@ variable "user_email" {
   default     = "nhsdigital.axe@nhs.net"
 }
 
-# tflint-ignore: terraform_unused_declarations
 variable "user_password" {
-  description = "Fallback password for bootstrap Cognito users when an individual bootstrap_users entry does not provide user_password. Set to null when a caller will set passwords out of band."
+  description = "Optional fallback password for bootstrap Cognito users when an individual bootstrap_users entry does not provide user_password. Defaults to null: Cognito generates a temporary password (user status FORCE_CHANGE_PASSWORD) and no password is stored in Terraform state, so a trusted external process (for example a Secrets Manager rotation Lambda) must set the real password. Any supplied password is stored in state and must satisfy password_policy."
   type        = string
-  default     = "changeme"
+  default     = null
   sensitive   = true
-  nullable    = true
 }

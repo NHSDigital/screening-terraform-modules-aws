@@ -19,6 +19,27 @@ locals {
     default_email_option = "CONFIRM_WITH_CODE"
   }
 
+  # Per-user password wins over var.user_password; null/empty in both leaves
+  # the password unset so Cognito generates a temporary one.
+  bootstrap_user_passwords = {
+    for user in var.bootstrap_users :
+    user.uuid => try(coalesce(user.user_password, var.user_password), null)
+  }
+
+  # Approximates Cognito's server-side password policy check so weak
+  # passwords fail at plan time. Cognito's maximum password length is 256.
+  bootstrap_user_passwords_meet_policy = alltrue([
+    for password in values(local.bootstrap_user_passwords) :
+    password == null ? true : (
+      length(password) >= var.password_policy.minimum_length &&
+      length(password) <= 256 &&
+      (!var.password_policy.require_lowercase || can(regex("[a-z]", password))) &&
+      (!var.password_policy.require_uppercase || can(regex("[A-Z]", password))) &&
+      (!var.password_policy.require_numbers || can(regex("[0-9]", password))) &&
+      (!var.password_policy.require_symbols || can(regex("[^A-Za-z0-9]", password)))
+    )
+  ])
+
   default_string_schemas = [
     for attribute_name in var.attribute_names : {
       attribute_data_type      = "String"

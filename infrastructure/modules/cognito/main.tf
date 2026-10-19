@@ -11,9 +11,12 @@
 #   * Schema changes ignored after initial deployment
 #   * Resources tagged via module.this.tags
 #   * Creation gated by module.this.enabled
+#   * Bootstrap user passwords optional and checked against
+#     the password policy
 #
 # Naming and tagging are derived from context.tf via module.this.
 # Derived locals (naming, client config) are defined in locals.tf.
+# Cross-variable input constraints are enforced in validations.tf.
 ################################################################
 
 module "cognito" {
@@ -47,7 +50,7 @@ resource "aws_cognito_user" "bootstrap_users" {
 
   user_pool_id   = module.cognito.id
   username       = each.value.bcss_username
-  password       = try(coalesce(try(each.value.user_password, null), var.user_password), null)
+  password       = local.bootstrap_user_passwords[each.key]
   message_action = var.message_action
 
   attributes = {
@@ -61,4 +64,8 @@ resource "aws_cognito_user" "bootstrap_users" {
     sid               = each.value.uuid
     uid               = each.value.uuid
   }
+
+  # Run the password policy check first; the provider's own length
+  # validation would otherwise fail first and echo the password in its error.
+  depends_on = [terraform_data.validations]
 }
