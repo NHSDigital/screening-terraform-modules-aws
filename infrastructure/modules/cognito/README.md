@@ -1,7 +1,7 @@
 # Cognito
 
 NHS Screening wrapper around the community
-[`lgallard/cognito-user-pool/aws`](https://registry.terraform.io/modules/lgallard/cognito-user-pool/aws/4.0.2)
+[`lgallard/cognito-user-pool/aws`](https://registry.terraform.io/modules/lgallard/cognito-user-pool/aws/5.1.4)
 module that enforces the platform's baseline controls and consumes
 the shared `context.tf` for naming and tagging.
 
@@ -11,7 +11,7 @@ Secrets Manager password flow.
 
 ## Design choices
 
-* Uses the upstream `lgallard/cognito-user-pool/aws` module pinned to `4.0.2`
+* Uses the upstream `lgallard/cognito-user-pool/aws` module pinned to `5.1.4`
 * Derives the user pool name from `var.user_pool_name`, falling back to
   `<module.this.id>-users-pool`
 * Creates a Cognito domain by default, following the prior module behaviour
@@ -22,6 +22,8 @@ Secrets Manager password flow.
   and `identity_providers` inputs directly
 * Supports optional bootstrap user creation because the current BCSS Cognito
   stacks still provision initial users during stack deployment
+* Doesn't ship a default bootstrap user password: unless one is supplied,
+  Cognito generates a temporary password and none is stored in Terraform state
 
 ## Usage
 
@@ -104,7 +106,8 @@ module "cognito" {
       bcss_username      = "training.user.1"
       id_assurance_level = "3"
       rbac_role          = "[{activities=[BS-Select], activity_codes=[B1808]}]"
-      user_password      = "InitialPass1!"
+      # Must satisfy password_policy; stored in Terraform state.
+      user_password = var.training_user_1_password
     },
     {
       uuid               = "22222222-2222-2222-2222-222222222222"
@@ -113,8 +116,30 @@ module "cognito" {
       rbac_role          = "[{activities=[BS-Select], activity_codes=[B1808]}]"
     },
   ]
+
+  # Default: no fallback password. training.user.2 gets a Cognito-generated
+  # temporary password that a trusted external process must replace.
+  user_password = null
 }
 ```
+
+### Bootstrap user passwords
+
+Each bootstrap user's password is resolved in this order:
+
+1. `bootstrap_users[*].user_password`, if set and non-empty
+2. `user_password` (the fallback), if set and non-empty
+3. Otherwise no password is sent. Cognito generates a temporary password and
+   the user is created in `FORCE_CHANGE_PASSWORD` status
+
+Option 3 is the default and is recommended: no password is stored in Terraform
+state. With the default `message_action = "SUPPRESS"` nobody receives the
+temporary password, so a trusted process (for example a Secrets Manager
+rotation Lambda calling `AdminSetUserPassword`) must set the real password
+before the user can sign in.
+
+Any password you supply is stored in Terraform state and must satisfy
+`password_policy`. See [Validation](#validation).
 
 ## Conventions
 
@@ -173,6 +198,30 @@ The wrapper does not directly expose the upstream generic inputs for:
 
 If those become required later, they can be added back with an explicit shared-resources use case.
 
+## Validation
+
+The following constraint is enforced at `plan` time via a precondition in `validations.tf`:
+
+* **Bootstrap password policy**: every supplied bootstrap user password
+  (`bootstrap_users[*].user_password` or the `user_password` fallback) must
+  meet `password_policy`: `minimum_length`, plus lowercase, uppercase, number,
+  and symbol characters where required. It must also be at most 256 characters.
+  Any non-alphanumeric character counts as a symbol, which approximates
+  Cognito's own symbol list. Bootstrap users depend on this check, so a weak
+  password fails with a module error rather than an AWS provider error that
+  would print the password.
+
+## Testing
+
+```bash
+make terraform-test module=cognito
+```
+
+Tests in `tests/cognito.tftest.hcl` use `mock_provider` with `command = plan`.
+They cover password resolution, the policy check, the disabled module, and the
+existing `bootstrap_users` and `app_clients` validations. They aren't wired into
+CI workflows yet.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -188,13 +237,14 @@ If those become required later, they can be added back with an explicit shared-r
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.50.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.68.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_cognito"></a> [cognito](#module\_cognito) | lgallard/cognito-user-pool/aws | 4.0.2 |
+| <a name="module_cognito"></a> [cognito](#module\_cognito) | lgallard/cognito-user-pool/aws | 5.1.4 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
@@ -202,6 +252,7 @@ If those become required later, they can be added back with an explicit shared-r
 | Name | Type |
 | ---- | ---- |
 | [aws_cognito_user.bootstrap_users](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cognito_user) | resource |
+| [terraform_data.validations](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
 ## Inputs
@@ -217,7 +268,7 @@ If those become required later, they can be added back with an explicit shared-r
 | <a name="input_attribute_names"></a> [attribute\_names](#input\_attribute\_names) | Compatibility list of simple string schema attributes. Used to derive string\_schemas when string\_schemas is empty. | `list(string)` | <pre>[<br/>  "acr",<br/>  "amr",<br/>  "email",<br/>  "idassurancelevel",<br/>  "nhsid_nrbac_roles",<br/>  "bcss_username",<br/>  "sid",<br/>  "uid"<br/>]</pre> | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
-| <a name="input_bootstrap_users"></a> [bootstrap\_users](#input\_bootstrap\_users) | Optional list of bootstrap Cognito users to create. This covers the current BCSS stack pattern where initial training or shared users are provisioned during stack deployment. | <pre>list(object({<br/>    uuid               = string<br/>    bcss_username      = string<br/>    id_assurance_level = string<br/>    rbac_role          = string<br/>    user_password      = optional(string)<br/>  }))</pre> | `[]` | no |
+| <a name="input_bootstrap_users"></a> [bootstrap\_users](#input\_bootstrap\_users) | Optional list of bootstrap Cognito users to create. This covers the current BCSS stack pattern where initial training or shared users are provisioned during stack deployment. A per-user user\_password overrides var.user\_password, is stored in Terraform state, and must satisfy password\_policy. | <pre>list(object({<br/>    uuid               = string<br/>    bcss_username      = string<br/>    id_assurance_level = string<br/>    rbac_role          = string<br/>    user_password      = optional(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_create"></a> [create](#input\_create) | Determines whether Cognito resources will be created. | `bool` | `true` | no |
 | <a name="input_data_classification"></a> [data\_classification](#input\_data\_classification) | Used to identify the data classification of the resource, e.g 1-5 | `string` | `"n/a"` | no |
@@ -252,7 +303,7 @@ If those become required later, they can be added back with an explicit shared-r
 | <a name="input_terraform_source"></a> [terraform\_source](#input\_terraform\_source) | Source location to record in the Terraform\_source tag. Defaults to the caller module path when not set. | `string` | `null` | no |
 | <a name="input_tool"></a> [tool](#input\_tool) | The tool used to deploy the resource | `string` | `"Terraform"` | no |
 | <a name="input_user_email"></a> [user\_email](#input\_user\_email) | Email attribute applied to bootstrap Cognito users. | `string` | `"nhsdigital.axe@nhs.net"` | no |
-| <a name="input_user_password"></a> [user\_password](#input\_user\_password) | Fallback password for bootstrap Cognito users when an individual bootstrap\_users entry does not provide user\_password. | `string` | `"changeme"` | no |
+| <a name="input_user_password"></a> [user\_password](#input\_user\_password) | Optional fallback password for bootstrap Cognito users when an individual bootstrap\_users entry does not provide user\_password. Defaults to null: Cognito generates a temporary password (user status FORCE\_CHANGE\_PASSWORD) and no password is stored in Terraform state, so a trusted external process (for example a Secrets Manager rotation Lambda) must set the real password. Any supplied password is stored in state and must satisfy password\_policy. | `string` | `null` | no |
 | <a name="input_user_pool_name"></a> [user\_pool\_name](#input\_user\_pool\_name) | Override for the Cognito user pool name. Defaults to `<module.this.id>-users-pool`. | `string` | `null` | no |
 | <a name="input_user_pool_tier"></a> [user\_pool\_tier](#input\_user\_pool\_tier) | Cognito User Pool tier. LITE avoids iam:PassRole requirements from ESSENTIALS/PLUS threat-protection features. Valid values: LITE, ESSENTIALS, PLUS. | `string` | `"LITE"` | no |
 | <a name="input_workspace"></a> [workspace](#input\_workspace) | ID element. The Terraform workspace, to help ensure generated IDs are unique across workspaces | `string` | `null` | no |
