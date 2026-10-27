@@ -1,15 +1,7 @@
 locals {
   # allow bus name to be overridden without touching tags
-  bus_name = (
-    # `module.this.id` is `""` (an error) when `module.this.enabled` is false
-    # `coalesce()` errors if all arguments are null
-    module.this.enabled
-    ? coalesce(
-      var.bus_name,
-      module.this.enabled ? module.this.id : null,
-    )
-    : null
-  )
+  # The child still looks up a bus when disabled, so always pass an existing bus name.
+  bus_name = coalesce(var.bus_name, module.this.enabled ? module.this.id : "default")
 
   # The community module otherwise names the role after the bus, giving "default" on the default bus.
   role_name = module.this.enabled ? coalesce(var.role_name, module.this.id) : null

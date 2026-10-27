@@ -150,6 +150,38 @@ With a context ID of `bcss-test-application-integration-3`, this creates the gro
 `bcss-test-application-integration-3-hours-oracle-stop`, and the role
 `/bcss/bcss/test/bcss-test-application-integration-3-hours`.
 
+### Bus name behaviour when disabled
+
+`enabled = false` prevents the module from creating resources, but the wrapped
+EventBridge module still looks up a bus. The named bus must therefore already
+exist in the configured AWS account and region, and the caller must be allowed
+to describe it. `create_bus = false` also looks up the named bus rather than
+creating one.
+
+The `bus_name` fallback depends on whether the module is enabled:
+
+- When enabled, an omitted `bus_name` defaults to the context ID. Set
+    `create_bus = false` and `bus_name = "default"` to use the existing default
+    bus, as in the scheduler example above.
+- When disabled, an omitted `bus_name` defaults to `"default"`. Set
+    `bus_name` to another name only when that existing bus should be looked up.
+- An explicitly supplied `bus_name` is retained in either mode.
+
+For example, this disables resource creation while retaining a valid lookup of
+the existing default bus:
+
+    module "optional_events" {
+        source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/eventbridge?ref=<approved-release>"
+
+        service     = "bcss"
+        environment = "test"
+        name        = "optional-events"
+        enabled     = false
+
+        create_bus = false
+        bus_name   = "default"
+    }
+
 ## Conventions
 
 - Pass a pinned release ref and supply the required customer-managed KMS keys.
@@ -230,7 +262,7 @@ Wildcards and aliases are not accepted for this policy.
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
 | <a name="input_bus_description"></a> [bus\_description](#input\_bus\_description) | Event bus description | `string` | `null` | no |
-| <a name="input_bus_name"></a> [bus\_name](#input\_bus\_name) | A unique name for your EventBridge Bus. Must be unique per AWS account and region. Defaults to whatever the tags module produces | `string` | `null` | no |
+| <a name="input_bus_name"></a> [bus\_name](#input\_bus\_name) | Name of the EventBridge bus. Defaults to the context ID when enabled and to the existing default bus when disabled. Must be unique per AWS account and region when creating a bus. | `string` | `null` | no |
 | <a name="input_cloudwatch_target_arns"></a> [cloudwatch\_target\_arns](#input\_cloudwatch\_target\_arns) | The Amazon Resource Name (ARN) of the Cloudwatch Log Streams you want to use as EventBridge targets | `list(string)` | `[]` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
 | <a name="input_create_archives"></a> [create\_archives](#input\_create\_archives) | Controls whether EventBridge Archive resources should be created | `bool` | `false` | no |

@@ -38,6 +38,33 @@ variables {
   }
 }
 
+run "disabled_module_keeps_existing_bus_name" {
+  command = plan
+
+  variables {
+    enabled = false
+  }
+
+  assert {
+    condition     = local.bus_name == "default"
+    error_message = "A disabled module must still pass the existing bus name to the child lookup."
+  }
+}
+
+run "disabled_module_defaults_bus_name" {
+  command = plan
+
+  variables {
+    enabled  = false
+    bus_name = null
+  }
+
+  assert {
+    condition     = local.bus_name == "default"
+    error_message = "A disabled module without an explicit bus name must use the default bus."
+  }
+}
+
 run "schedule_names_are_context_prefixed" {
   command = plan
 
