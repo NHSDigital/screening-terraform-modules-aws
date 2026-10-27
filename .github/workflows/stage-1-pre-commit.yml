@@ -55,7 +55,7 @@ jobs:
       # Install prerequisites from version files (.tool-versions/.tool-versions.yml)
       # ------------------------------------------------------------------
       - name: "Set up mise"
-        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
+        uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
 
       - name: "Generate .tool-versions from .tool-versions.yml (fallback)"
         shell: bash
