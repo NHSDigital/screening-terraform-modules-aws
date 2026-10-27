@@ -113,7 +113,7 @@ variable "append_pipe_postfix" {
 ################################################################
 
 variable "bus_name" {
-  description = "A unique name for your EventBridge Bus. Must be unique per AWS account and region. Defaults to whatever the tags module produces"
+  description = "Name of the EventBridge bus. Defaults to the context ID when enabled and to the existing default bus when disabled. Must be unique per AWS account and region when creating a bus."
   type        = string
   nullable    = true
   default     = null
