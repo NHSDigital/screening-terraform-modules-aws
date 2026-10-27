@@ -42,12 +42,13 @@ run "disabled_module_keeps_existing_bus_name" {
   command = plan
 
   variables {
-    enabled = false
+    enabled  = false
+    bus_name = "existing-bus"
   }
 
   assert {
-    condition     = local.bus_name == "default"
-    error_message = "A disabled module must still pass the existing bus name to the child lookup."
+    condition     = local.bus_name == var.bus_name
+    error_message = "A disabled module must preserve the explicitly configured bus name for the child lookup."
   }
 }
 
