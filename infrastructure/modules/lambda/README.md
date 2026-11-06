@@ -6,7 +6,9 @@ NHS Screening wrapper around the community [`terraform-aws-modules/lambda/aws`](
 
 | Control | How it is enforced |
 | --- | --- |
-| IAM execution role | Automatically attaches AWS-managed policies for VPC access, CloudWatch Logs, and SQS execution |
+| IAM execution role | Creates a Lambda execution role and, by default, attaches the wrapper's four legacy AWS-managed policies |
+| CloudWatch Logs permissions | Upstream CloudWatch Logs policy is enabled by default and has a separate `attach_cloudwatch_logs_policy` toggle |
+| Custom execution permissions | Optional inline policy; managed-policy attachments can be disabled for least-privilege functions |
 | Tagging and naming | Uses shared `context.tf` (`module.this`) for tags and naming |
 | Resource enable/disable | Creation gated by `module.this.enabled` |
 | Source path convention | Defaults to `../../lambdas/<handler_prefix>/` for consistent repo layout |
@@ -29,6 +31,44 @@ module "lambda_processor" {
   python_version       = "python3.12"
 }
 ```
+
+### Lambda with a custom execution policy
+
+```hcl
+module "runtime_secret_reader" {
+  source = "git::https://github.com/NHSDigital/screening-terraform-modules-aws.git//infrastructure/modules/lambda?ref=<tag>"
+
+  service     = "bcss"
+  project     = "observability"
+  environment = "prod"
+  name        = "otel-forwarder"
+
+  function_name          = "bcss-prod-otel-forwarder"
+  handler_prefix          = "function"
+  handler                 = "function.handler"
+  function_description    = "Forward telemetry to an OTLP collector"
+  python_version          = "python3.12"
+  attach_default_policies = false
+  attach_cloudwatch_logs_policy = false
+  execution_policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = ["arn:aws:secretsmanager:eu-west-2:123456789012:secret:otel-token-*"]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+        Resource = ["arn:aws:logs:eu-west-2:123456789012:log-group:/aws/lambda/bcss-prod-otel-forwarder:*"]
+      }
+    ]
+  })
+}
+```
+
+When disabling the CloudWatch Logs policy, pre-create the matching log group (preferably with the `cloudwatch-logs` wrapper) and scope log-write actions to its ARN. This example uses an explicit `function_name` so that ARN is predictable.
 
 ### Lambda with VPC and environment variables
 
@@ -90,14 +130,15 @@ module "lambda_with_layers" {
 - `handler_prefix` is required and determines the Lambda handler entry point (`<handler_prefix>.lambda_handler`).
 - `function_description` is required for documentation and compliance.
 - `function_name` is optional; if omitted, the module uses the generated context ID (`module.this.id`).
-- `python_version` defaults to `python3.11`; explicitly set it to pin runtime version.
+- `python_version` is required; choose a supported runtime such as `python3.12`.
 - `source_path` defaults to `../../lambdas/<handler_prefix>/` relative to the module; override for custom layouts.
-- `timeout` defaults to `3` seconds; increase for long-running functions.
+- `timeout` defaults to `120` seconds; reduce it for short-running functions where appropriate.
 - The module automatically attaches four AWS-managed IAM policies:
   - `AWSLambdaVPCAccessExecutionRole` (VPC networking)
   - `AWSLambdaBasicExecutionRole` (CloudWatch Logs)
   - `AmazonAPIGatewayPushToCloudWatchLogs` (API Gateway integration)
   - `AWSLambdaSQSQueueExecutionRole` (SQS polling)
+- Set `attach_default_policies = false` to disable the wrapper's four legacy AWS-managed policy attachments. Set `attach_cloudwatch_logs_policy = false` separately to disable the upstream module's default logs policy; when doing so, include scoped log-write permissions in `execution_policy_json` and pre-create the log group. Both toggles default to `true` for backwards compatibility.
 - Use the `layers` input to attach Lambda layers; provide full ARNs including version.
 - `vpc_subnet_ids` and `vpc_security_group_ids` are optional; omit for non-VPC functions.
 
@@ -137,6 +178,7 @@ module "lambda_with_layers" {
 
 | Name | Type |
 | ---- | ---- |
+| [aws_iam_role_policy.execution](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy_attachment.lambda_to_cw_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.push_to_cloudwatch](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.sqs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
@@ -148,6 +190,8 @@ module "lambda_with_layers" {
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
+| <a name="input_attach_cloudwatch_logs_policy"></a> [attach\_cloudwatch\_logs\_policy](#input\_attach\_cloudwatch\_logs\_policy) | Whether the upstream Lambda module attaches its default CloudWatch Logs policy. Disable this when log permissions are included in execution\_policy\_json. | `bool` | `true` | no |
+| <a name="input_attach_default_policies"></a> [attach\_default\_policies](#input\_attach\_default\_policies) | Whether to attach the four legacy AWS-managed execution policies. Disable this when supplying a least-privilege execution\_policy\_json. | `bool` | `true` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region | `string` | `"eu-west-2"` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "project": null,<br/>  "regex_replace_chars": null,<br/>  "region": null,<br/>  "service": null,<br/>  "stack": null,<br/>  "tags": {},<br/>  "terraform_source": null,<br/>  "workspace": null<br/>}</pre> | no |
@@ -158,8 +202,10 @@ module "lambda_with_layers" {
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used to indicate role, e.g. 'prd', 'dev', 'test', 'preprod', 'prod', 'uat' | `string` | `null` | no |
 | <a name="input_environment_variables"></a> [environment\_variables](#input\_environment\_variables) | Values to set in the Lambda function environment | `map(string)` | `{}` | no |
+| <a name="input_execution_policy_json"></a> [execution\_policy\_json](#input\_execution\_policy\_json) | Optional JSON IAM policy document attached inline to the Lambda execution role. | `string` | `null` | no |
 | <a name="input_function_description"></a> [function\_description](#input\_function\_description) | The description for the Lambda function | `string` | n/a | yes |
 | <a name="input_function_name"></a> [function\_name](#input\_function\_name) | Optional explicit name for the Lambda function. When null, the module uses module.this.id from context.tf. | `string` | `null` | no |
+| <a name="input_handler"></a> [handler](#input\_handler) | Optional fully qualified Lambda handler. When null, the module uses <handler\_prefix>.lambda\_handler. | `string` | `null` | no |
 | <a name="input_handler_prefix"></a> [handler\_prefix](#input\_handler\_prefix) | The prefix for the Lambda handler function | `string` | n/a | yes |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br/>Set to `0` for unlimited length.<br/>Set to `null` for keep the existing setting, which defaults to `0`.<br/>Does not affect `id_full`. | `number` | `null` | no |
 | <a name="input_label_key_case"></a> [label\_key\_case](#input\_label\_key\_case) | Controls the letter case of the `tags` keys (label names) for tags generated by this module.<br/>Does not affect keys of tags passed in via the `tags` input.<br/>Possible values: `lower`, `title`, `upper`.<br/>Default value: `title`. | `string` | `null` | no |

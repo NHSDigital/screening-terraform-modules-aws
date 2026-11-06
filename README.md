@@ -329,8 +329,13 @@ Rules:
 | `aws-backup-source` | — | AWS Backup source configuration |
 | `aws-scheduler` | — | EventBridge Scheduler configuration |
 | `cloudwatch-log-metric-filter` | terraform-aws-modules/cloudwatch/aws | CloudWatch log metric filters (emits metrics from log patterns) |
+| `cloudwatch-log-subscription-controller` | Screening modules (EventBridge, Lambda) | Automatically enrol matching CloudWatch log groups in a subscription filter |
+| `cloudwatch-log-subscription-filter` | terraform-aws-modules/cloudwatch/aws | CloudWatch Logs subscription filter for a Lambda destination |
 | `cloudwatch-logs` | terraform-aws-modules/cloudwatch/aws | CloudWatch log groups and streams |
+| `cloudwatch-logs-to-otlp` | Screening modules (CloudWatch Logs, Firehose, Lambda, EventBridge) | CloudWatch Logs to OTLP pipeline for existing and future log groups |
 | `cloudwatch-metric-alarm` | terraform-aws-modules/cloudwatch/aws | CloudWatch metric alarms (single and multi-dimension) |
+| `cloudwatch-metric-stream` | terraform-aws-modules/cloudwatch/aws | CloudWatch metric stream with screening IAM role integration |
+| `cloudwatch-metrics-to-otlp` | Screening modules (CloudWatch Metric Stream, Firehose, Lambda) | CloudWatch Metrics to OTLP pipeline using metric streams and Firehose |
 | `cognito` | — | Cognito user and identity pools |
 | `cw-firehose-splunk` | — | CloudWatch logs to Splunk via Firehose |
 | `dynamodb` | terraform-aws-modules/dynamodb-table/aws | DynamoDB table with PITR, encryption at rest, and deletion protection |
@@ -341,6 +346,7 @@ Rules:
 | `efs` | terraform-aws-modules/efs/aws | EFS file system with access points and mount targets |
 | `elasticache` | — | ElastiCache cluster (Redis/Memcached) |
 | `eventbridge` | terraform-aws-modules/eventbridge/aws | AWS EventBridge Resources |
+| `firehose-extended-s3` | Native resources | Kinesis Data Firehose delivery stream to an encrypted S3 bucket |
 | `github-config` | — | GitHub OIDC provider and runner configuration |
 | `guardduty` | — | GuardDuty threat detection |
 | `iam` | terraform-aws-modules/iam/aws | IAM policies and roles |

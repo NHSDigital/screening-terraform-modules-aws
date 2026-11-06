@@ -9,19 +9,28 @@ module "lambda_function" {
 
   create = module.this.enabled
 
-  function_name          = local.function_name
-  description            = var.function_description
-  handler                = "${var.handler_prefix}.lambda_handler"
-  runtime                = var.python_version
-  source_path            = var.source_path != null ? var.source_path : "../../lambdas/${var.handler_prefix}/"
-  timeout                = var.timeout
-  layers                 = var.layers
-  environment_variables  = var.environment_variables
-  vpc_subnet_ids         = var.vpc_subnet_ids
-  vpc_security_group_ids = var.vpc_security_group_ids
+  function_name                 = local.function_name
+  description                   = var.function_description
+  handler                       = var.handler != null ? var.handler : "${var.handler_prefix}.lambda_handler"
+  runtime                       = var.python_version
+  source_path                   = var.source_path != null ? var.source_path : "../../lambdas/${var.handler_prefix}/"
+  timeout                       = var.timeout
+  layers                        = var.layers
+  environment_variables         = var.environment_variables
+  vpc_subnet_ids                = var.vpc_subnet_ids
+  vpc_security_group_ids        = var.vpc_security_group_ids
+  attach_cloudwatch_logs_policy = var.attach_cloudwatch_logs_policy
 
   # Tags — automatically populated from context
   tags = module.this.tags
+}
+
+resource "aws_iam_role_policy" "execution" {
+  count = module.this.enabled && var.execution_policy_json != null ? 1 : 0
+
+  name   = "${local.function_name}-execution"
+  role   = module.lambda_function.lambda_role_name
+  policy = var.execution_policy_json
 }
 
 ###############
@@ -29,25 +38,25 @@ module "lambda_function" {
 ###############
 
 resource "aws_iam_role_policy_attachment" "vpc_access_execution" {
-  count      = module.this.enabled ? 1 : 0
+  count      = module.this.enabled && var.attach_default_policies ? 1 : 0
   role       = module.lambda_function.lambda_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_to_cw_policy" {
-  count      = module.this.enabled ? 1 : 0
+  count      = module.this.enabled && var.attach_default_policies ? 1 : 0
   role       = module.lambda_function.lambda_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 resource "aws_iam_role_policy_attachment" "push_to_cloudwatch" {
-  count      = module.this.enabled ? 1 : 0
+  count      = module.this.enabled && var.attach_default_policies ? 1 : 0
   role       = module.lambda_function.lambda_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
 resource "aws_iam_role_policy_attachment" "sqs" {
-  count      = module.this.enabled ? 1 : 0
+  count      = module.this.enabled && var.attach_default_policies ? 1 : 0
   role       = module.lambda_function.lambda_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
 }

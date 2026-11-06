@@ -41,13 +41,33 @@ cloudwatch-log-metric-filter:
   description: "CloudWatch log metric filters (emits metrics from log patterns)"
   wraps: "terraform-aws-modules/cloudwatch/aws"
 
+cloudwatch-log-subscription-controller:
+  description: "Automatically enrol matching CloudWatch log groups in a subscription filter"
+  wraps: "Screening modules (EventBridge, Lambda)"
+
+cloudwatch-log-subscription-filter:
+  description: "CloudWatch Logs subscription filter for a Lambda destination"
+  wraps: "terraform-aws-modules/cloudwatch/aws"
+
 cloudwatch-logs:
   description: "CloudWatch log groups and streams"
   wraps: "terraform-aws-modules/cloudwatch/aws"
 
+cloudwatch-logs-to-otlp:
+  description: "CloudWatch Logs to OTLP pipeline for existing and future log groups"
+  wraps: "Screening modules (CloudWatch Logs, Firehose, Lambda, EventBridge)"
+
 cloudwatch-metric-alarm:
   description: "CloudWatch metric alarms (single and multi-dimension)"
   wraps: "terraform-aws-modules/cloudwatch/aws"
+
+cloudwatch-metric-stream:
+  description: "CloudWatch metric stream with screening IAM role integration"
+  wraps: "terraform-aws-modules/cloudwatch/aws"
+
+cloudwatch-metrics-to-otlp:
+  description: "CloudWatch Metrics to OTLP pipeline using metric streams and Firehose"
+  wraps: "Screening modules (CloudWatch Metric Stream, Firehose, Lambda)"
 
 cognito:
   description: "Cognito user and identity pools"
@@ -84,6 +104,10 @@ elasticache:
 eventbridge:
   description: "AWS EventBridge Resources"
   wraps: "terraform-aws-modules/eventbridge/aws"
+
+firehose-extended-s3:
+  description: "Kinesis Data Firehose delivery stream to an encrypted S3 bucket"
+  wraps: "Native resources"
 
 github-config:
   description: "GitHub OIDC provider and runner configuration"

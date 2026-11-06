@@ -19,6 +19,12 @@ variable "handler_prefix" {
   type        = string
 }
 
+variable "handler" {
+  description = "Optional fully qualified Lambda handler. When null, the module uses <handler_prefix>.lambda_handler."
+  type        = string
+  default     = null
+}
+
 variable "function_description" {
   description = "The description for the Lambda function"
   type        = string
@@ -52,6 +58,29 @@ variable "timeout" {
   description = "Timeout for the Lambda function in seconds"
   type        = number
   default     = 120
+}
+
+variable "attach_default_policies" {
+  description = "Whether to attach the four legacy AWS-managed execution policies. Disable this when supplying a least-privilege execution_policy_json."
+  type        = bool
+  default     = true
+}
+
+variable "attach_cloudwatch_logs_policy" {
+  description = "Whether the upstream Lambda module attaches its default CloudWatch Logs policy. Disable this when log permissions are included in execution_policy_json."
+  type        = bool
+  default     = true
+}
+
+variable "execution_policy_json" {
+  description = "Optional JSON IAM policy document attached inline to the Lambda execution role."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.execution_policy_json == null || can(jsondecode(var.execution_policy_json))
+    error_message = "execution_policy_json must be valid JSON when specified."
+  }
 }
 
 variable "source_path" {
