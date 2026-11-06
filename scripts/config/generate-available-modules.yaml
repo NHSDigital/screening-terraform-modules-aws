@@ -53,6 +53,10 @@ cloudwatch-logs:
   description: "CloudWatch log groups and streams"
   wraps: "terraform-aws-modules/cloudwatch/aws"
 
+cloudwatch-logs-to-otlp:
+  description: "CloudWatch Logs to OTLP pipeline for existing and future log groups"
+  wraps: "Screening modules (CloudWatch Logs, Firehose, Lambda, EventBridge)"
+
 cloudwatch-metric-alarm:
   description: "CloudWatch metric alarms (single and multi-dimension)"
   wraps: "terraform-aws-modules/cloudwatch/aws"
@@ -60,6 +64,10 @@ cloudwatch-metric-alarm:
 cloudwatch-metric-stream:
   description: "CloudWatch metric stream with screening IAM role integration"
   wraps: "terraform-aws-modules/cloudwatch/aws"
+
+cloudwatch-metrics-to-otlp:
+  description: "CloudWatch Metrics to OTLP pipeline using metric streams and Firehose"
+  wraps: "Screening modules (CloudWatch Metric Stream, Firehose, Lambda)"
 
 cognito:
   description: "Cognito user and identity pools"
