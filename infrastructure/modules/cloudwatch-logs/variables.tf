@@ -11,7 +11,7 @@ variable "log_group_name" {
   default     = null
 
   validation {
-    condition     = var.log_group_name == null || can(regex("^/.*$"), var.log_group_name)
+    condition     = var.log_group_name == null || can(regex("^/.*$", var.log_group_name))
     error_message = "log_group_name must start with a forward slash, e.g. \"/bcss/website/prod/network/loadbalancer\"."
   }
 }
