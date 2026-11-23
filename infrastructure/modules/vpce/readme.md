@@ -1,5 +1,19 @@
 # VPC Endpoints
 
+## Provider acceptance
+
+The module does not accept requests on behalf of a remote service provider.
+`vpce_id` and `vpce_state` expose the connection request for the provider to
+accept. `vpce_dns_name` and `vpce_hosted_zone_id` return `null` until the
+endpoint is `available` and has DNS entries.
+
+For services requiring manual acceptance, leave `hosted_zone_name` and
+`hosted_zone_id` empty during the first apply and disable downstream DNS
+registration using an explicit input. After the provider accepts the request,
+enable registration and run a fresh plan to refresh the endpoint. Do not use
+computed endpoint state as a resource `count` or `for_each` key: that state
+is unknown when planning a new endpoint.
+
 <!-- vale off -->
 <!-- markdownlint-disable -->
 <!-- BEGIN_TF_DOCS -->
@@ -53,8 +67,10 @@ No modules.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_vpce_arn"></a> [vpce\_arn](#output\_vpce\_arn) | ARN of the VPC interface endpoint |
-| <a name="output_vpce_dns_name"></a> [vpce\_dns\_name](#output\_vpce\_dns\_name) | DNS name of the VPC interface endpoint |
-| <a name="output_vpce_hosted_zone_id"></a> [vpce\_hosted\_zone\_id](#output\_vpce\_hosted\_zone\_id) | Hosted zone ID for the VPC interface endpoint DNS |
+| <a name="output_vpce_dns_name"></a> [vpce\_dns\_name](#output\_vpce\_dns\_name) | DNS name of the VPC interface endpoint, or null until available with DNS entries |
+| <a name="output_vpce_hosted_zone_id"></a> [vpce\_hosted\_zone\_id](#output\_vpce\_hosted\_zone\_id) | Hosted zone ID for the VPC interface endpoint DNS, or null until available with DNS entries |
+| <a name="output_vpce_id"></a> [vpce\_id](#output\_vpce\_id) | ID of the VPC interface endpoint for provider acceptance |
+| <a name="output_vpce_state"></a> [vpce\_state](#output\_vpce\_state) | Connection state of the VPC interface endpoint |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-restore -->
 <!-- vale on -->
