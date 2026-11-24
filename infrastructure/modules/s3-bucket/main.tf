@@ -17,7 +17,7 @@
 
 module "s3_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "5.14.1"
+  version = "5.18.0"
 
   create_bucket = module.this.enabled
 
@@ -51,12 +51,14 @@ module "s3_bucket" {
 
   # ----------------------------------------------------------------
   # Encryption: SSE by default; reject unencrypted or
-  # incorrectly encrypted PutObject requests.
+  # incorrectly encrypted PutObject requests. An opt-in exception
+  # supports ELB delivery without request headers while retaining
+  # equivalent denials for other principals.
   # ----------------------------------------------------------------
   server_side_encryption_configuration = local.server_side_encryption_configuration
 
-  attach_deny_unencrypted_object_uploads    = true
-  attach_deny_incorrect_encryption_headers  = true
+  attach_deny_unencrypted_object_uploads    = !var.allow_lb_log_delivery_without_encryption_headers
+  attach_deny_incorrect_encryption_headers  = !var.allow_lb_log_delivery_without_encryption_headers
   attach_deny_ssec_encrypted_object_uploads = true
   # NOTE: must be a value that is known at plan time, because the
   # upstream module uses it inside a `count` argument. Deriving it
@@ -96,8 +98,8 @@ module "s3_bucket" {
 
   # Custom bucket policy (merged by the upstream module with the
   # generated deny-statements above).
-  attach_policy = var.policy != null
-  policy        = var.policy
+  attach_policy = local.bucket_policy != null
+  policy        = local.bucket_policy
 
   tags = module.this.tags
 }

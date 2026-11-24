@@ -12,7 +12,7 @@ the shared `context.tf` for naming and tagging.
 |Ownership|`object_ownership = "BucketOwnerEnforced"` (ACLs disabled)|
 |Transport (TLS)|`attach_deny_insecure_transport_policy` + `attach_require_latest_tls_policy`|
 |Encryption at rest|SSE-S3 by default; SSE-KMS when `kms_master_key_arn` is set|
-|Encryption on PUT|Denies unencrypted, incorrect-header, SSEC and wrong-KMS-key PutObject calls|
+|Encryption on PUT|Denies unencrypted, incorrect-header, SSEC and wrong-KMS-key PutObject calls; the optional ELB delivery exception retains default SSE-S3 and denies missing headers for other principals|
 |Public access|All four S3 public-access-block toggles set to true|
 |Versioning|Enabled by default; opt out with `versioning_enabled = false`|
 |Globally unique name|Default name is `<module.this.id>-<aws_region>`|
@@ -75,6 +75,13 @@ module "log_bucket" {
 }
 ```
 
+For ALB/NLB access-log buckets that use default SSE-S3, set
+`allow_lb_log_delivery_without_encryption_headers = true` when the service
+does not send an encryption header. The wrapper keeps the missing-header deny
+for other principals and continues to deny explicit non-AES256 encryption.
+This option requires `attach_lb_log_delivery_policy = true`, no KMS key, and
+the default SSE-S3 configuration.
+
 ## Conventions
 
 * `bucket_name` defaults to `<module.this.id>-<region>` so the same Terraform
@@ -84,6 +91,10 @@ module "log_bucket" {
   buckets that will never hold business data.
 * Log-delivery policy attachments are opt-in (`false` by default) so standard
   buckets do not receive unnecessary policy statements.
+* `allow_lb_log_delivery_without_encryption_headers` is a narrowly scoped
+  exception for ALB/NLB log delivery with default SSE-S3. It requires the
+  matching delivery policy and leaves encryption-header denies in place for
+  all other principals.
 * Custom bucket policies provided via `var.policy` are merged by the upstream
   module with the platform's deny-non-TLS and deny-unencrypted statements; you
   do not need to restate those rules.
@@ -110,18 +121,25 @@ module "log_bucket" {
 
 ## Providers
 
-No providers.
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.74.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_s3_bucket"></a> [s3\_bucket](#module\_s3\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.14.1 |
+| <a name="module_s3_bucket"></a> [s3\_bucket](#module\_s3\_bucket) | terraform-aws-modules/s3-bucket/aws | 5.18.0 |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
 
 ## Resources
 
-No resources.
+| Name | Type |
+| ---- | ---- |
+| [terraform_data.lb_log_delivery_encryption_exception](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
+| [aws_iam_policy_document.lb_log_delivery_encryption_exception](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 
 ## Inputs
 
@@ -131,6 +149,7 @@ No resources.
 | <a name="input_access_log_delivery_policy_source_buckets"></a> [access\_log\_delivery\_policy\_source\_buckets](#input\_access\_log\_delivery\_policy\_source\_buckets) | Optional list of S3 bucket ARNs that are allowed to deliver S3 access logs to this bucket. | `list(string)` | `[]` | no |
 | <a name="input_access_log_delivery_policy_source_organizations"></a> [access\_log\_delivery\_policy\_source\_organizations](#input\_access\_log\_delivery\_policy\_source\_organizations) | Optional list of AWS Organisation IDs that are allowed to deliver S3 access logs to this bucket. | `list(string)` | `[]` | no |
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
+| <a name="input_allow_lb_log_delivery_without_encryption_headers"></a> [allow\_lb\_log\_delivery\_without\_encryption\_headers](#input\_allow\_lb\_log\_delivery\_without\_encryption\_headers) | Allow ELB log delivery without encryption request headers while retaining SSE-S3 bucket-default encryption and denying missing headers for other principals. Requires attach\_lb\_log\_delivery\_policy = true and the default SSE-S3 configuration. | `bool` | `false` | no |
 | <a name="input_application_role"></a> [application\_role](#input\_application\_role) | The role the application is performing | `string` | `"General"` | no |
 | <a name="input_attach_access_log_delivery_policy"></a> [attach\_access\_log\_delivery\_policy](#input\_attach\_access\_log\_delivery\_policy) | Whether to attach the S3 access log delivery policy for this bucket. | `bool` | `false` | no |
 | <a name="input_attach_cloudtrail_log_delivery_policy"></a> [attach\_cloudtrail\_log\_delivery\_policy](#input\_attach\_cloudtrail\_log\_delivery\_policy) | Whether to attach the CloudTrail log delivery policy for this bucket. | `bool` | `false` | no |
@@ -158,7 +177,7 @@ No resources.
 | <a name="input_labels_as_tags"></a> [labels\_as\_tags](#input\_labels\_as\_tags) | Set of labels (ID elements) to include as tags in the `tags` output.<br/>Default is to include all labels.<br/>Tags with empty values will not be included in the `tags` output.<br/>Set to `[]` to suppress all generated tags.<br/>**Notes:**<br/>  The value of the `name` tag, if included, will be the `id`, not the `name`.<br/>  Unlike other `null-label` inputs, the initial setting of `labels_as_tags` cannot be<br/>  changed in later chained modules. Attempts to change it will be silently ignored. | `set(string)` | <pre>[<br/>  "default"<br/>]</pre> | no |
 | <a name="input_lb_log_delivery_policy_source_organizations"></a> [lb\_log\_delivery\_policy\_source\_organizations](#input\_lb\_log\_delivery\_policy\_source\_organizations) | Optional list of AWS Organisation IDs that are allowed to deliver ALB/NLB logs to this bucket. | `list(string)` | `[]` | no |
 | <a name="input_lifecycle_rule"></a> [lifecycle\_rule](#input\_lifecycle\_rule) | List of lifecycle rules forwarded to the upstream module. | `any` | `[]` | no |
-| <a name="input_logging"></a> [logging](#input\_logging) | Map describing access-log delivery to a target bucket. Leave as<br/>`{}` to disable logging. Example:<br/>  logging = {<br/>    target\_bucket = "my-log-bucket"<br/>    target\_prefix = "s3/access-logs/"<br/>  } | `any` | `{}` | no |
+| <a name="input_logging"></a> [logging](#input\_logging) | Map describing access-log delivery to a target bucket. Leave null<br/>to disable logging. Example:<br/>  logging = {<br/>    target\_bucket = "my-log-bucket"<br/>    target\_prefix = "s3/access-logs/"<br/>  } | `any` | `null` | no |
 | <a name="input_name"></a> [name](#input\_name) | ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.<br/>This is the only ID element not also included as a `tag`.<br/>The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input. | `string` | `null` | no |
 | <a name="input_on_off_pattern"></a> [on\_off\_pattern](#input\_on\_off\_pattern) | Used to turn resources on and off based on a time pattern | `string` | `"n/a"` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | The name and or NHS.net email address of the service owner | `string` | `"None"` | no |

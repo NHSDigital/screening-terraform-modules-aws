@@ -38,4 +38,65 @@ locals {
   }
 
   server_side_encryption_configuration = length(var.server_side_encryption_configuration) > 0 ? var.server_side_encryption_configuration : local.default_sse_configuration
+
+  bucket_policy = var.allow_lb_log_delivery_without_encryption_headers ? data.aws_iam_policy_document.lb_log_delivery_encryption_exception[0].json : var.policy
+  bucket_arn    = "arn:${data.aws_partition.current.partition}:s3:::${local.bucket_name}"
+}
+
+data "aws_partition" "current" {}
+
+data "aws_iam_policy_document" "lb_log_delivery_encryption_exception" {
+  count = var.allow_lb_log_delivery_without_encryption_headers ? 1 : 0
+
+  source_policy_documents = compact([var.policy])
+
+  statement {
+    sid    = "DenyUnencryptedUploadsExceptLoadBalancerDelivery"
+    effect = "Deny"
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions   = ["s3:PutObject"]
+    resources = ["${local.bucket_arn}/*"]
+
+    condition {
+      test     = "Null"
+      variable = "s3:x-amz-server-side-encryption"
+      values   = ["true"]
+    }
+
+    condition {
+      test     = "StringNotEquals"
+      variable = "aws:PrincipalServiceName"
+      values   = ["logdelivery.elasticloadbalancing.amazonaws.com"]
+    }
+  }
+
+  statement {
+    sid    = "DenyIncorrectEncryptionHeaders"
+    effect = "Deny"
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions   = ["s3:PutObject"]
+    resources = ["${local.bucket_arn}/*"]
+
+    condition {
+      test     = "Null"
+      variable = "s3:x-amz-server-side-encryption"
+      values   = ["false"]
+    }
+
+    condition {
+      test     = "StringNotEquals"
+      variable = "s3:x-amz-server-side-encryption"
+      values   = ["AES256"]
+    }
+  }
 }
