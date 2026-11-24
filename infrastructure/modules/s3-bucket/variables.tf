@@ -43,15 +43,15 @@ variable "server_side_encryption_configuration" {
 
 variable "logging" {
   description = <<-EOT
-    Map describing access-log delivery to a target bucket. Leave as
-    `{}` to disable logging. Example:
+    Map describing access-log delivery to a target bucket. Leave null
+    to disable logging. Example:
       logging = {
         target_bucket = "my-log-bucket"
         target_prefix = "s3/access-logs/"
       }
   EOT
   type        = any
-  default     = {}
+  default     = null
 }
 
 variable "attach_access_log_delivery_policy" {
@@ -70,6 +70,13 @@ variable "attach_lb_log_delivery_policy" {
   description = "Whether to attach the ALB/NLB log delivery policy for this bucket."
   type        = bool
   default     = false
+}
+
+variable "allow_lb_log_delivery_without_encryption_headers" {
+  description = "Allow ELB log delivery without encryption request headers while retaining SSE-S3 bucket-default encryption and denying missing headers for other principals. Requires attach_lb_log_delivery_policy = true and the default SSE-S3 configuration."
+  type        = bool
+  default     = false
+  nullable    = false
 }
 
 variable "attach_cloudtrail_log_delivery_policy" {

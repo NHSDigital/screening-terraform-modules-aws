@@ -286,7 +286,7 @@ To catch configuration errors before deployment, be aware of these constraints:
 | Name | Source | Version |
 | ---- | ------ | ------- |
 | <a name="module_this"></a> [this](#module\_this) | ../tags | n/a |
-| <a name="module_waf"></a> [waf](#module\_waf) | cloudposse/waf/aws | 1.17.0 |
+| <a name="module_waf"></a> [waf](#module\_waf) | cloudposse/waf/aws | 1.18.1 |
 
 ## Resources
 
