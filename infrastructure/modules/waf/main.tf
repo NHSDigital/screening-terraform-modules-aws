@@ -9,7 +9,7 @@
 
 module "waf" {
   source  = "cloudposse/waf/aws"
-  version = "1.17.0"
+  version = "1.18.1"
 
   association_resource_arns                   = var.association_resource_arns
   byte_match_statement_rules                  = var.byte_match_statement_rules
